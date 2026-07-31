@@ -1,1 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dead Drop</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: #ffffff;
+    color: #000;
+    min-height: 100vh;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: #fff; }
+  .navbar {
+    background: rgba(249,249,249,0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #d6d6d8;
+    padding: 10px 12px 8px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .navbar .contact { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg,#8e8e93,#c7c7cc);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: 600;
+  }
+  .contact-name { font-size: 11px; color: #000; display: flex; align-items: center; gap: 4px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .sync-dot.on { background: #34c759; }
+  .sync-dot.off { background: #c7c7cc; }
+  .settings-btn { position: absolute; right: 12px; top: 12px; background: none; border: none; color: #007aff; font-size: 20px; padding: 4px; }
+  .lock-btn-top { position: absolute; left: 12px; top: 12px; background: none; border: none; color: #007aff; font-size: 13px; padding: 4px; }
+  .settings-panel { display: none; background: #f2f2f7; border-bottom: 1px solid #d6d6d8; padding: 14px 16px; }
+  .settings-panel.show { display: block; }
+  .settings-panel label { display: block; font-size: 11px; color: #6e6e73; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .settings-panel input { width: 100%; background: #fff; border: 1px solid #d6d6d8; border-radius: 8px; padding: 9px 10px; font-size: 14px; color: #000; }
+  .settings-row { display: flex; gap: 8px; margin-top: 12px; }
+  .settings-row button { flex: 1; }
+  .note { font-size: 11px; color: #8e8e93; margin-top: 10px; line-height: 1.4; }
+  .lock-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+  .lock-icon { font-size: 46px; margin-bottom: 18px; }
+  .lock-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .lock-sub { font-size: 13px; color: #8e8e93; margin-bottom: 24px; text-align: center; }
+  .lock-input { width: 100%; max-width: 280px; background: #f2f2f7; border: none; border-radius: 10px; padding: 12px 14px; font-size: 15px; margin-bottom: 14px; text-align: center; }
+  .messages { flex: 1; padding: 12px 12px 8px; overflow-y: auto; display: flex; flex-direction: column; }
+  .bubble-row { display: flex; margin-bottom: 3px; }
+  .bubble-row.mine { justify-content: flex-end; }
+  .bubble-row.theirs { justify-content: flex-start; }
+  .bubble { max-width: 75%; padding: 8px 14px; border-radius: 18px; font-size: 15.5px; line-height: 1.32; position: relative; word-break: break-word; }
+  .bubble.mine { background: #007aff; color: #fff; border-bottom-right-radius: 5px; }
+  .bubble.theirs { background: #e9e9eb; color: #000; border-bottom-left-radius: 5px; }
+  .timestamp { text-align: center; font-size: 11px; color: #8e8e93; margin: 12px 0 6px; }
+  .msg-wrap { position: relative; }
+  .del-x { position: absolute; top: -4px; background: #8e8e93; color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; line-height: 16px; padding: 0; opacity: 0.7; }
+  .bubble-row.mine .del-x { left: -20px; }
+  .bubble-row.theirs .del-x { right: -20px; }
+  .empty-state { text-align: center; color: #c7c7cc; font-size: 13px; margin-top: 40px; }
+  .input-bar { display: flex; align-items: flex-end; gap: 8px; padding: 8px 10px; border-top: 1px solid #d6d6d8; background: #fff; }
+  .input-bar textarea { flex: 1; border: 1px solid #d6d6d8; border-radius: 18px; padding: 8px 14px; font-size: 15.5px; font-family: inherit; resize: none; max-height: 100px; min-height: 36px; background: #fff; }
+  .send-btn { background: #007aff; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .send-btn:disabled { background: #c7c7cc; }
+  button { font-family: inherit; cursor: pointer; }
+  .settings-panel button.primary { background: #007aff; color: #fff; border: none; border-radius: 8px; padding: 9px; font-size: 14px; font-weight: 500; }
+  .settings-panel button.secondary { background: #e5e5ea; color: #000; border: none; border-radius: 8px; padding: 9px; font-size: 14px; }
+  .status-banner { font-size: 11.5px; text-align: center; padding: 6px; background: #fffbe6; color: #7a6100; display: none; }
+  .status-banner.show { display: block; }
+  .status-banner.err { background: #ffeceb; color: #b8291f; }
+  .status-banner.ok { background: #e8f9ee; color: #1f7a3d; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-icon">&#128274;</div>
+    <div class="lock-title">Dead Drop</div>
+    <div class="lock-sub">Enter the shared passphrase to open this conversation</div>
+    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase">
+    <button id="unlockBtn" style="background:#007aff;color:#fff;border:none;border-radius:10px;padding:11px 24px;font-size:15px;">Open</button>
+  </div>
+  <div id="mainScreen" style="display:none; flex:1; flex-direction:column;">
+    <div class="navbar">
+      <button class="lock-btn-top" id="lockBtn">Done</button>
+      <button class="settings-btn" id="settingsToggle">&#9881;</button>
+      <div class="contact">
+        <div class="avatar">DD</div>
+        <div class="contact-name">Dead Drop <span class="sync-dot off" id="syncDot"></span></div>
+      </div>
+    </div>
+    <div class="settings-panel" id="settingsPanel">
+      <label>Supabase URL</label>
+      <input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co">
+      <label>Anon / Publishable Key</label>
+      <input type="password" id="sbKey" placeholder="sb_publishable_... or anon key">
+      <label>Table Name</label>
+      <input type="text" id="sbTable" placeholder="dead_drop_messages" value="dead_drop_messages">
+      <div class="settings-row">
+        <button class="primary" id="saveSettingsBtn">Save & Connect</button>
+        <button class="secondary" id="clearSettingsBtn">Clear</button>
+      </div>
+      <div class="note">Without this, messages stay local to this device/session only. Table needs columns: id (text), ciphertext (text), iv (text), created_at (timestamptz).</div>
+    </div>
+    <div class="status-banner" id="statusBox"></div>
+    <div class="messages" id="messages"></div>
+    <div class="input-bar">
+      <textarea id="msgInput" placeholder="Message" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn">&#8593;</button>
+    </div>
+  </div>
+</div>
+<script>
+let cryptoKey = null;
+let passphrase = '';
+let messages = [];
+let sentIds = new Set();
+let sbConfig = { url: '', key: '', table: 'dead_drop_messages' };
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+function showStatus(msg, type) {
+  const box = document.getElementById('statusBox');
+  box.textContent = msg;
+  box.className = 'status-banner show ' + type;
+  setTimeout(() => { box.className = 'status-banner'; }, 3500);
+}
+function b64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function unb64(str) { return Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer; }
+
+async function deriveKey(pass) {
+  const salt = enc.encode('dead-drop-static-salt-v1');
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+async function encryptMsg(text) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, enc.encode(text));
+  return { ciphertext: b64(ciphertext), iv: b64(iv) };
+}
+async function decryptMsg(ciphertextB64, ivB64) {
+  try {
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(ivB64) }, cryptoKey, unb64(ciphertextB64));
+    return dec.decode(plain);
+  } catch (e) { return '[unable to decrypt — wrong passphrase?]'; }
+}
+function updateSyncDot() {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot ' + (sbConfig.url && sbConfig.key ? 'on' : 'off');
+}
+async function sbRequest(path, opts = {}) {
+  if (!sbConfig.url || !sbConfig.key) return null;
+  const url = sbConfig.url.replace(/\/$/, '') + '/rest/v1/' + sbConfig.table + path;
+  const headers = Object.assign({ 'apikey': sbConfig.key, 'Authorization': 'Bearer ' + sbConfig.key, 'Content-Type': 'application/json' }, opts.headers || {});
+  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  if (!res.ok) throw new Error('Supabase error: ' + res.status);
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+async function fetchMessages() {
+  if (!sbConfig.url || !sbConfig.key) { renderMessages(); return; }
+  try {
+    const data = await sbRequest('?select=*&order=created_at.asc', { method: 'GET' });
+    messages = data || [];
+    renderMessages();
+    showStatus('Synced', 'ok');
+  } catch (e) { showStatus('Sync failed: ' + e.message, 'err'); }
+}
+async function pushMessage(entry) {
+  if (!sbConfig.url || !sbConfig.key) return;
+  try {
+    await sbRequest('', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify([entry]) });
+  } catch (e) { showStatus('Not synced (local only): ' + e.message, 'err'); }
+}
+async function deleteRemote(id) {
+  if (!sbConfig.url || !sbConfig.key) return;
+  try { await sbRequest('?id=eq.' + encodeURIComponent(id), { method: 'DELETE' }); }
+  catch (e) { showStatus('Remote delete failed: ' + e.message, 'err'); }
+}
+function formatTimestamp(date) {
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  const time = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (sameDay) return 'Today ' + time;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + time;
+}
+async function renderMessages() {
+  const container = document.getElementById('messages');
+  container.innerHTML = '';
+  if (!messages.length) {
+    container.innerHTML = '<div class="empty-state">No messages yet.<br>Say hello.</div>';
+    return;
+  }
+  const sorted = [...messages].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  let lastDay = null;
+  for (const m of sorted) {
+    const plain = await decryptMsg(m.ciphertext, m.iv);
+    const date = new Date(m.created_at);
+    const dayKey = date.toDateString();
+    if (dayKey !== lastDay) {
+      const ts = document.createElement('div');
+      ts.className = 'timestamp';
+      ts.textContent = formatTimestamp(date);
+      container.appendChild(ts);
+      lastDay = dayKey;
+    }
+    const mine = sentIds.has(m.id);
+    const row = document.createElement('div');
+    row.className = 'bubble-row ' + (mine ? 'mine' : 'theirs');
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble ' + (mine ? 'mine' : 'theirs');
+    bubble.textContent = plain;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-x';
+    delBtn.textContent = '×';
+    delBtn.setAttribute('data-id', m.id);
+    wrap.appendChild(bubble);
+    wrap.appendChild(delBtn);
+    row.appendChild(wrap);
+    container.appendChild(row);
+  }
+  container.scrollTop = container.scrollHeight;
+  container.querySelectorAll('.del-x').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      messages = messages.filter(m => m.id !== id);
+      renderMessages();
+      await deleteRemote(id);
+    });
+  });
+}
+document.getElementById('unlockBtn').addEventListener('click', async () => {
+  const pass = document.getElementById('passInput').value;
+  if (!pass) return;
+  passphrase = pass;
+  cryptoKey = await deriveKey(pass);
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'flex';
+  updateSyncDot();
+  await fetchMessages();
+});
+document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('unlockBtn').click(); });
+document.getElementById('lockBtn').addEventListener('click', () => {
+  cryptoKey = null; passphrase = ''; messages = []; sentIds.clear();
+  document.getElementById('passInput').value = '';
+  document.getElementById('mainScreen').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+});
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const { ciphertext, iv } = await encryptMsg(text);
+  const id = crypto.randomUUID();
+  const entry = { id, ciphertext, iv, created_at: new Date().toISOString() };
+  sentIds.add(id);
+  messages.push(entry);
+  input.value = '';
+  input.style.height = 'auto';
+  renderMessages();
+  await pushMessage(entry);
+}
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('msgInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+document.getElementById('msgInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+document.getElementById('settingsToggle').addEventListener('click', () => {
+  document.getElementById('settingsPanel').classList.toggle('show');
+});
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  sbConfig.url = document.getElementById('sbUrl').value.trim();
+  sbConfig.key = document.getElementById('sbKey').value.trim();
+  sbConfig.table = document.getElementById('sbTable').value.trim() || 'dead_drop_messages';
+  updateSyncDot();
+  if (sbConfig.url && sbConfig.key) {
+    showStatus('Connecting...', 'ok');
+    await fetchMessages();
+  } else { showStatus('Local-only mode', 'ok'); }
+});
+document.getElementById('clearSettingsBtn').addEventListener('click', () => {
+  sbConfig = { url: '', key: '', table: 'dead_drop_messages' };
+  document.getElementById('sbUrl').value = '';
+  document.getElementById('sbKey').value = '';
+  document.getElementById('sbTable').value = 'dead_drop_messages';
+  updateSyncDot();
+  showStatus('Disconnected', 'ok');
+});
+</script>
+</body>
+</html>
 

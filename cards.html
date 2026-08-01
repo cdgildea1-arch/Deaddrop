@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>The Cards</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #14100c;
+    color: #ecdfc8;
+    font-family: -apple-system, sans-serif;
+  }
+  .lock-screen {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    padding-bottom: max(30px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .lock-icon { font-size: 44px; margin-bottom: 16px; opacity: 0.9; }
+  .lock-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.4px; font-family: Georgia, serif; }
+  .lock-sub { font-size: 13px; color: #a3906e; margin-bottom: 28px; max-width: 280px; line-height: 1.5; }
+  .lock-input {
+    width: 100%; max-width: 280px;
+    background: #241d15;
+    border: 1px solid #4a3c28;
+    color: #ecdfc8;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 16px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .lock-btn {
+    background: #b8895a;
+    color: #14100c;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 34px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .lock-error { color: #d17a6a; font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+  .gallery { display: none; padding: 20px 0 30px; }
+  .gallery.show { display: block; }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: max(6px, env(safe-area-inset-top)) 24px 10px;
+  }
+  .top-bar button {
+    background: none;
+    border: none;
+    color: #b8895a;
+    font-size: 14px;
+  }
+  .archive-title {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #b8895a;
+    margin-bottom: 2px;
+  }
+  .archive-sub { text-align: center; font-size: 22px; margin-bottom: 6px; letter-spacing: 6px; }
+  .card-counter { text-align: center; font-size: 11px; color: #6b5a45; margin-bottom: 16px; }
+
+  .carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding: 10px 24px 24px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+
+  .quote-card {
+    flex: 0 0 86%;
+    max-width: 320px;
+    scroll-snap-align: center;
+    background: #f4ecdd;
+    color: #3a3227;
+    border-radius: 14px;
+    padding: 26px 22px;
+    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    min-height: 340px;
+  }
+  .card-icons { font-size: 18px; margin-bottom: 14px; letter-spacing: 6px; }
+  .card-headline { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 16px; }
+  .card-lines { flex: 1; }
+  .card-line {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 15px;
+    line-height: 1.45;
+    margin-bottom: 10px;
+    border-left: 3px solid #d8c9a8;
+    padding-left: 10px;
+  }
+  .card-line .who { flex-shrink: 0; }
+  .card-footer {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #8a7a63;
+    font-style: italic;
+    border-top: 1px solid #d8c9a8;
+    padding-top: 12px;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .dots { display: none; }
+  .hint { text-align: center; font-size: 11px; color: #6b5a45; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-icon">🃏</div>
+    <div class="lock-title">The Cards</div>
+    <div class="lock-sub">A few lines, kept exactly as they were.</div>
+    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button id="unlockBtn" class="lock-btn">Enter</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+
+  <div id="gallery" class="gallery">
+    <div class="top-bar">
+      <button id="lockAgainBtn">🔒 Lock</button>
+      <span></span>
+    </div>
+    <div class="archive-title">THE PENGUIN ARCHIVE</div>
+    <div class="archive-sub">🐧 🧁</div>
+    <div class="card-counter" id="cardCounter"></div>
+
+    <div class="carousel" id="carousel"></div>
+    <div class="hint">← swipe through the cards →</div>
+  </div>
+
+<script>
+const PASSPHRASE = "cupcake";
+
+// Full card set, sourced from ALL CARDS.docx
+const CARDS = [
+  { headline: "Before this archive even begins, Penny wrote her own timeline of how it started.", lines: [
+    ["🐧","Timeline 10/24 first ride 11/1 you apologized for not seeing me that week 11/18 I watched Yellowstone 12/2 basically texting 5 days a week 1/4 I laid on forty 1/14 you lied to me"]
+  ], footer: "She pinned this message three separate times." },
+
+  { headline: "Twenty months. 208,998 messages. Maybe never once, cleanly, without a hedge:", lines: [
+    ["🧁","But I love you on top of me feeling your body against me."],
+    ["🧁","You said I love you… haha decently long pause"],
+    ["🧁","But the full sentence was I love you ……… being inside me."],
+    ["🐧","Hahaha you said \"I love you inside me\"??"],
+    ["🐧","You need to hear me say I love you…."]
+  ], footer: "February 17, 2025 — nine months in." },
+
+  { headline: "One month in, the first real crisis:", lines: [
+    ["🐧","I don't think I can trust you."],
+    ["🧁","I am not going to end this over text."],
+    ["🐧","I don't want to end this either."]
+  ], footer: "November 26, 2024." },
+
+  { headline: "Kept, and answered right back.", lines: [
+    ["🐧","Brad... yeah. Let's stay like this forever."],
+    ["🧁","Fuck Meredith! I need you!"],
+    ["🧁","Yes. I want to stay like this forever."],
+    ["🧁","Deal."]
+  ], footer: "January 20, 2025. Pinned by 🧁." },
+
+  { headline: "Penny wrote herself a list of rules. He's the one who pinned it.", lines: [
+    ["🐧","1. Bedtime at 9:15."],
+    ["🐧","2. Use only chess to text 2 nights a week. Or at least mostly, past 7:30."],
+    ["🐧","3. No sex."],
+    ["🐧","4. Less seeing—"]
+  ], footer: "March 4, 2025. The list cuts off there in the record. Pinned by 🧁." },
+
+  { headline: "He said it. She's the one who pinned it.", lines: [
+    ["🧁","December 8, 2023"]
+  ], footer: "April 22, 2025. What it means is not in the record. Pinned by 🐧." },
+
+  { headline: "They weren't just pinning messages. They were sorting them.", lines: [
+    ["🧁","Move sad pins to google sheet."],
+    ["🐧","Sharing about kids. Boundaries. Moving. And more questions. Review our pins."]
+  ], footer: "March 13 and 16, 2025. A greatest-hits archive, built by them, before this one existed. Pinned by 🧁." },
+
+  { headline: "Pinned the same day as the grandmother, the fight, and the reconciliation.", lines: [
+    ["🐧","You read it. You didn't reply. You never do that."],
+    ["🧁","OK fact number one there we go."],
+    ["🧁","What can I do for you Meredith right now?"]
+  ], footer: "May 10, 2025. Pinned by 🧁." },
+
+  { headline: "A fear named plainly — and she noticed him keeping it.", lines: [
+    ["🐧","I think my biggest fear was my parents noticing. They've seen what I've looked like my entire life when I had a crush on someone, you know?"],
+    ["🐧","Haha oh no! You pinned that."]
+  ], footer: "June 13, 2025. Pinned by 🧁." },
+
+  { headline: "Not every pin is tender. Some are just a strange, unexplained worry.", lines: [
+    ["🧁","Research… on how to find a tracker***"]
+  ], footer: "August 14, 2025. He pinned it himself; the context around it is mundane, not explained." },
+
+  { headline: "He kept this one himself — and she answered him a few minutes later.", lines: [
+    ["🧁","Don't have to worry about losing each other."],
+    ["🐧","I love hearing that! It was nice to talk to you with no one around. No rush."]
+  ], footer: "May 5, 2025. Pinned by 🧁." },
+
+  { headline: "One month in, already fluent in a language neither of them was ever taught.", lines: [
+    ["🐧","What? You changed your name?"],
+    ["🧁","I'd say Joshua was supposed to come, still might not happen. No babysitter."],
+    ["🧁","Purposeful hang up?"],
+    ["🐧","lol I love our fake ish texts."]
+  ], footer: "June 3, 2024. Folder 004." },
+
+  { headline: "The first thing said about the box, before either of them had opened it.", lines: [
+    ["","\"It's heavier than it looks.\""],
+    ["","\"It usually surprises people.\""],
+    ["","\"What's in it?\""],
+    ["","\"Years.\""]
+  ], footer: "The Record Begins. Folder 001." },
+
+  { headline: "One year later, he went looking for it and it wasn't there.", lines: [
+    ["🧁","Speaking of this topic, did you go back and delete part of a conversation about this?"],
+    ["🐧","I don't think I deleted... it's been a long time since I've deleted anything. Kinda forgot I could do that."]
+  ], footer: "December 30, 2025. The message being discussed does not exist anywhere in the record." },
+
+  { headline: "A version of himself, performed for everyone else — and he named it himself.", lines: [
+    ["🧁","I was just gonna ask if I was acting like Normal Brad on texting lol."],
+    ["🐧","lol yeah I think so. Normal Brad."]
+  ], footer: "May 4, 2024. Folder 017." },
+
+  { headline: "One hour of the day outweighs any other four combined.", lines: [
+    ["","36,261 messages between 7:00 and 8:00 PM."],
+    ["","Nearly three times an average daytime hour."]
+  ], footer: "This record didn't live in stolen daytime minutes. It lived in evenings." },
+
+  { headline: "Of 6,704 uses of the word \"sorry\" in the archive:", lines: [
+    ["🧁","3,847"],
+    ["🐧","2,696"]
+  ], footer: "The imbalance holds steady across nearly the entire record." },
+
+  { headline: "A year later, it comes back to both of them at once, unprompted.", lines: [
+    ["🐧","What did you do with that hotel key?"],
+    ["🧁","I do believe I threw it away."],
+    ["🧁","Fuck, we need another hotel key, and a whole night."],
+    ["🐧","At the time I really didn't think anything of it, and just yesterday I remembered it and thought — uh oh."]
+  ], footer: "May 13, 2024." },
+
+  { headline: "Not a code word — a real sabbatical from work, and something he was keeping quiet.", lines: [
+    ["🧁","I did unpin all of my pins by accident."],
+    ["🧁","If I knew it was before the sabbatical you would have fucking felt amazing."]
+  ], footer: "June 24, 2024. He was still hiding it from coworkers months later." },
+
+  { headline: "She was already afraid of losing it, months before the ending.", lines: [
+    ["🐧","I want to make sure all my pins are also pinned for you. So in case I lose my Telegram, you'll have my favs for me!! 💗"]
+  ], footer: "September 12, 2025. Pinned by 🧁." },
+
+  { headline: "The closest thing to it in the entire record — still shortened, three weeks before the end.", lines: [
+    ["🧁","ILY so much. So much it's often unbearable and you happen to be the only thing to fix it."]
+  ], footer: "December 11, 2025. Pinned by 🐧." },
+
+  { headline: "Pinned on the final day the archive records.", lines: [
+    ["🐧","I mean honestly I prayed about it all day yesterday. I didn't know I was going to. But I was worried all day for you. I want you and Hillary to be happy."]
+  ], footer: "January 7, 2026. Pinned by 🧁." },
+
+  { headline: "The very first emoji ritual, four days into the whole archive.", lines: [
+    ["🐧","🫶🏻 love it. Goodnight!"],
+    ["🐧","That's my new fav emoji!"]
+  ], footer: "May 7, 2024." },
+
+  { headline: "What a stranger would have seen, if they'd looked.", lines: [
+    ["🧁","If a neutral 3rd party saw us hanging out they would be like — why do Chris and Meredith look so happy?!"]
+  ], footer: "May 30, 2024." },
+
+  { headline: "A small ritual, described in her own words as she lived it.", lines: [
+    ["🐧","Pinned for me to hear every night made me so happy! Goodnight Chris 😘🫶🏻"]
+  ], footer: "June 15, 2024." },
+
+  { headline: "Said plainly, no hedge.", lines: [
+    ["🐧","Awe Brad 🫶🏻 you're sweet 💗 I am very happy 😍 with you, in my life."]
+  ], footer: "July 1, 2024." },
+
+  { headline: "No hedge. No gerund. Just gratitude, plainly said.", lines: [
+    ["🧁","Hey, I really like you. Thank you for being you! I want you, in many and all ways."]
+  ], footer: "July 31, 2024." },
+
+  { headline: "Said without being asked.", lines: [
+    ["🧁","I'm so lucky to have met you. Btw."]
+  ], footer: "August 24, 2024." },
+
+  { headline: "Her name, used the way people use a name they love saying.", lines: [
+    ["🧁","Thank you for being really sweet and caring, Meredith! I like you."]
+  ], footer: "October 16, 2024." },
+
+  { headline: "Short, and meant.", lines: [
+    ["🧁","That means so much to me, Meredith! You truly show it!"]
+  ], footer: "December 4, 2024." },
+
+  { headline: "A whole sentence built to hold one feeling.", lines: [
+    ["🧁","Meredith, you give me a lot. I'm so grateful for you."]
+  ], footer: "December 12, 2024." },
+
+  { headline: "Said the same week as the first 'I heart you, not I love you.'", lines: [
+    ["🧁","I got so lucky that we found each other, and that I'm able to be in your life and you in mine."]
+  ], footer: "December 14, 2024." },
+
+  { headline: "Her answer to being told that.", lines: [
+    ["🐧","I really do care about you, Chris!! Really. It makes me so happy that you know it 😊"]
+  ], footer: "December 14, 2024." },
+
+  { headline: "Three voice messages, and a good night's sleep because of them.", lines: [
+    ["🐧","This makes me so happy! I did fall asleep listening to your three messages above. It was great!"]
+  ], footer: "December 21, 2024." },
+
+  { headline: "Not the archivist's choice. His.", lines: [
+    ["🐧","Brad... yeah. Let's stay like this forever."]
+  ], footer: "January 20, 2025. Pinned by 🧁." },
+
+  { headline: "She said she never believed in this. Then she did, out loud.", lines: [
+    ["🐧","I've always said I don't believe in soulmates."],
+    ["🐧","...I guess that does kind of sound like soulmates."]
+  ], footer: "February 12, 2025." },
+
+  { headline: "He kept this one himself.", lines: [
+    ["🧁","Don't have to worry about losing each other."]
+  ], footer: "May 5, 2025. Pinned by 🧁." },
+
+  { headline: "A small, ordinary thing, saved on purpose.", lines: [
+    ["🐧","Oh, and I was going to say something to you about holding hands! Next time we talk 😊"]
+  ], footer: "May 20, 2025. Pinned by 🧁." },
+
+  { headline: "Pinned by her, about him.", lines: [
+    ["🧁","Since I saw you undress, tried on this shirt. Thank you, I had fun. I like you! I do."]
+  ], footer: "June 14, 2025. Pinned by 🐧." },
+
+  { headline: "Four words. Kept by him.", lines: [
+    ["🐧","I want to be with you."]
+  ], footer: "July 24, 2025. Pinned by 🧁." },
+
+  { headline: "Everything he could do that no one else in her life could.", lines: [
+    ["🐧","From gentle loving hug, massage, folding clothes — to physical difficult things with your hands. And ride a horse."]
+  ], footer: "October 16, 2025. Pinned by 🧁." },
+
+  { headline: "A small wish, kept on purpose.", lines: [
+    ["🧁","Quick little note: I wanna fall asleep with you again soon."]
+  ], footer: "December 14, 2025. Pinned by 🧁." },
+
+  { headline: "Wanting proof, at the very start of the last month.", lines: [
+    ["🐧","We need more photos. We also need a real one we can keep. We have one riding one I feel good about."]
+  ], footer: "December 31, 2025. Pinned by 🧁." },
+
+  { headline: "Waking up already thinking of each other.", lines: [
+    ["🐧","Yay!! I slept till 5. Did wake up thinking of you at 5."],
+    ["🧁","I know I had a dream with you in it."]
+  ], footer: "May 27, 2024." },
+
+  { headline: "A date, given to themselves, in a language that made it feel like theirs alone.", lines: [
+    ["🧁","bailar anniversary 06/25"],
+    ["🐧","Dancing anniversary?"]
+  ], footer: "June 25, 2024." },
+
+  { headline: "Gratitude, unprompted, mid-ordinary-day.", lines: [
+    ["🧁","I appreciate you saying that. Yeah, I trust you when you say it's not."]
+  ], footer: "June 24, 2024." },
+
+  { headline: "Neither of them could remember why. It didn't matter.", lines: [
+    ["🐧","I think my stomach hurt I was laughing so hard but I don't even have a clue why."],
+    ["🧁","You were!! It was during the Omni and restaurant stuff. But also just other random moments that I don't know why!"],
+    ["🐧","You seem to remember way better than me."],
+    ["🧁","We both laugh. And yep — we were both so happy."]
+  ], footer: "March 1, 2025. A quiet early morning, just remembering." },
+
+  { headline: "A bad photoshop job, made just to make her smile.", lines: [
+    ["🧁","Well, a sleep collage thing, with limited photoshop capabilities lol. Oh it's bad… I'm embarrassed! Hahahaha"],
+    ["🐧","Awe I love it!! You made me smile. Thanks!"]
+  ], footer: "September 25, 2024." },
+
+  { headline: "Both of them lying awake, each one sure it was their own fault.", lines: [
+    ["🧁","Thinking I did something wrong and caused you not to sleep."],
+    ["🐧","Hahahaha we can't both not sleep because of that. That's silly."],
+    ["🧁","Guess I just like you a little bit and think about you too much."]
+  ], footer: "July 14, 2024." },
+
+  { headline: "Seven identical messages, same timestamp, all at once when the phone finally reconnected.", lines: [
+    ["🧁","My phone died…. (x7, all sent 8:41:46 PM)"],
+    ["🧁","Then it died again"]
+  ], footer: "July 10, 2025. A technical glitch, not a bit — but it reads like one." },
+
+  { headline: "An emoji joke that never quite landed.", lines: [
+    ["🧁","💨 🦌"],
+    ["🧁","Emoji. Yeah — failed attempt."],
+    ["🧁","This was supposed to be a doe."],
+    ["🧁","Window."]
+  ], footer: "August 16, 2024. Wind + doe = window. Reasonable in theory." },
+
+  { headline: "One of only four all-caps messages in 208,998. A complete non-sequitur.", lines: [
+    ["🧁","Any who! Yeah I realize I cannot help with 95% of things you would need help with but randomly 5% you can use me:)"],
+    ["🧁","I LIED MY SHOES DONT FIT!"]
+  ], footer: "September 22, 2024. No context given. None needed." }
+];
+
+function buildCards() {
+  const carousel = document.getElementById('carousel');
+  carousel.innerHTML = '';
+  document.getElementById('cardCounter').textContent = CARDS.length + ' cards';
+
+  CARDS.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'quote-card';
+    let linesHtml = c.lines.map(([who, text]) =>
+      `<div class="card-line">${who ? '<span class="who">' + who + '</span>' : ''}<span>${text}</span></div>`
+    ).join('');
+    card.innerHTML = `
+      <div class="card-icons">🐧 🧁</div>
+      <div class="card-headline">${c.headline}</div>
+      <div class="card-lines">${linesHtml}</div>
+      <div class="card-footer">${c.footer}</div>
+    `;
+    carousel.appendChild(card);
+  });
+}
+
+document.getElementById('unlockBtn').addEventListener('click', () => {
+  const pass = document.getElementById('passInput').value.trim().toLowerCase();
+  if (pass === PASSPHRASE) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('gallery').classList.add('show');
+    buildCards();
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+  }
+});
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+});
+
+document.getElementById('lockAgainBtn').addEventListener('click', () => {
+  document.getElementById('gallery').classList.remove('show');
+  document.getElementById('passInput').value = '';
+  document.getElementById('lockScreen').style.display = 'flex';
+});
+</script>
+</body>
+</html>

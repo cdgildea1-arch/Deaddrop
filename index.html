@@ -206,6 +206,26 @@ function updateSyncDot() {
   dot.className = 'sync-dot ' + (sbConfig.url && sbConfig.key ? 'on' : 'off');
 }
 
+function loadSavedConfig() {
+  try {
+    const saved = localStorage.getItem('deaddrop_sbconfig');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      sbConfig = parsed;
+      document.getElementById('sbUrl').value = parsed.url || '';
+      document.getElementById('sbKey').value = parsed.key || '';
+      document.getElementById('sbTable').value = parsed.table || 'dead_drop_messages';
+    }
+  } catch (e) {}
+}
+
+function saveConfig() {
+  try {
+    localStorage.setItem('deaddrop_sbconfig', JSON.stringify(sbConfig));
+  } catch (e) {}
+}
+
+
 async function sbRequest(path, opts = {}) {
   if (!sbConfig.url || !sbConfig.key) return null;
   const url = sbConfig.url.replace(/\/$/, '') + '/rest/v1/' + sbConfig.table + path;
@@ -294,7 +314,6 @@ async function renderMessages() {
     });
   });
 }
-
 document.getElementById('unlockBtn').addEventListener('click', async () => {
   const pass = document.getElementById('passInput').value;
   if (!pass) return;
@@ -302,12 +321,12 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
   cryptoKey = await deriveKey(pass);
   document.getElementById('lockScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display = 'flex';
+  loadSavedConfig();
   updateSyncDot();
   await fetchMessages();
 });
 
 document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('unlockBtn').click(); });
-
 document.getElementById('lockBtn').addEventListener('click', () => {
   cryptoKey = null; passphrase = ''; messages = []; sentIds.clear();
   document.getElementById('passInput').value = '';
@@ -347,6 +366,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   sbConfig.url = document.getElementById('sbUrl').value.trim();
   sbConfig.key = document.getElementById('sbKey').value.trim();
   sbConfig.table = document.getElementById('sbTable').value.trim() || 'dead_drop_messages';
+  saveConfig();
   updateSyncDot();
   if (sbConfig.url && sbConfig.key) {
     showStatus('Connecting...', 'ok');
@@ -359,8 +379,11 @@ document.getElementById('clearSettingsBtn').addEventListener('click', () => {
   document.getElementById('sbUrl').value = '';
   document.getElementById('sbKey').value = '';
   document.getElementById('sbTable').value = 'dead_drop_messages';
+  try { localStorage.removeItem('deaddrop_sbconfig'); } catch (e) {}
   updateSyncDot();
   showStatus('Disconnected', 'ok');
+});
+
 });
 </script>
 </body>

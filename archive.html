@@ -49,6 +49,7 @@
     font-family: -apple-system, sans-serif;
   }
   .lock-error { color: #d17a6a; font-size: 12px; margin-top: 10px; min-height: 16px; font-family: -apple-system, sans-serif; }
+  .lock-debug { color: #d17a6a; font-size: 11px; margin-top: 20px; font-family: -apple-system, sans-serif; word-break: break-all; }
 
   .cabinet {
     display: none;
@@ -135,7 +136,7 @@
     <div class="lock-icon">🗄️</div>
     <div class="lock-title">The Archive</div>
     <div class="lock-sub">Reading Room D. Enter the passphrase to browse the boxes.</div>
-    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase">
+    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
     <button id="unlockBtn" class="lock-btn">Enter</button>
     <div class="lock-error" id="lockError"></div>
   </div>
@@ -174,26 +175,24 @@ const BOXES = [
     icon: "🐧", title: "Contact",
     folders: [
       { title: "The Record Begins", date: "11–13 June 2024", body: [
-        "The recovered correspondence begins mid-conversation. No introduction, no context establishing the participants' names, circumstances, or relationship to one another.",
+        "The recovered correspondence begins mid-conversation.",
         "🧁: Good morning.",
-        "🧁: It's okay. If I was there with my arms around you, everything would be okay. We can agree on that. No more seeing things.",
+        "🧁: It's okay. If I was there with my arms around you, everything would be okay.",
         "🐧: Yes! I'd be falling asleep in your arms and so happy 🥰",
-        "🧁: Yes. Sleep time. I'll think of good things tonight about you. Goodnight Penny 😘 see you very soon:)",
+        "🧁: Yes. Sleep time. Goodnight Penny 😘 see you very soon:)",
         "🐧: Goodnight Brad 😘"
       ], note: "This is, in the end, what the archive actually preserves. Not the milestones. The mornings between them." },
       { title: "Tiny Rituals", date: "7 May 2024", body: [
-        "The apprentice notices the emoji before she notices anything else about this folder — a small heart-hands symbol, dropped into an ordinary goodnight, four days into the whole record.",
         "🐧: 🫶🏻 love it. Goodnight!",
         "🧁: Goodnight! Think hard:)"
       ], note: "Whatever this symbol becomes later in the record, it starts here, small and half-joking." },
       { title: "Learning a Voice", date: "26 May 2024", body: [
-        "🐧: So we each need to make a new friend. Let's say Jordan, Taylor, Alex. Someone that sounds like a guy when you talk about said friend and sounds like a girl when I do.",
-        "🧁: I'm honestly in. So my Alex is a buddy I play disc golf with, some pickleball? Sport stuff."
+        "🐧: So we each need to make a new friend. Let's say Jordan, Taylor, Alex.",
+        "🧁: I'm honestly in. So my Alex is a buddy I play disc golf with."
       ], note: "An entire invented person, built out loud, in the space of one conversation." },
       { title: "Cover Stories", date: "3 June 2024", body: [
         "🧁: Purposeful hang up?",
         "🐧: lol I love our fake ish texts.",
-        "🐧: Today is an unlucky day for me historically!!! So probably not a good day for pb.",
         "🧁: Uh oh! Well that's enough for me! I'll cancel."
       ], note: "An entire second layer of meaning laid invisibly under an ordinary scheduling text." },
       { title: "Sleepyhead Thoughts", date: "14 May 2024", body: [
@@ -208,23 +207,22 @@ const BOXES = [
     folders: [
       { title: "Close Calls", date: "18 May 2024", body: [
         "🧁: How did it go?",
-        "🐧: More than 3 words! In fact I think you said more to me than I said to you 😊 haha",
-        "🧁: I didn't walk in front of you though! Had to go behind. That was strategic."
+        "🐧: More than 3 words! In fact I think you said more to me than I said to you 😊",
+        "🧁: I didn't walk in front of you though! That was strategic."
       ], note: "The choreography of two people trying to occupy the same public spaces without appearing to notice each other." },
       { title: "2:45 AM", date: "19 July 2024", body: [
         "🧁: Awake for now! did dream of you",
-        "🐧: Good? I literally just woke up! How is that possible?",
         "🧁: Woke up and caught you for a second!"
       ], note: "Two people, awake together by accident, glad of it anyway." },
       { title: "The Unsuccessful Attempt", date: "5 May 2024", body: [
-        "🧁: Yeah if you're thinking the unsuccessful attempt haha had even the slightest bit to do with you. That's not it at all. You made me want it more."
+        "🧁: That's not it at all. You made me want it more."
       ], note: "One small, plainly stated correction, offered before it was even fully asked for." },
       { title: "Never Enough Time", date: "18 May 2024", body: [
-        "🐧: I definitely like hearing you like my body. 🥰 It's very umm just in the moment. 🫶🏻 Like the moment is great and I want it to last. Right then. And long term."
+        "🐧: Like the moment is great and I want it to last. Right then. And long term."
       ], note: "A chronic shortage of the one resource this correspondence can't manufacture more of." },
       { title: "I Need You", date: "11 May 2024", body: [
-        "🐧: So close to me!!! I need you here now. Good?!?",
-        "🧁: Lol I want to be there now! 6 hour's?!"
+        "🐧: So close to me!!! I need you here now.",
+        "🧁: Lol I want to be there now!"
       ], note: "Whether it felt good, for both of them, and whether either one is comfortable enough yet to say so plainly." }
     ]
   },
@@ -232,24 +230,235 @@ const BOXES = [
     icon: "🔥", title: "Momentum",
     folders: [
       { title: "Jealousy", date: "1 July 2024", body: [
-        "🧁: I can get jealous… ☹️ I like you. I think one was more of a joke but the last 3 days I'd say really had me worried to be honest."
+        "🧁: I can get jealous… the last 3 days I'd say really had me worried to be honest."
       ], note: "Jealousy, in this record, rarely gets its own conversation." },
       { title: "Guilt", date: "9 May 2024", body: [
         "🧁: Guilty!",
-        "🐧: I knew I should feel guilty for using ur log in!! That is sweet though."
+        "🐧: I knew I should feel guilty for using ur log in!!"
       ], note: "Small, retroactive, almost fond — its own kind of affection." },
       { title: "Gifts", date: "6 May 2024", body: [
-        "🐧: So I'm really glad I saw you today. I was seriously reconsidering after yesterday's sign.",
+        "🐧: So I'm really glad I saw you today.",
         "🧁: I'm really glad we did as well!"
       ], note: "A meeting nearly called off, and the quiet gratitude of it having happened anyway." },
       { title: "Church", date: "3 May 2024", body: [
-        "🐧: I wore a blue dress to church one day and you txted something like — I like the blue.",
+        "🐧: I wore a blue dress to church one day and you txted — I like the blue.",
         "🧁: Yes your blue dress. Or blue coat. I guess both."
       ], note: "Two people trying to recover the same small compliment from memory." },
       { title: "Disc Golf / Normal Brad", date: "4 May 2024", body: [
-        "🧁: Hah I was just gonna ask if I was acting like Normal Brad on texting lol.",
-        "🐧: lol yeah I think so 🤷🏻‍♀️ normal Brad."
+        "🧁: Was I acting like Normal Brad on texting lol.",
+        "🐧: lol yeah I think so normal Brad."
       ], note: "A version of himself assembled for anyone else who might be reading over a shoulder." },
       { title: "Julia", date: "31 Dec 2024 / 12 Apr 2025", body: [
-        "🐧: I think I'd be more jealous of Julia in general. No one else, really.",
-        "🧁: Yeah, I don't think I've talked to Julia since early 2022
+        "🐧: I think I'd be more jealous of Julia in general.",
+        "🧁: Yeah, I don't think I've talked to Julia since early 2022."
+      ], note: "This one stays a gap. The Initiative preserves gaps as gaps rather than filling them with inference." }
+    ]
+  },
+  {
+    icon: "📖", title: "Shared Language",
+    folders: [
+      { title: "The Sabbatical", date: "24 June 2024", body: [
+        "🧁: I would love it too. That would be nice."
+      ], note: "Starts here as an ordinary complaint about a broken app and a wish for more time." },
+      { title: "The Hotel", date: "13 May 2024", body: [
+        "🧁: Fuck we need another hotel key, and whole night."
+      ], note: "Two people, independently haunted by the same missed opportunity." },
+      { title: "Dreams", date: "27 May 2024", body: [
+        "🧁: I know I had a dream with you in it."
+      ], note: "Not declarations, but small excavations." },
+      { title: "Vulnerable Jimmy", date: "5 July 2024", body: [
+        "🐧: Vulnerable jimmy",
+        "🧁: My dad. Was called Jimmy growing up until he joined the air force."
+      ], note: "A father's old name, folded into an ordinary Tuesday about swimming plans." },
+      { title: "The Bag That Wouldn't Fail You", date: "21 Sept 2024", body: [
+        "🧁: The bag won't fail you.",
+        "🐧: Exactly!"
+      ], note: "A small unguarded wish for something that could simply be trusted." },
+      { title: "Forever, Twice", date: "20 Jan 2025", body: [
+        "🐧: Let's stay like this forever.",
+        "🧁: Yes. I want to stay like this forever."
+      ], note: "\"Forever\" appears 303 times across the full 208,998-message record." },
+      { title: "Two Other People Named Alex", date: "6 Apr 2025", body: [
+        "🐧: Julia plays Alex, and Alex's bday is 4/1."
+      ], note: "An echo, not an answer." }
+    ]
+  },
+  {
+    icon: "⚖️", title: "Influence",
+    folders: [
+      { title: "The Burden", date: "21 Sept 2025", body: [
+        "🧁: I hate this much weight on your shoulders. 😞"
+      ], note: "The first place Brad names, directly, what he suspects this correspondence is costing her." },
+      { title: "I Heart You, Not I Love You", date: "7 Dec 2024", body: [
+        "🧁: This was \"I heart you\" and not \"I love you\" don't worry!"
+      ], note: "The shape of the missing phrase, visible without the phrase itself ever appearing." },
+      { title: "Hillary's Surgery", date: "19 Aug 2025", body: [
+        "🧁: The cause is work and \"lack of you\"."
+      ], note: "The first time either of them names the correspondence itself as a source of difficulty." },
+      { title: "Fears", date: "13 May 2024", body: [
+        "🐧: I'm afraid going so soon could be suspicious."
+      ], note: "How much absence is plausible, how far in advance it needs to be planned." },
+      { title: "Divorce Talk", date: "17 Oct 2025", body: [
+        "🧁: You still like me as much as you did on the bench?! I fucking do."
+      ], note: "The folder's real subject was never divorce at all." }
+    ]
+  },
+  {
+    icon: "⏳", title: "Weight",
+    folders: [
+      { title: "The Anniversary", date: "25 June 2024", body: [
+        "🧁: bailar anniversary 06/25",
+        "🐧: Dancing anniversary?"
+      ], note: "The first time either of them assigns themselves an anniversary at all." },
+      { title: "The Magnolia House", date: "3 May 2024", body: [
+        "🐧: Search The Magnolia House and see if you find it."
+      ], note: "A rented house, real enough to search for, elusive enough to need a second look." },
+      { title: "Anxiety", date: "29 June 2024", body: [
+        "🐧: This decreases my anxiety. I need my house like this again!!!!"
+      ], note: "Very little in this archive gets to be simple. This folder, briefly, is." },
+      { title: "The Same Moment", date: "12 April 2025", body: [
+        "🧁: I caught myself at the end whenever I said I like you.",
+        "🐧: Wonder if it was the same time for both of us."
+      ], note: "Two people, a few feet apart in the same truck, each privately arriving at the same edge." },
+      { title: "Fourteen Months", date: "15 April 2025", body: [
+        "🧁: I probably would've proposed in 14 months and be already married by now."
+      ], note: "A number never does, again." },
+      { title: "Permission", date: "26 April 2025", body: [
+        "🧁: If you need my permission to say it, please say it. I would—"
+      ], note: "Every real opening either of them offers the other gets acknowledged, and gets declined." }
+    ]
+  },
+  {
+    icon: "📚", title: "Preservation",
+    folders: [
+      { title: "The Book She Already Had in Mind", date: "4 Oct 2025", body: [
+        "🐧: The other one is us. Our love story.",
+        "🧁: Well… What would you call it?"
+      ], note: "One of the two people inside it had already described exactly the shape of the thing that would eventually be built from what they left behind." },
+      { title: "A Date, Recovered", date: "22 April 2025", body: [
+        "🧁: December 8, 2023",
+        "🐧: I'm going to add that to my timeline."
+      ], note: "It wasn't written down when it happened. It was found, months later, and handed over just in time to be kept." },
+      { title: "The Disarray on the Staging", date: "30 Dec 2025", body: [
+        "🧁: Did you go back and delete part of a conversation about this?"
+      ], note: "The only place either of them directly accuses the other of erasing something from the archive itself." },
+      { title: "What the Winter Could Hide", date: "30 Nov 2025", body: [
+        "🧁: Did you just look up medications that could potentially reverse a vasectomy?"
+      ], note: "The oldest fear in the whole record never fully leaves the room. It just finds a new sentence to live in." },
+      { title: "The Numbers", date: "Full record", body: [
+        "One hour — 7:00 to 8:00 PM — accounts for more of the archive than any other four hours combined.",
+        "Brad apologized more than Penny — 3,847 uses of \"sorry\" against her 2,696."
+      ], note: "The archive does not know why. It only knows this was the shape of nearly every week, for twenty months, until it wasn't." }
+    ]
+  },
+  {
+    icon: "🕰️", title: "Inheritance",
+    folders: [
+      { title: "The Rewind Scenario", date: "5 Oct 2025", body: [
+        "🐧: Tommy.",
+        "🧁: Damn right Tommy!"
+      ], note: "\"Tommy\" appears exactly once in the full record — here, and nowhere else." },
+      { title: "Small Things to Keep", date: "6–7 Jan 2026", body: [
+        "🧁: Got you something… It's very tiny…",
+        "🐧: Wanna make a time capsule and bury it at Founders Park?"
+      ], note: "Two small physical objects, both reaching for the same thing: something that could survive being held." },
+      { title: "The Last Box", date: "5–7 Jan 2026", body: [
+        "🧁: I still want us. I just wanted to tell you that I love you, Penny.",
+        "🧁: You used my dad's death to break up with me. I hate this so much."
+      ], note: "The last one this record preserves is a sentence with no reply." }
+    ]
+  }
+];
+
+function buildBoxGrid() {
+  const grid = document.getElementById('boxGrid');
+  grid.innerHTML = '';
+  BOXES.forEach((box, i) => {
+    const card = document.createElement('div');
+    card.className = 'box-card';
+    card.innerHTML = `
+      <div class="box-num">BOX ${i + 1}</div>
+      <div class="box-icon">${box.icon}</div>
+      <div class="box-part-title">${box.title}</div>
+      <div class="box-count">${box.folders.length} folders</div>
+    `;
+    card.addEventListener('click', () => openBox(i));
+    grid.appendChild(card);
+  });
+}
+
+let currentBoxIndex = null;
+
+function openBox(i) {
+  currentBoxIndex = i;
+  const box = BOXES[i];
+  document.getElementById('folderViewTitle').textContent = box.icon + ' ' + box.title;
+  const inner = document.getElementById('folderListInner');
+  inner.innerHTML = '';
+  box.folders.forEach((f, fi) => {
+    const item = document.createElement('div');
+    item.className = 'folder-item';
+    item.innerHTML = `<div class="folder-title">${f.title}</div><div class="folder-date">${f.date}</div>`;
+    item.addEventListener('click', () => openFolder(fi));
+    inner.appendChild(item);
+  });
+  document.getElementById('boxView').style.display = 'none';
+  document.getElementById('folderView').classList.add('show');
+}
+
+function openFolder(fi) {
+  const folder = BOXES[currentBoxIndex].folders[fi];
+  document.getElementById('readerTitle').textContent = folder.title;
+  document.getElementById('readerDate').textContent = folder.date;
+  const body = document.getElementById('readerBody');
+  body.innerHTML = '';
+  folder.body.forEach(line => {
+    const p = document.createElement('p');
+    p.textContent = line;
+    body.appendChild(p);
+  });
+  const notep = document.createElement('p');
+  notep.className = 'note';
+  notep.textContent = folder.note;
+  body.appendChild(notep);
+  document.getElementById('folderView').classList.remove('show');
+  document.getElementById('readerView').classList.add('show');
+}
+
+document.getElementById('backToBoxes').addEventListener('click', () => {
+  document.getElementById('folderView').classList.remove('show');
+  document.getElementById('boxView').style.display = 'block';
+});
+
+document.getElementById('backToFolders').addEventListener('click', () => {
+  document.getElementById('readerView').classList.remove('show');
+  document.getElementById('folderView').classList.add('show');
+});
+
+document.getElementById('unlockBtn').addEventListener('click', () => {
+  const raw = document.getElementById('passInput').value;
+  const pass = raw.trim().toLowerCase();
+  if (pass === PASSPHRASE) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('cabinet').classList.add('show');
+    buildBoxGrid();
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect passphrase. You typed: "' + raw + '"';
+  }
+});
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+});
+
+document.getElementById('lockAgainBtn').addEventListener('click', () => {
+  document.getElementById('cabinet').classList.remove('show');
+  document.getElementById('passInput').value = '';
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('boxView').style.display = 'block';
+  document.getElementById('folderView').classList.remove('show');
+  document.getElementById('readerView').classList.remove('show');
+});
+</script>
+</body>
+</html>

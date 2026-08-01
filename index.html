@@ -1,1 +1,68 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Dead Drop</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: #0a0e0a;
+    color: #e8f5ec;
+  }
+  .wrap {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    padding-bottom: max(30px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .icon {
+    font-size: 44px;
+    margin-bottom: 18px;
+    opacity: 0.9;
+  }
+  p.sub {
+    font-size: 14px;
+    color: #8fae9a;
+    margin: 0 0 34px;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+  a.enter-btn {
+    display: inline-block;
+    background: #007aff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 40px;
+    border-radius: 999px;
+    box-shadow: 0 4px 16px rgba(0,122,255,0.35);
+    transition: transform 0.15s ease;
+  }
+  a.enter-btn:active {
+    transform: scale(0.96);
+  }
+  .footer-note {
+    margin-top: 40px;
+    font-size: 30px;
+    letter-spacing: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon">&#128274;</div>
+    <p class="sub">A quiet place, just for us.</p>
+    <a class="enter-btn" href="deaddrop.html">Enter</a>
+    <div class="footer-note">🧁 &amp; 🐧</div>
+  </div>
+</body>
+</html>

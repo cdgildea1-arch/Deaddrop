@@ -57,16 +57,16 @@
   .lock-sub { font-size: 13px; color: #8e8e93; margin-bottom: 24px; text-align: center; }
   .lock-input { width: 100%; max-width: 280px; background: #f2f2f7; border: none; border-radius: 10px; padding: 14px; font-size: 16px; margin-bottom: 14px; text-align: center; }
   .lock-open-btn { background:#007aff; color:#fff; border:none; border-radius:10px; padding:13px 32px; font-size:16px; font-weight: 600; }
-  .messages { flex: 1; padding: 12px 12px 8px; overflow-y: auto; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
-  .bubble-row { display: flex; margin-bottom: 3px; }
-  .bubble-row.mine { justify-content: flex-end; }
-  .bubble-row.theirs { justify-content: flex-start; }
-  .bubble { max-width: 75%; padding: 8px 14px; border-radius: 18px; font-size: 16px; line-height: 1.32; position: relative; word-break: break-word; }
+  .messages { flex: 1; padding: 12px 12px 8px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .bubble-row { width: 100%; margin-bottom: 6px; text-align: left; }
+  .bubble-row.mine { text-align: right; }
+  .bubble-row.theirs { text-align: left; }
+  .msg-wrap { position: relative; display: inline-block; max-width: 75%; vertical-align: top; }
+  .bubble { display: inline-block; width: 100%; padding: 8px 14px; border-radius: 18px; font-size: 16px; line-height: 1.32; text-align: left; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; box-sizing: border-box; }
   .bubble.mine { background: #007aff; color: #fff; border-bottom-right-radius: 5px; }
   .bubble.theirs { background: #e9e9eb; color: #000; border-bottom-left-radius: 5px; }
   .timestamp { text-align: center; font-size: 11px; color: #8e8e93; margin: 12px 0 6px; }
-  .msg-wrap { position: relative; }
-  .del-x { position: absolute; top: -4px; background: #8e8e93; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 20px; padding: 0; opacity: 0.75; }
+  .del-x { position: absolute; top: -4px; background: #8e8e93; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 20px; padding: 0; opacity: 0.75; z-index: 2; }
   .bubble-row.mine .del-x { left: -24px; }
   .bubble-row.theirs .del-x { right: -24px; }
   .empty-state { text-align: center; color: #c7c7cc; font-size: 13px; margin-top: 40px; }

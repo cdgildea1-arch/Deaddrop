@@ -1,0 +1,725 @@
+<!-- THE GAME -->
+<div id="the-game" class="penguin-game" hidden>
+  <div class="game-topbar">
+    <div>
+      <p class="game-label">THE GAME</p>
+      <h2>What should history keep?</h2>
+    </div>
+
+    <button
+      class="game-close"
+      type="button"
+      onclick="closeTheGame()"
+      aria-label="Close The Game"
+    >
+      ✕
+    </button>
+  </div>
+
+  <div class="game-progress">
+    <div class="game-progress-track">
+      <div id="game-progress-bar"></div>
+    </div>
+
+    <span id="game-progress-text">1 / 10</span>
+  </div>
+
+  <section id="game-card" class="game-card">
+    <div class="game-card-meta">
+      <span id="game-date"></span>
+      <span id="game-type"></span>
+    </div>
+
+    <div id="game-icon" class="game-icon"></div>
+
+    <h3 id="game-title"></h3>
+
+    <blockquote id="game-quote"></blockquote>
+
+    <p id="game-context"></p>
+  </section>
+
+  <div id="game-choices" class="game-choices">
+    <button
+      class="game-choice game-discard"
+      type="button"
+      onclick="submitGameChoice(false)"
+    >
+      <strong>Let it disappear</strong>
+      <small>Not part of the record</small>
+    </button>
+
+    <button
+      class="game-choice game-preserve"
+      type="button"
+      onclick="submitGameChoice(true)"
+    >
+      <strong>Preserve it</strong>
+      <small>History should keep this</small>
+    </button>
+  </div>
+
+  <section id="game-feedback" class="game-feedback" hidden>
+    <p id="game-feedback-label" class="game-feedback-label"></p>
+
+    <h3 id="game-feedback-title"></h3>
+
+    <p id="game-feedback-text"></p>
+
+    <button
+      id="game-next-button"
+      class="game-primary-button"
+      type="button"
+      onclick="nextGameArtifact()"
+    >
+      Next artifact
+    </button>
+  </section>
+
+  <section id="game-ending" class="game-ending" hidden>
+    <div class="game-ending-icon">🧤</div>
+
+    <p class="game-label">CATALOGER'S NOTE</p>
+
+    <h2 id="game-ending-title"></h2>
+
+    <p id="game-ending-text"></p>
+
+    <div class="game-score">
+      <span>Your score</span>
+      <strong id="game-score-text"></strong>
+    </div>
+
+    <button
+      class="game-primary-button"
+      type="button"
+      onclick="restartTheGame()"
+    >
+      Open the box again
+    </button>
+  </section>
+</div>
+
+<style>
+  .penguin-game {
+    --game-bg: #09150d;
+    --game-panel: #102016;
+    --game-panel-light: #172b1d;
+    --game-text: #f4f7f3;
+    --game-muted: #9caca1;
+    --game-green: #91e5aa;
+    --game-green-light: #d9f8e2;
+    --game-red: #efaaa2;
+    --game-border: rgba(255, 255, 255, 0.1);
+
+    width: min(100%, 680px);
+    margin: 0 auto;
+    padding: 24px;
+
+    color: var(--game-text);
+
+    border: 1px solid var(--game-border);
+    border-radius: 28px;
+
+    background:
+      radial-gradient(
+        circle at 15% 0%,
+        rgba(105, 180, 127, 0.14),
+        transparent 34%
+      ),
+      var(--game-bg);
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .penguin-game[hidden] {
+    display: none;
+  }
+
+  .game-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .game-label {
+    margin: 0 0 7px;
+
+    color: var(--game-green);
+
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+  }
+
+  .game-topbar h2,
+  .game-ending h2 {
+    margin: 0;
+
+    font-family: Georgia, serif;
+    font-size: clamp(1.55rem, 6vw, 2.25rem);
+    line-height: 1.15;
+  }
+
+  .game-close {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+
+    color: var(--game-text);
+
+    border: 1px solid var(--game-border);
+    border-radius: 50%;
+
+    background: var(--game-panel);
+
+    cursor: pointer;
+  }
+
+  .game-progress {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+
+    margin: 24px 0 18px;
+
+    color: var(--game-muted);
+    font-size: 0.82rem;
+  }
+
+  .game-progress-track {
+    height: 7px;
+
+    border-radius: 100px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    overflow: hidden;
+  }
+
+  #game-progress-bar {
+    width: 10%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: var(--game-green);
+
+    transition: width 220ms ease;
+  }
+
+  .game-card {
+    min-height: 350px;
+    padding: 22px;
+
+    border: 1px solid var(--game-border);
+    border-radius: 24px;
+
+    background: var(--game-panel);
+  }
+
+  .game-card-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+
+    color: var(--game-muted);
+
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .game-icon {
+    margin: 28px 0 18px;
+    font-size: 3rem;
+  }
+
+  .game-card h3 {
+    margin: 0 0 14px;
+
+    font-family: Georgia, serif;
+    font-size: 1.55rem;
+  }
+
+  .game-card blockquote {
+    margin: 0 0 18px;
+    padding-left: 17px;
+
+    color: var(--game-green-light);
+
+    border-left: 3px solid var(--game-green);
+
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .game-card p {
+    margin: 0;
+
+    color: var(--game-muted);
+
+    line-height: 1.6;
+  }
+
+  .game-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    margin-top: 16px;
+  }
+
+  .game-choice {
+    min-height: 82px;
+    padding: 14px;
+
+    color: var(--game-text);
+
+    border: 1px solid var(--game-border);
+    border-radius: 18px;
+
+    background: var(--game-panel-light);
+
+    cursor: pointer;
+
+    transition:
+      transform 140ms ease,
+      border-color 140ms ease;
+  }
+
+  .game-choice:hover {
+    transform: translateY(-2px);
+  }
+
+  .game-choice strong,
+  .game-choice small {
+    display: block;
+  }
+
+  .game-choice small {
+    margin-top: 5px;
+    color: var(--game-muted);
+  }
+
+  .game-preserve {
+    border-color: rgba(145, 229, 170, 0.3);
+  }
+
+  .game-discard {
+    border-color: rgba(239, 170, 162, 0.2);
+  }
+
+  .game-feedback,
+  .game-ending {
+    margin-top: 16px;
+    padding: 23px;
+
+    border: 1px solid var(--game-border);
+    border-radius: 22px;
+
+    background: var(--game-panel);
+  }
+
+  .game-feedback-label {
+    margin: 0 0 6px;
+
+    color: var(--game-green);
+
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .game-feedback h3 {
+    margin: 0 0 10px;
+    font-family: Georgia, serif;
+  }
+
+  .game-feedback p,
+  .game-ending p {
+    color: var(--game-muted);
+    line-height: 1.6;
+  }
+
+  .game-primary-button {
+    width: 100%;
+    min-height: 52px;
+
+    margin-top: 14px;
+
+    color: #07110a;
+
+    border: 0;
+    border-radius: 16px;
+
+    background: var(--game-green);
+
+    font-weight: 800;
+
+    cursor: pointer;
+  }
+
+  .game-ending {
+    padding: 34px 24px;
+    text-align: center;
+  }
+
+  .game-ending-icon {
+    margin-bottom: 14px;
+    font-size: 3rem;
+  }
+
+  .game-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 22px;
+    padding: 16px 18px;
+
+    border-radius: 16px;
+
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .game-score strong {
+    color: var(--game-green-light);
+    font-size: 1.35rem;
+  }
+
+  @media (max-width: 560px) {
+    .penguin-game {
+      padding: 17px;
+      border-radius: 24px;
+    }
+
+    .game-card {
+      min-height: 370px;
+    }
+
+    .game-choices {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  const theGameArtifacts = [
+    {
+      date: "11 June 2024 · 5:46 AM",
+      type: "Recovered message",
+      icon: "☀️",
+      title: "A greeting",
+      quote: "Good morning.",
+      context:
+        "No introduction. No explanation. Only the first surviving line in a correspondence that would eventually contain more than two hundred thousand messages.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "History rarely announces its beginnings. Sometimes the first evidence of a life is only proof that someone expected another person to be there."
+    },
+
+    {
+      date: "Unknown",
+      type: "System fragment",
+      icon: "⌨️",
+      title: "Typing indicator",
+      quote: "Penny is typing…",
+      context:
+        "A temporary interface notification automatically generated by the messaging application.",
+      preserve: false,
+      answerTitle: "Allowed to disappear.",
+      answer:
+        "This tells us that a message may have been forming, but it preserves neither the thought nor the person behind it. The actual correspondence carries the historical value."
+    },
+
+    {
+      date: "14 May 2024",
+      type: "Private language",
+      icon: "😴",
+      title: "Sleepyhead",
+      quote:
+        "Oh, we should add that to the timeline. The first sleepyhead.",
+      context:
+        "A private nickname born from exhaustion and a half-remembered joke.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "A nickname is a tiny room built inside language. It proves two people had started creating a place that belonged only to them."
+    },
+
+    {
+      date: "Unknown",
+      type: "Application data",
+      icon: "📶",
+      title: "Connection restored",
+      quote: "You are back online.",
+      context:
+        "An automatic status message recorded after a brief loss of cellular service.",
+      preserve: false,
+      answerTitle: "Allowed to disappear.",
+      answer:
+        "The interruption may explain a silence, but this automated notice does not explain what the silence meant."
+    },
+
+    {
+      date: "29 June 2024",
+      type: "Photograph",
+      icon: "🍽️",
+      title: "The kitchen",
+      quote:
+        "This decreases my anxiety. I need my house like this again.",
+      context:
+        "The photograph itself is ordinary: counters, cabinets and a room at its best.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "The photograph matters because of what it did, not only what it showed. For a moment, an ordinary room made someone feel safer."
+    },
+
+    {
+      date: "21 September 2024",
+      type: "Invented object",
+      icon: "👜",
+      title: "The bag",
+      quote: "The bag won’t fail you.",
+      context:
+        "A joke about a magical bag that always knows what its owner needs.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "The joke quietly became a wish: something trustworthy, something that always understood and something that never failed."
+    },
+
+    {
+      date: "Unknown",
+      type: "Duplicate",
+      icon: "📄",
+      title: "Repeated attachment",
+      quote: "IMG_4821 duplicated.",
+      context:
+        "A second, identical copy of a photograph already preserved elsewhere in the collection.",
+      preserve: false,
+      answerTitle: "Duplicate removed.",
+      answer:
+        "Preserving a life does not require keeping every technical copy. The original artifact and its context remain intact."
+    },
+
+    {
+      date: "4 May 2024",
+      type: "Private identity",
+      icon: "🎭",
+      title: "Normal Brad",
+      quote:
+        "Was I acting like Normal Brad on texting?",
+      context:
+        "A public version of a person becomes distinct enough from the private one to require its own name.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "It is more than a joke. It documents the distance between the person everyone saw and the person who existed inside the correspondence."
+    },
+
+    {
+      date: "12 April 2025",
+      type: "Unfinished sentence",
+      icon: "…",
+      title: "The same moment",
+      quote:
+        "It was like it just almost came out.",
+      context:
+        "Two people later realize they nearly said the same word at almost the same second.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "The missing word is part of the record. Archives preserve absences too."
+    },
+
+    {
+      date: "20 January 2025",
+      type: "Pinned message",
+      icon: "📌",
+      title: "Forever, twice",
+      quote:
+        "Yes. I want to stay like this forever.",
+      context:
+        "No proposal. No plan. Only a sentence pinned on the same night it was written.",
+      preserve: true,
+      answerTitle: "Preserved.",
+      answer:
+        "A promise does not need legal force to become historically important. Sometimes preservation is the only ceremony it receives."
+    }
+  ];
+
+  let theGameIndex = 0;
+  let theGameScore = 0;
+  let theGameAnswered = false;
+
+  const theGameElement =
+    document.getElementById("the-game");
+
+  function startTheGame() {
+    theGameIndex = 0;
+    theGameScore = 0;
+    theGameAnswered = false;
+
+    theGameElement.hidden = false;
+
+    document.getElementById("game-ending").hidden = true;
+    document.getElementById("game-card").hidden = false;
+    document.getElementById("game-choices").hidden = false;
+
+    renderGameArtifact();
+
+    theGameElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  function closeTheGame() {
+    theGameElement.hidden = true;
+  }
+
+  function renderGameArtifact() {
+    const artifact = theGameArtifacts[theGameIndex];
+
+    theGameAnswered = false;
+
+    document.getElementById("game-date").textContent =
+      artifact.date;
+
+    document.getElementById("game-type").textContent =
+      artifact.type;
+
+    document.getElementById("game-icon").textContent =
+      artifact.icon;
+
+    document.getElementById("game-title").textContent =
+      artifact.title;
+
+    document.getElementById("game-quote").textContent =
+      `“${artifact.quote}”`;
+
+    document.getElementById("game-context").textContent =
+      artifact.context;
+
+    document.getElementById(
+      "game-progress-text"
+    ).textContent =
+      `${theGameIndex + 1} / ${theGameArtifacts.length}`;
+
+    document.getElementById(
+      "game-progress-bar"
+    ).style.width =
+      `${
+        ((theGameIndex + 1) / theGameArtifacts.length) * 100
+      }%`;
+
+    document.getElementById("game-feedback").hidden = true;
+    document.getElementById("game-choices").hidden = false;
+
+    document.getElementById(
+      "game-next-button"
+    ).textContent =
+      theGameIndex === theGameArtifacts.length - 1
+        ? "Finish The Game"
+        : "Next artifact";
+  }
+
+  function submitGameChoice(playerPreserved) {
+    if (theGameAnswered) {
+      return;
+    }
+
+    theGameAnswered = true;
+
+    const artifact = theGameArtifacts[theGameIndex];
+
+    const correct =
+      playerPreserved === artifact.preserve;
+
+    if (correct) {
+      theGameScore += 1;
+    }
+
+    document.getElementById(
+      "game-feedback-label"
+    ).textContent = correct
+      ? "GOOD CALL"
+      : "RECONSIDER";
+
+    document.getElementById(
+      "game-feedback-title"
+    ).textContent = artifact.answerTitle;
+
+    document.getElementById(
+      "game-feedback-text"
+    ).textContent = artifact.answer;
+
+    document.getElementById("game-choices").hidden = true;
+    document.getElementById("game-feedback").hidden = false;
+  }
+
+  function nextGameArtifact() {
+    if (theGameIndex < theGameArtifacts.length - 1) {
+      theGameIndex += 1;
+      renderGameArtifact();
+      return;
+    }
+
+    finishTheGame();
+  }
+
+  function finishTheGame() {
+    document.getElementById("game-card").hidden = true;
+    document.getElementById("game-choices").hidden = true;
+    document.getElementById("game-feedback").hidden = true;
+    document.getElementById("game-ending").hidden = false;
+
+    document.getElementById(
+      "game-score-text"
+    ).textContent =
+      `${theGameScore} / ${theGameArtifacts.length}`;
+
+    const endingTitle =
+      document.getElementById("game-ending-title");
+
+    const endingText =
+      document.getElementById("game-ending-text");
+
+    if (theGameScore === theGameArtifacts.length) {
+      endingTitle.textContent =
+        "You understood the archive.";
+
+      endingText.textContent =
+        "The Game was never about finding extraordinary events. It was about recognizing which ordinary fragments still carried evidence of a human life.";
+    } else if (theGameScore >= 7) {
+      endingTitle.textContent =
+        "You are learning what history misses.";
+
+      endingText.textContent =
+        "Most lives disappear because someone decided their smallest moments were not important enough to keep. The Initiative was built to correct that mistake.";
+    } else {
+      endingTitle.textContent =
+        "Open the box again.";
+
+      endingText.textContent =
+        "You searched for obvious milestones. The archive was asking you to notice mornings, jokes, rooms, unfinished sentences and the quiet proof that someone was expected.";
+    }
+  }
+
+  function restartTheGame() {
+    startTheGame();
+  }
+</script>

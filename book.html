@@ -1,1 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>The Penguin Archive</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #f4ecdd;
+    color: #3a3227;
+    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  }
+  .lock-screen {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    padding-bottom: max(30px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .lock-icon { margin-bottom: 16px; opacity: 0.9; display: flex; justify-content: center; }
+  .lock-icon svg { width: 46px; height: 46px; }
+  .lock-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.4px; }
+  .lock-sub { font-size: 13px; color: #8a7a63; margin-bottom: 28px; max-width: 280px; line-height: 1.5; font-family: -apple-system, sans-serif; }
+  .lock-input {
+    width: 100%; max-width: 280px;
+    background: #fffaf0;
+    border: 1px solid #d8c9a8;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 16px;
+    margin-bottom: 14px;
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+  }
+  .lock-btn {
+    background: #a9835a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 34px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: -apple-system, sans-serif;
+  }
+  .lock-error { color: #a3453a; font-size: 12px; margin-top: 10px; min-height: 16px; font-family: -apple-system, sans-serif; }
 
+  .reader {
+    display: none;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .reader.show { display: block; }
+  .book-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(244,236,221,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #d8c9a8;
+    padding: max(12px, env(safe-area-inset-top)) 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .book-header button {
+    background: none;
+    border: none;
+    color: #a9835a;
+    font-size: 13px;
+    font-family: -apple-system, sans-serif;
+    padding: 4px 0;
+  }
+  .book-header .title-mini {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #8a7a63;
+    font-family: -apple-system, sans-serif;
+  }
+  .reader-body {
+    padding: 30px 26px 80px;
+  }
+  .archive-emoji { text-align: center; font-size: 26px; margin-bottom: 32px; letter-spacing: 8px; }
+  .content p {
+    font-size: 17px;
+    line-height: 1.8;
+    margin: 0 0 20px;
+  }
+  .content strong {
+    display: block;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin: 48px 0 20px;
+    color: #6b4423;
+    border-top: 1px solid #d8c9a8;
+    padding-top: 24px;
+  }
+  .content strong:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  .content em { color: #6b5a45; display: block; font-size: 15px; margin-top: -6px; }
+</style>
+</head>
+<body>
+
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a9835a" stroke-width="1.5">
+        <path d="M4 5.5C4 4.67 4.67 4 5.5 4H11V20H5.5C4.67 20 4 19.33 4 18.5V5.5Z" stroke-linejoin="round"/>
+        <path d="M20 5.5C20 4.67 19.33 4 18.5 4H13V20H18.5C19.33 20 20 19.33 20 18.5V5.5Z" stroke-linejoin="round"/>
+        <path d="M11 4V20" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="lock-title">The Penguin Archive</div>
+    <div class="lock-sub">Reading Room D. Enter the passphrase to continue.</div>
+    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase">
+    <button id="unlockBtn" class="lock-btn">Enter</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+
+  <div id="reader" class="reader">
+    <div class="book-header">
+      <button id="lockAgainBtn2">🔒 Lock</button>
+      <div class="title-mini">THE PENGUIN ARCHIVE</div>
+      <span style="width:40px;"></span>
+    </div>
+    <div class="reader-body">
+      <div class="archive-emoji">🐧 🧁</div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+<script>
+const PASSPHRASE = "cupcake";
+
+const SECTIONS = [
+  { h: "PART I — CONTACT" },
+  { h: "FOLDER 001: THE RECORD BEGINS" },
+  { p: "The recovered correspondence begins mid-conversation. No introduction, no context establishing the participants' names, circumstances, or relationship to one another." },
+  { p: "11 June 2024, 5:46 AM" },
+  { p: "🧁: Good morning." },
+  { p: "12 June 2024, 9:33 PM" },
+  { p: "🧁: It's okay. If I was there with my arms around you, everything would be okay. We can agree on that." },
+  { p: "🐧: Yes! I'd be falling asleep in your arms and so happy 🥰" },
+  { p: "🧁: Yes. Sleep time. I'll think of good things tonight about you. Goodnight Penny 😘 see you very soon:)" },
+  { p: "🐧: Goodnight Brad 😘" },
+  { em: "This is, in the end, what the archive actually preserves. Not the milestones. The mornings between them." },
+
+  { h: "FOLDER 002: TINY RITUALS — 7 May 2024" },
+  { p: "🧁: Well just lay your head down and think exactly how you wanna be fucked and tomorrow you can tell me in person?!" },
+  { p: "🐧: 🫶🏻 love it. Goodnight!" },
+  { p: "🧁: Goodnight! Think hard:)" },
+  { em: "Whatever this symbol becomes later in the record, it starts here, small and half-joking." },
+
+  { h: "FOLDER 003: LEARNING A VOICE — 26 May 2024" },
+  { p: "🐧: So we each need to make a new friend. Let's say Jordan, Taylor, Alex." },
+  { p: "🧁: I'm honestly in. So my Alex is a buddy I play disc golf with, some pickleball? Sport stuff." },
+  { em: "An entire invented person, built out loud, in the space of one conversation." },
+
+  { h: "FOLDER 004: COVER STORIES — 3 June 2024" },
+  { p: "🧁: Purposeful hang up?" },
+  { p: "🐧: lol I love our fake ish texts." },
+  { p: "🐧: Today is an unlucky day for me historically!!! So probably not a good day for pb." },
+  { em: "An entire second layer of meaning laid invisibly under an ordinary scheduling text." },
+
+  { h: "FOLDER 005: SLEEPYHEAD THOUGHTS — 14 May 2024" },
+  { p: "🧁: Sleepy head!" },
+  { p: "🐧: Hey!" },
+  { p: "🧁: I do like the sleepy head on timeline:)" },
+  { em: "A private nickname, born out of exhaustion and a half-remembered book title." },
+
+  { h: "PART II — FAMILIARITY" },
+  { h: "FOLDER 007: CLOSE CALLS — 18 May 2024" },
+  { p: "🧁: How did it go?" },
+  { p: "🐧: More than 3 words! In fact I think you said more to me than I said to you 😊 haha" },
+  { p: "🧁: I didn't walk in front of you though! Had to go behind. That was strategic." },
+  { em: "The choreography of two people trying to occupy the same public spaces without appearing to notice each other." },
+
+  { h: "FOLDER 008: 2:45 AM — 19 July 2024" },
+  { p: "🧁: Awake for now! did dream of you" },
+  { p: "🐧: Good? I literally just woke up! How is that possible?" },
+  { p: "🧁: Woke up and caught you for a second!" },
+  { em: "Two people, awake together by accident, glad of it anyway." },
+
+  { h: "FOLDER 010: THE UNSUCCESSFUL ATTEMPT — 5 May 2024" },
+  { p: "🧁: Yeah if you're thinking the unsuccessful attempt haha had even the slightest bit to do with you. That's not it at all. You made me want it more." },
+  { em: "One small, plainly stated correction, offered before it was even fully asked for." },
+
+  { h: "FOLDER 011: NEVER ENOUGH TIME — 18 May 2024" },
+  { p: "🐧: I definitely like hearing you like my body. It's very umm just in the moment. Like the moment is great and I want it to last. Right then. And long term." },
+  { em: "A chronic shortage of the one resource this correspondence can't manufacture more of." },
+
+  { h: "FOLDER 012: I NEED YOU — 11 May 2024" },
+  { p: "🐧: So close to me!!! I need you here now. Good?!?" },
+  { p: "🧁: Lol I want to be there now! 6 hour's?!" },
+  { em: "Whether it felt good, for both of them, and whether either one is comfortable enough yet to say so plainly." },
+
+  { h: "PART III — MOMENTUM" },
+  { h: "FOLDER 013: JEALOUSY — 1 July 2024" },
+  { p: "🧁: I can get jealous… I like you. I think one was more of a joke but the last 3 days I'd say really had me worried to be honest." },
+  { em: "Jealousy, in this record, rarely gets its own conversation." },
+
+  { h: "FOLDER 014: GUILT — 9 May 2024" },
+  { p: "🧁: Guilty!" },
+  { p: "🐧: I knew I should feel guilty for using ur log in!! That is sweet though." },
+  { em: "Small, retroactive, almost fond — its own kind of affection." },
+
+  { h: "FOLDER 015: GIFTS — 6 May 2024" },
+  { p: "🐧: So I'm really glad I saw you today. I was seriously reconsidering after yesterday's sign." },
+  { p: "🧁: I'm really glad we did as well!" },
+  { em: "A meeting nearly called off, and the quiet gratitude of it having happened anyway." },
+
+  { h: "FOLDER 016: CHURCH — 3 May 2024" },
+  { p: "🐧: I wore a blue dress to church one day and you txted something like — I like the blue." },
+  { p: "🧁: Yes your blue dress. Or blue coat. I guess both." },
+  { em: "Two people trying to recover the same small compliment from memory." },
+
+  { h: "FOLDER 017: DISC GOLF / NORMAL BRAD — 4 May 2024" },
+  { p: "🧁: Hah I was just gonna ask if I was acting like Normal Brad on texting lol." },
+  { p: "🐧: lol yeah I think so normal Brad." },
+  { em: "A version of himself assembled for anyone else who might be reading over a shoulder." },
+
+  { h: "FOLDER 043 — JULIA — 31 Dec 2024 / 12 Apr 2025" },
+  { p: "🐧: I think I'd be more jealous of Julia in general. No one else, really." },
+  { p: "🧁: Yeah, I don't think I've talked to Julia since early 2022." },
+  { em: "This one stays a gap. The Initiative preserves gaps as gaps rather than filling them with inference." },
+
+  { h: "PART IV — SHARED LANGUAGE" },
+  { h: "FOLDER 018: THE SABBATICAL — 24 June 2024" },
+  { p: "🧁: I would love it too. I understand though. I do. That would be nice." },
+  { em: "Starts here as an ordinary complaint about a broken app and a wish for more time." },
+
+  { h: "FOLDER 019: THE HOTEL — 13 May 2024" },
+  { p: "🧁: Fuck we need another hotel key, and whole night." },
+  { p: "🐧: I believe I was thinking about that last night as I fell asleep." },
+  { em: "Two people, independently haunted by the same missed opportunity." },
+
+  { h: "FOLDER 020: DREAMS — 27 May 2024" },
+  { p: "🐧: Yes! Did wake up thinking of you at 5. Kinda hard to go back to sleep." },
+  { p: "🧁: I know I had a dream with you in it." },
+  { em: "Not declarations, but small excavations." },
+
+  { h: "FOLDER 024: VULNERABLE JIMMY — 5 July 2024" },
+  { p: "🐧: Vulnerable jimmy" },
+  { p: "🧁: Yep that's it! My dad. Was called Jimmy growing up until he joined the air force." },
+  { em: "A father's old name, folded into an ordinary Tuesday about swimming plans." },
+
+  { h: "FOLDER 037 — THE BAG THAT WOULDN'T FAIL YOU — 21 Sept 2024" },
+  { p: "🐧: I mean but yeah id want like a marry poppins bag for a sex chest" },
+  { p: "🧁: The bag won't fail you." },
+  { p: "🐧: Exactly!" },
+  { em: "This is the only appearance of \"the bag\" in the full record. It stayed exactly what it was invented as." },
+
+  { h: "FOLDER 044 — FOREVER, TWICE — 20 Jan 2025" },
+  { p: "🐧: Brad… yeah. Let's stay like this forever." },
+  { p: "🧁: Yes. I want to stay like this forever." },
+  { em: "\"Forever\" appears 303 times across the full 208,998-message record." },
+
+  { h: "FOLDER 047 — TWO OTHER PEOPLE NAMED ALEX — 6 Apr 2025" },
+  { p: "🐧: Well, yes. Julia plays Alex, and Alex's bday is 4/1." },
+  { em: "An echo, not an answer." },
+
+  { h: "PART V — INFLUENCE" },
+  { h: "FOLDER 021: THE BURDEN — 21 Sept 2025" },
+  { p: "🧁: I'm sorry Penny… I hate this much weight on your shoulders." },
+  { em: "The first place Brad names, directly, what he suspects this correspondence is costing her." },
+
+  { h: "FOLDER 022: I HEART YOU, NOT I LOVE YOU — 7 Dec 2024" },
+  { p: "🧁: This was \"I heart you\" and not \"I love you\" don't worry! Don't freak out!" },
+  { em: "The shape of the missing phrase, visible without the phrase itself ever appearing." },
+
+  { h: "FOLDER 023: HILLARY'S SURGERY — 19 Aug 2025" },
+  { p: "🧁: I'd say the cause is work and \"lack of you\" and I have been feeling like that for a few months." },
+  { em: "The first time either of them names the correspondence itself as a source of difficulty." },
+
+  { h: "FOLDER 026: FEARS — 13 May 2024" },
+  { p: "🐧: I'm afraid going so soon could be suspicious. All of my reasons are good." },
+  { em: "How much absence is plausible, how far in advance it needs to be planned." },
+
+  { h: "FOLDER 025: DIVORCE TALK — 17 Oct 2025" },
+  { p: "🧁: Hey so you still like me as much as you did on the bench?! I fucking do." },
+  { em: "The folder's real subject was never divorce at all." },
+
+  { h: "FOLDER 050 — EVERYTHING AT ONCE — 25 Nov 2024" },
+  { p: "It's six hundred and five words. It's from Brad. A man trying to get ahead of something, all at once." },
+  { em: "The longest single message in the full archive by a wide margin. All five of the longest messages were sent by Brad; none by Penny." },
+
+  { h: "FOLDER 040 — THE SUSPICION — 18–26 Sept 2025" },
+  { p: "🧁: So he either has proof that it's us. Or has evidence to suggest cheating but nothing to prove it." },
+  { p: "🐧: I feel like I got him to not ask anything for now. By being mad, and then doing everything to decrease suspicion." },
+  { em: "The only sustained multi-day suspicion event in the full archive with no resolution recorded on either end." },
+
+  { h: "PART VI — WEIGHT" },
+  { h: "FOLDER 027: THE ANNIVERSARY — 25 June 2024" },
+  { p: "🧁: bailar anniversary 06/25" },
+  { p: "🐧: Dancing anniversary?" },
+  { em: "The first time either of them assigns themselves an anniversary at all." },
+
+  { h: "FOLDER 028: THE MAGNOLIA HOUSE — 3 May 2024" },
+  { p: "🐧: Yeah search The Magnolia House and see if you find it. It will be a good test." },
+  { em: "A rented house, real enough to search for, elusive enough to need a second look." },
+
+  { h: "FOLDER 029: ANXIETY — 29 June 2024" },
+  { p: "🐧: Weird kitchen pic. But this decreases my anxiety. I need my house like this again!!!!" },
+  { em: "Very little in this archive gets to be simple. This folder, briefly, is." },
+
+  { h: "FOLDER 035 — THE SAME MOMENT — 12 April 2025" },
+  { p: "🧁: I caught myself at the end whenever I said I like you, but it's probably one of the closest times I got to sa—" },
+  { p: "🐧: I actually didn't notice for you at all. Wonder if it was the same time for both of us." },
+  { em: "Two people, a few feet apart in the same truck, each privately arriving at the same edge." },
+
+  { h: "FOLDER 039 — FOURTEEN MONTHS — 15 April 2025" },
+  { p: "🧁: I probably would've proposed in 14 months and be already married by now, yeah." },
+  { em: "A number never does, again." },
+
+  { h: "FOLDER 041 — PERMISSION — 26 April 2025" },
+  { p: "🧁: If you for some reason need my permission to say it, please say it. I would—" },
+  { em: "Every real opening either of them offers the other gets acknowledged, and gets declined." },
+
+  { h: "PART VII — PRESERVATION" },
+  { h: "FOLDER 038 — THE BOOK SHE ALREADY HAD IN MIND — 4 Oct 2025" },
+  { p: "🐧: The other one is us. Our love story. And then at some point you find out we aren't single." },
+  { p: "🧁: Well… What would you call it?" },
+  { em: "One of the two people inside it had already described exactly the shape of the thing that would eventually be built from what they left behind." },
+
+  { h: "FOLDER 048 — A DATE, RECOVERED — 22 April 2025" },
+  { p: "🧁: December 8, 2023" },
+  { p: "🐧: I'm going to add that to my timeline." },
+  { em: "It wasn't written down when it happened. It was found, months later, and handed over just in time to be kept." },
+
+  { h: "FOLDER 046 — THE DISARRAY ON THE STAGING — 30 Dec 2025" },
+  { p: "🧁: Did you go back and delete part of a conversation about this?" },
+  { p: "🐧: It's been a long time since I've deleted anything. Kinda forgot I could do that." },
+  { em: "The only place either of them directly accuses the other of erasing something from the archive itself." },
+
+  { h: "FOLDER 042 — WHAT THE WINTER COULD HIDE — 30 Nov 2025" },
+  { p: "🧁: Did you just look up medications that could potentially reverse a vasectomy?" },
+  { p: "🐧: We just need blankets so we don't look naked!" },
+  { em: "The oldest fear in the whole record never fully leaves the room. It just finds a new sentence to live in." },
+
+  { h: "FOLDER 079: THE NUMBERS" },
+  { p: "One hour — 7:00 to 8:00 PM — accounts for more of the archive than any other four hours combined: 36,261 messages." },
+  { p: "Average message length fell for twenty consecutive months — from 15.7 words in May 2024 to 8.6 by December 2025." },
+  { p: "Brad apologized more than Penny — 3,847 uses of \"sorry\" against her 2,696." },
+  { em: "One reads a question. One answers, and says sorry. The archive does not know why." },
+
+  { h: "PART VIII — INHERITANCE" },
+  { h: "FOLDER 036 — THE REWIND SCENARIO — 5 Oct 2025" },
+  { p: "🐧: We'd play pickleball as couples every week. Definitely have a pet turtle. Hot tub but no pool." },
+  { p: "🐧: Tommy." },
+  { p: "🧁: Damn right Tommy!" },
+  { em: "\"Tommy\" appears exactly once in the full 208,998-message record — here, and nowhere else." },
+
+  { h: "FOLDER 045 — SMALL THINGS TO KEEP — 6–7 Jan 2026" },
+  { p: "🧁: Got you something… It's very tiny…" },
+  { p: "🐧: Wanna make a time capsule and bury it at Founders Park?" },
+  { em: "A shell, given. A time capsule, proposed and never built." },
+
+  { h: "FOLDER 049 — THE LAST BOX — 5–7 Jan 2026" },
+  { p: "🧁: Goodmorning Penny" },
+  { p: "🐧: Good morning!" },
+  { p: "🧁: When are we gonna talk about marriage?" },
+  { p: "🐧: Sounds fun to me!!!" },
+  { p: "🧁: I still need us. I still want us. I just wanted to tell you that I love you, Penny." },
+  { p: "🐧: Also I know tomorrow is the anniversary of your dad passing right?" },
+  { p: "🧁: I know. Fuck. Did you fucking plan that around this?" },
+  { p: "🧁: Motherfucker, you're so fucking smart." },
+  { p: "🐧: Wanna make a time capsule and bury it at Founders Park?" },
+  { p: "🧁: You used my dad's death to break up with me. I hate this so much." },
+  { em: "No reply follows it. Not that night, not anywhere else in what survives." },
+  { em: "This concludes the recovered correspondence between the two individuals documented in this archive." }
+];
+
+function renderContent() {
+  const container = document.getElementById('content');
+  container.innerHTML = SECTIONS.map(s => {
+    if (s.h) return '<strong>' + s.h + '</strong>';
+    if (s.em) return '<p><em>' + s.em + '</em></p>';
+    return '<p>' + s.p + '</p>';
+  }).join('');
+}
+
+document.getElementById('unlockBtn').addEventListener('click', () => {
+  const pass = document.getElementById('passInput').value;
+  if (pass === PASSPHRASE) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('reader').classList.add('show');
+    renderContent();
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+  }
+});
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+});
+
+document.getElementById('lockAgainBtn2').addEventListener('click', () => {
+  document.getElementById('reader').classList.remove('show');
+  document.getElementById('passInput').value = '';
+  document.getElementById('lockScreen').style.display = 'flex';
+});
+</script>
+</body>
+</html>

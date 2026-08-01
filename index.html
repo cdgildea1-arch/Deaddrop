@@ -1,3 +1,6 @@
+Here's the complete file — copy everything in this block and paste it into `index.html`:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,7 +148,7 @@
         <button class="primary" id="saveSettingsBtn">Save & Connect</button>
         <button class="secondary" id="clearSettingsBtn">Clear</button>
       </div>
-      <div class="note">Without this, messages stay local to this device/session only. Table needs columns: id (text), ciphertext (text), iv (text), created_at (timestamptz).</div>
+      <div class="note">Settings are saved on this device after you connect, so you won't need to re-enter them. Table needs columns: id (text), ciphertext (text), iv (text), created_at (timestamptz).</div>
     </div>
 
     <div class="status-banner" id="statusBox"></div>
@@ -224,7 +227,6 @@ function saveConfig() {
     localStorage.setItem('deaddrop_sbconfig', JSON.stringify(sbConfig));
   } catch (e) {}
 }
-
 
 async function sbRequest(path, opts = {}) {
   if (!sbConfig.url || !sbConfig.key) return null;
@@ -314,6 +316,7 @@ async function renderMessages() {
     });
   });
 }
+
 document.getElementById('unlockBtn').addEventListener('click', async () => {
   const pass = document.getElementById('passInput').value;
   if (!pass) return;
@@ -327,6 +330,7 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('unlockBtn').click(); });
+
 document.getElementById('lockBtn').addEventListener('click', () => {
   cryptoKey = null; passphrase = ''; messages = []; sentIds.clear();
   document.getElementById('passInput').value = '';
@@ -383,8 +387,9 @@ document.getElementById('clearSettingsBtn').addEventListener('click', () => {
   updateSyncDot();
   showStatus('Disconnected', 'ok');
 });
-
-});
 </script>
 </body>
 </html>
+```
+
+After pasting and committing, wait about a minute for the site to rebuild, then reload it fresh.

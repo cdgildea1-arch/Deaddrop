@@ -385,5 +385,134 @@ document.getElementById('clearSettingsBtn').addEventListener('click', () => {
   showStatus('Disconnected', 'ok');
 });
 </script>
+ <div id="tp-widget">
+  <div id="tp-bubble" class="tp-bubble"></div>
+  <div id="tp-penguin" class="tp-penguin">🐧</div>
+  <div id="tp-menu" class="tp-menu" hidden>
+    <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
+    <button onclick="tpAction('coffee')">☕ Give Coffee</button>
+    <button onclick="tpAction('talk')">💬 Talk</button>
+    <button onclick="tpAction('search')">📦 Search Archive</button>
+    <button onclick="tpAction('sleep')">😴 Sleep</button>
+    <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
+  </div>
+  <div id="tp-stats" class="tp-stats">
+    <span>❤️ <b id="tp-happy">–</b></span>
+    <span>☕ <b id="tp-energy">–</b></span>
+    <span>💬 <b id="tp-social">–</b></span>
+    <span>📚 <b id="tp-curious">–</b></span>
+  </div>
+</div>
+
+<style>
+  #tp-widget { position: fixed; bottom: 14px; right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
+  #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
+  #tp-penguin.tp-walking { animation: tp-walk 0.5s ease-in-out infinite; }
+  #tp-penguin.tp-sleeping { animation: tp-sleep 3s ease-in-out infinite; opacity: 0.75; }
+  #tp-penguin.tp-happy { animation: tp-bounce 0.4s ease-in-out infinite; }
+  @keyframes tp-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(-2deg); } }
+  @keyframes tp-walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
+  @keyframes tp-sleep { 0%, 100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(3deg) translateY(2px); } }
+  @keyframes tp-bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.08); } }
+  .tp-bubble { position: absolute; bottom: 46px; right: 0; max-width: 190px; background: #fffaf0; color: #3a3227; border: 1px solid #d8c9a8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; font-family: Georgia, serif; }
+  .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
+  @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
+  .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
+  .tp-menu button:active { background: #241d15; }
+  .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
+  .tp-stats { position: absolute; bottom: -22px; right: 0; display: flex; gap: 6px; font-size: 9px; color: #8a7355; white-space: nowrap; opacity: 0.85; }
+</style>
+
+<script>
+(function() {
+  const TP_KEY = 'tiny_penguin_state';
+  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
+  const TP_ARTIFACTS = ["Blue Dress","The Bag","Good Morning","Sleepyhead","Normal Brad","The Hotel Key","Forever","The Magnolia House","Vulnerable Jimmy","Tommy"];
+  function tpNow() { return Date.now(); }
+  function tpLoad() {
+    try { const raw = localStorage.getItem(TP_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+    return { happy: 70, energy: 70, social: 70, curious: 70, lastTick: tpNow(), lastInteraction: tpNow(), foundArtifacts: [], sleeping: false };
+  }
+  function tpSave(state) { try { localStorage.setItem(TP_KEY, JSON.stringify(state)); } catch (e) {} }
+  let state = tpLoad();
+  function tpDecay() {
+    const now = tpNow();
+    const minutesPassed = (now - state.lastTick) / 60000;
+    if (minutesPassed > 0) {
+      state.happy = Math.max(0, state.happy - minutesPassed * 0.6);
+      state.energy = Math.max(0, state.energy - minutesPassed * 0.4);
+      state.social = Math.max(0, state.social - minutesPassed * 0.8);
+      state.curious = Math.max(0, state.curious - minutesPassed * 0.3);
+      state.lastTick = now;
+    }
+    tpSave(state);
+  }
+  function tpClamp(v) { return Math.max(0, Math.min(100, Math.round(v))); }
+  function tpUpdateUI() {
+    document.getElementById('tp-happy').textContent = tpClamp(state.happy);
+    document.getElementById('tp-energy').textContent = tpClamp(state.energy);
+    document.getElementById('tp-social').textContent = tpClamp(state.social);
+    document.getElementById('tp-curious').textContent = tpClamp(state.curious);
+    const penguin = document.getElementById('tp-penguin');
+    penguin.classList.remove('tp-walking', 'tp-sleeping', 'tp-happy');
+    if (state.sleeping) { penguin.textContent = '😴'; penguin.classList.add('tp-sleeping'); }
+    else if (state.happy > 80) { penguin.textContent = '🐧'; penguin.classList.add('tp-happy'); }
+    else if (state.energy < 25) { penguin.textContent = '🥱'; }
+    else { penguin.textContent = '🐧'; }
+  }
+  function tpSayBubble(text, duration) {
+    const bubble = document.getElementById('tp-bubble');
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    setTimeout(() => { bubble.classList.remove('show'); }, duration || 3200);
+  }
+  function tpMaybeSpeak() {
+    if (state.sleeping) return;
+    const minsSinceInteraction = (tpNow() - state.lastInteraction) / 60000;
+    if (minsSinceInteraction > 2 && Math.random() < 0.4) {
+      tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
+    }
+    if (state.social < 30 && Math.random() < 0.3) { tpSayBubble("I'm a little lonely..."); }
+  }
+  function tpWalk() {
+    if (state.sleeping) return;
+    const penguin = document.getElementById('tp-penguin');
+    penguin.classList.add('tp-walking');
+    setTimeout(() => penguin.classList.remove('tp-walking'), 900);
+  }
+  window.tpAction = function(action) {
+    state.lastInteraction = tpNow();
+    if (action === 'feed') { state.happy = tpClamp(state.happy + 20); tpSayBubble("Mmm, cupcake. 🧁"); }
+    else if (action === 'coffee') { state.energy = tpClamp(state.energy + 25); tpSayBubble("☕ Ahh, better."); }
+    else if (action === 'talk') { state.social = tpClamp(state.social + 20); tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]); }
+    else if (action === 'search') {
+      state.curious = tpClamp(state.curious + 15);
+      const found = Math.random() < 0.35;
+      if (found) {
+        const remaining = TP_ARTIFACTS.filter(a => !state.foundArtifacts.includes(a));
+        if (remaining.length > 0) {
+          const pick = remaining[Math.floor(Math.random() * remaining.length)];
+          state.foundArtifacts.push(pick);
+          tpSayBubble("📦 Recovered Artifact:\n+ " + pick, 4200);
+        } else { tpSayBubble("📦 I've found everything so far..."); }
+      } else { tpSayBubble("Nothing this time..."); }
+    } else if (action === 'sleep') { state.sleeping = !state.sleeping; tpSayBubble(state.sleeping ? "Goodnight..." : "I'm awake!"); }
+    tpSave(state); tpUpdateUI(); tpCloseMenu();
+  };
+  window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
+  document.getElementById('tp-penguin').addEventListener('click', () => {
+    const menu = document.getElementById('tp-menu');
+    menu.hidden = !menu.hidden;
+    state.lastInteraction = tpNow();
+    tpSave(state);
+  });
+  tpDecay(); tpUpdateUI();
+  setInterval(() => { tpDecay(); tpUpdateUI(); }, 20000);
+  setInterval(tpMaybeSpeak, 15000);
+  setInterval(tpWalk, 6000);
+})();
+</script>
+
 </body>
 </html>

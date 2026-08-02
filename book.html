@@ -438,6 +438,10 @@ document.getElementById('lockAgainBtn2').addEventListener('click', () => {
   .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
   @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
+  /* Without this, .tp-menu{display:flex} above always wins the cascade
+     over the browser's own [hidden]{display:none}, so toggling
+     menu.hidden in JS silently did nothing visually. */
+  .tp-menu[hidden] { display: none !important; }
   .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
   .tp-menu button:active { background: #241d15; }
   .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }

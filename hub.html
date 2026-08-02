@@ -128,7 +128,7 @@
   </div>
 
   <style>
-    #tp-widget { position: fixed; bottom: 14px; right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
+    #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
     #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
     #tp-penguin.tp-walking { animation: tp-walk 0.5s ease-in-out infinite; }
     #tp-penguin.tp-sleeping { animation: tp-sleep 3s ease-in-out infinite; opacity: 0.75; }
@@ -141,6 +141,10 @@
     .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
     @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
+    /* Without this, .tp-menu{display:flex} above always wins the cascade
+       over the browser's own [hidden]{display:none}, so toggling
+       menu.hidden in JS silently did nothing visually. */
+    .tp-menu[hidden] { display: none !important; }
     .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
     .tp-menu button:active { background: #241d15; }
     .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
@@ -224,11 +228,17 @@
       tpSave(state); tpUpdateUI(); tpCloseMenu();
     };
     window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
-    document.getElementById('tp-penguin').addEventListener('click', () => {
+    document.getElementById('tp-penguin').addEventListener('click', (e) => {
       const menu = document.getElementById('tp-menu');
       menu.hidden = !menu.hidden;
       state.lastInteraction = tpNow();
       tpSave(state);
+      e.stopPropagation();
+    });
+    document.addEventListener('click', (e) => {
+      const widget = document.getElementById('tp-widget');
+      const menu = document.getElementById('tp-menu');
+      if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
     });
     tpDecay(); tpUpdateUI();
     setInterval(() => { tpDecay(); tpUpdateUI(); }, 20000);

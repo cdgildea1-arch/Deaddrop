@@ -413,6 +413,59 @@ const CARDS = [
     ["🐧","Pinned for me to hear every night made me so happy! Goodnight Chris 😘🫶🏻"]
   ], footer: "June 15, 2024." },
 
-  { headline: "Said plainly, no hedge.", lines: [
-    ["🐧","Awe Brad 🫶🏻 you're sweet 💗 I am very happy 😍 with you, in my life."]
-  ], footer: "July
+];
+
+let currentIndex = 0;
+
+function renderCards() {
+  const carousel = document.getElementById('carousel');
+  carousel.innerHTML = CARDS.map((card, i) => {
+    const speakers = [...new Set(card.lines.map(l => l[0]))].join(' ');
+    const linesHtml = card.lines.map(([who, text]) =>
+      '<div class="card-line"><span class="who">' + who + '</span><span>' + text + '</span></div>'
+    ).join('');
+    return '<div class="quote-card" data-index="' + i + '">' +
+      '<div class="card-icons">' + speakers + '</div>' +
+      '<div class="card-headline">' + card.headline + '</div>' +
+      '<div class="card-lines">' + linesHtml + '</div>' +
+      '<div class="card-footer">' + card.footer + '</div>' +
+      '</div>';
+  }).join('');
+  updateCounter();
+}
+
+function updateCounter() {
+  document.getElementById('cardCounter').textContent = (currentIndex + 1) + ' / ' + CARDS.length;
+}
+
+document.getElementById('carousel').addEventListener('scroll', function() {
+  const carousel = document.getElementById('carousel');
+  const slideWidth = carousel.scrollWidth / CARDS.length;
+  currentIndex = Math.round(carousel.scrollLeft / slideWidth);
+  updateCounter();
+}, { passive: true });
+
+document.getElementById('unlockBtn').addEventListener('click', () => {
+  const pass = document.getElementById('passInput').value;
+  if (pass === PASSPHRASE) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('gallery').classList.add('show');
+    renderCards();
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+  }
+});
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+});
+
+document.getElementById('lockAgainBtn').addEventListener('click', () => {
+  document.getElementById('gallery').classList.remove('show');
+  document.getElementById('passInput').value = '';
+  document.getElementById('lockScreen').style.display = 'flex';
+});
+</script>
+
+</body>
+</html>

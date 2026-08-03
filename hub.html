@@ -74,24 +74,29 @@
     flex: 0 0 calc(100% - 32px);
     max-width: 340px;
     scroll-snap-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 14px;
+    height: 56vh;
     background: #121812;
     border: 1px solid #1e3a24;
-    border-radius: 20px;
-    padding: 28px 24px;
+    border-radius: 22px;
+    padding: 30px 26px;
     text-decoration: none;
     color: #e8f5ec;
     text-align: left;
+    display: flex;
+    flex-direction: column;
     transition: transform 0.15s ease, background 0.15s ease;
   }
   a.menu-item:active { transform: scale(0.97); background: #16211a; }
-  .menu-icon { font-size: 40px; }
-  .menu-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-  .menu-sub { font-size: 14px; color: #7a998a; line-height: 1.5; }
-  .lock-badge { font-size: 15px; opacity: 0.6; margin-top: 6px; }
+  .top-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .menu-icon { font-size: 42px; flex-shrink: 0; }
+  .menu-title { font-size: 24px; font-weight: 700; }
+  .menu-sub { font-size: 15.5px; color: #7a998a; line-height: 1.65; flex: 1; }
+  .lock-badge {
+    align-self: flex-start; margin-top: 18px; width: 100%;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: #7a998a; font-family: -apple-system, sans-serif;
+    border-top: 1px solid #1e3a24; padding-top: 14px;
+  }
 
   .dots {
     display: flex;
@@ -119,57 +124,57 @@
 
     <div class="carousel" id="carousel">
       <a class="menu-item" href="book.html" data-index="0">
-        <div class="menu-icon">📖</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">📖</div>
           <div class="menu-title">The Archive</div>
-          <div class="menu-sub">Reading Room D. Enter the passphrase to continue.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">Reading Room D. Enter the passphrase to continue and browse what's there.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
 
       <a class="menu-item" href="cards.html" data-index="1">
-        <div class="menu-icon">🃏</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">🃏</div>
           <div class="menu-title">The Cards</div>
-          <div class="menu-sub">A few lines, kept exactly as they were.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">A few lines, kept exactly as they were. Enter the passphrase to continue.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
 
       <a class="menu-item" href="photographs.html" data-index="2">
-        <div class="menu-icon">📷</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">📷</div>
           <div class="menu-title">The Photographs</div>
-          <div class="menu-sub">A few faded prints, kept the way memory keeps them.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">A few faded prints, kept the way memory keeps them. Enter the passphrase to continue and browse what's there.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
 
       <a class="menu-item" href="deaddrop.html" data-index="3">
-        <div class="menu-icon">🔐</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">🔐</div>
           <div class="menu-title">Dead Drop</div>
-          <div class="menu-sub">Enter the shared passphrase to open this conversation.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">Enter the shared passphrase to open this conversation.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
 
       <a class="menu-item" href="the_record.html" data-index="4">
-        <div class="menu-icon">🗂️</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">🗂️</div>
           <div class="menu-title">The Record</div>
-          <div class="menu-sub">The full correspondence, unedited. Enter the passphrase to continue.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">The full correspondence, unedited. Enter the passphrase to continue.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
 
       <a class="menu-item" href="the_ledger.html" data-index="5">
-        <div class="menu-icon">📊</div>
-        <div>
+        <div class="top-row">
+          <div class="menu-icon">📊</div>
           <div class="menu-title">The Ledger</div>
-          <div class="menu-sub">Terms, numbers, and small proofs of it all. Enter the passphrase to continue.</div>
         </div>
-        <div class="lock-badge">🔒</div>
+        <div class="menu-sub">Terms, numbers, and small proofs of it all. Enter the passphrase to continue.</div>
+        <div class="lock-badge">🔒 Locked — passphrase required</div>
       </a>
     </div>
 

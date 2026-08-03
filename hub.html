@@ -12,111 +12,176 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     background: #0a0e0a;
     color: #e8f5ec;
+    overflow: hidden;
   }
   .wrap {
-    min-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    padding-bottom: max(30px, env(safe-area-inset-bottom));
-    text-align: center;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
   }
   .footer-note {
-    font-size: 30px;
+    text-align: center;
+    font-size: 26px;
     letter-spacing: 8px;
-    margin-bottom: 36px;
+    margin-bottom: 18px;
+    flex-shrink: 0;
   }
-  .menu {
-    width: 100%;
-    max-width: 320px;
+
+  /* ---- Tab bar ---- */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 0 16px 14px;
+    flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    background: #121812;
+    border: 1px solid #1e3a24;
+    color: #7a998a;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .tab-btn.active {
+    background: #2f6b46;
+    border-color: #2f6b46;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ---- Swipeable carousel ---- */
+  .carousel {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 14px;
+    padding: 4px 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+
+  a.menu-item {
+    flex: 0 0 calc(100% - 32px);
+    max-width: 340px;
+    scroll-snap-align: center;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-  }
-  a.menu-item {
-    display: flex;
-    align-items: center;
+    justify-content: center;
     gap: 14px;
     background: #121812;
     border: 1px solid #1e3a24;
-    border-radius: 16px;
-    padding: 16px 18px;
+    border-radius: 20px;
+    padding: 28px 24px;
     text-decoration: none;
     color: #e8f5ec;
     text-align: left;
     transition: transform 0.15s ease, background 0.15s ease;
   }
   a.menu-item:active { transform: scale(0.97); background: #16211a; }
-  .menu-icon { font-size: 26px; flex-shrink: 0; }
-  .menu-text { flex: 1; }
-  .menu-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-  .menu-sub { font-size: 12px; color: #7a998a; }
-  .lock-badge { font-size: 13px; opacity: 0.6; }
+  .menu-icon { font-size: 40px; }
+  .menu-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .menu-sub { font-size: 14px; color: #7a998a; line-height: 1.5; }
+  .lock-badge { font-size: 15px; opacity: 0.6; margin-top: 6px; }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 14px;
+    flex-shrink: 0;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a3d30; transition: background 0.2s ease; }
+  .dot.active { background: #2f6b46; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="footer-note">🧁 &amp; 🐧</div>
 
-    <div class="menu">
-      <a class="menu-item" href="book.html">
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn" data-index="0">The Archive</button>
+      <button class="tab-btn" data-index="1">The Cards</button>
+      <button class="tab-btn" data-index="2">The Photographs</button>
+      <button class="tab-btn" data-index="3">Dead Drop</button>
+      <button class="tab-btn" data-index="4">The Record</button>
+      <button class="tab-btn" data-index="5">The Ledger</button>
+    </div>
+
+    <div class="carousel" id="carousel">
+      <a class="menu-item" href="book.html" data-index="0">
         <div class="menu-icon">📖</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">The Archive</div>
           <div class="menu-sub">Reading Room D. Enter the passphrase to continue.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
 
-      <a class="menu-item" href="cards.html">
+      <a class="menu-item" href="cards.html" data-index="1">
         <div class="menu-icon">🃏</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">The Cards</div>
           <div class="menu-sub">A few lines, kept exactly as they were.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
 
-      <a class="menu-item" href="photographs.html">
+      <a class="menu-item" href="photographs.html" data-index="2">
         <div class="menu-icon">📷</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">The Photographs</div>
           <div class="menu-sub">A few faded prints, kept the way memory keeps them.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
 
-      <a class="menu-item" href="deaddrop.html">
+      <a class="menu-item" href="deaddrop.html" data-index="3">
         <div class="menu-icon">🔐</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">Dead Drop</div>
           <div class="menu-sub">Enter the shared passphrase to open this conversation.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
 
-      <a class="menu-item" href="the_record.html">
+      <a class="menu-item" href="the_record.html" data-index="4">
         <div class="menu-icon">🗂️</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">The Record</div>
           <div class="menu-sub">The full correspondence, unedited. Enter the passphrase to continue.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
 
-      <a class="menu-item" href="the_ledger.html">
+      <a class="menu-item" href="the_ledger.html" data-index="5">
         <div class="menu-icon">📊</div>
-        <div class="menu-text">
+        <div>
           <div class="menu-title">The Ledger</div>
           <div class="menu-sub">Terms, numbers, and small proofs of it all. Enter the passphrase to continue.</div>
         </div>
         <div class="lock-badge">🔒</div>
       </a>
     </div>
-  </div>
 
+    <div class="dots" id="dots">
+      <span class="dot" data-index="0"></span>
+      <span class="dot" data-index="1"></span>
+      <span class="dot" data-index="2"></span>
+      <span class="dot" data-index="3"></span>
+      <span class="dot" data-index="4"></span>
+      <span class="dot" data-index="5"></span>
+    </div>
+  </div>
   <div id="tp-widget">
     <div id="tp-bubble" class="tp-bubble"></div>
     <div id="tp-penguin" class="tp-penguin">🐧</div>
@@ -160,6 +225,42 @@
     .tp-stats { position: absolute; bottom: -22px; right: 0; display: flex; gap: 6px; font-size: 9px; color: #8a7355; white-space: nowrap; opacity: 0.85; }
   </style>
 
+  <script>
+  (function() {
+    const carousel = document.getElementById('carousel');
+    const tabBar = document.getElementById('tabBar');
+    const tabs = Array.from(tabBar.querySelectorAll('.tab-btn'));
+    const dots = Array.from(document.querySelectorAll('.dot'));
+    const cards = Array.from(carousel.querySelectorAll('.menu-item'));
+
+    function setActive(index) {
+      tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+      const activeTab = tabs[index];
+      if (activeTab) {
+        activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        cards[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
+    });
+
+    let scrollTimeout;
+    carousel.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const cardWidth = cards[0].getBoundingClientRect().width + 14;
+        const index = Math.round(carousel.scrollLeft / cardWidth);
+        setActive(Math.max(0, Math.min(cards.length - 1, index)));
+      }, 80);
+    }, { passive: true });
+
+    setActive(0);
+  })();
+  </script>
   <script>
   (function() {
     const TP_KEY = 'tiny_penguin_state';

@@ -2,364 +2,117 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Hub</title>
+<title>The Penguin Archive</title>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    margin: 0;
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    background: #0a0e0a;
-    color: #e8f5ec;
-    overflow: hidden;
-  }
-  .wrap {
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    padding-top: max(24px, env(safe-area-inset-top));
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
-  .footer-note {
-    text-align: center;
-    font-size: 26px;
-    letter-spacing: 8px;
-    margin-bottom: 18px;
-    flex-shrink: 0;
-  }
-
-  /* ---- Tab bar ---- */
-  .tab-bar {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 0 16px 14px;
-    flex-shrink: 0;
-    scrollbar-width: none;
-  }
-  .tab-bar::-webkit-scrollbar { display: none; }
-  .tab-btn {
-    flex-shrink: 0;
-    background: #121812;
-    border: 1px solid #1e3a24;
-    color: #7a998a;
-    border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 13px;
-    white-space: nowrap;
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-  .tab-btn.active {
-    background: #2f6b46;
-    border-color: #2f6b46;
-    color: #fff;
-    font-weight: 600;
-  }
-
-  /* ---- Swipeable carousel ---- */
-  .carousel {
-    flex: 1;
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 14px;
-    padding: 4px 16px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .carousel::-webkit-scrollbar { display: none; }
-
-  a.menu-item {
-    flex: 0 0 calc(100% - 32px);
-    max-width: 340px;
-    scroll-snap-align: center;
-    height: 56vh;
-    background: #121812;
-    border: 1px solid #1e3a24;
-    border-radius: 22px;
-    padding: 30px 26px;
-    text-decoration: none;
-    color: #e8f5ec;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  a.menu-item:active { transform: scale(0.97); background: #16211a; }
-  .top-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-  .menu-icon { font-size: 42px; flex-shrink: 0; }
-  .menu-title { font-size: 24px; font-weight: 700; }
-  .menu-sub { font-size: 15.5px; color: #7a998a; line-height: 1.65; flex: 1; }
-  .lock-badge {
-    align-self: flex-start; margin-top: 18px; width: 100%;
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12.5px; color: #7a998a; font-family: -apple-system, sans-serif;
-    border-top: 1px solid #1e3a24; padding-top: 14px;
-  }
-
-  .dots {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    padding-top: 14px;
-    flex-shrink: 0;
-  }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a3d30; transition: background 0.2s ease; }
-  .dot.active { background: #2f6b46; }
+  body { font-family: Georgia, serif; max-width: 700px; margin: 0 auto; padding: 0 20px; background: #faf7f2; color: #2b2b2b; line-height: 1.6; }
+  #gate { text-align: center; margin-top: 90px; }
+  .emblem { font-size: 3.6rem; letter-spacing: 22px; margin-bottom: 14px; }
+  .emblem span { display: inline-block; }
+  .divider { width: 70px; height: 1px; background: #c9a876; margin: 26px auto 42px; }
+  h1.title { font-size: 2.6rem; font-weight: normal; letter-spacing: 1px; margin-bottom: 8px; color: #3a2f22; }
+  .subtitle { font-style: italic; color: #8a6d3b; font-size: 1.15rem; margin-bottom: 36px; }
+  input { padding: 10px 12px; font-size: 1rem; width: 240px; font-family: inherit; border: 1px solid #d8c9ae; border-radius: 3px; background: #fffdfa; display: block; margin: 0 auto; }
+  input:focus { outline: none; border-color: #b08d4f; }
+  button { padding: 10px 18px; background: #8a6d3b; color: #fdf9f2; border: none; border-radius: 3px; cursor: pointer; font-size: 1rem; font-family: Georgia, serif; letter-spacing: 0.5px; display: block; margin: 18px auto 0; }
+  button:hover { background: #6f5730; }
+  #error { color: #a33; margin-top: 14px; font-size: 0.85rem; font-style: italic; }
+  #content { display: none; white-space: pre-wrap; max-width: 700px; margin: 40px auto 80px; }
+  #content h1, #content h2 { font-weight: normal; text-align: center; color: #3a2f22; letter-spacing: 1px; }
+  #content h1 { font-size: 2.4rem; margin-bottom: 10px; }
+  #content h2 { font-size: 1.3rem; font-style: italic; color: #8a6d3b; margin-top: 0; margin-bottom: 36px; }
+  #content .emblem { font-size: 3.2rem; letter-spacing: 18px; text-align: center; margin-bottom: 14px; }
+  #content .divider { width: 70px; height: 1px; background: #c9a876; margin: 0 auto 36px; }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="footer-note">🧁 &amp; 🐧</div>
 
-    <div class="tab-bar" id="tabBar">
-      <button class="tab-btn" data-index="0">The Archive</button>
-      <button class="tab-btn" data-index="1">The Cards</button>
-      <button class="tab-btn" data-index="2">The Photographs</button>
-      <button class="tab-btn" data-index="3">Dead Drop</button>
-      <button class="tab-btn" data-index="4">The Record</button>
-      <button class="tab-btn" data-index="5">The Ledger</button>
-    </div>
+<div id="gate">
+  <div class="emblem"><span>🧁</span><span>🐧</span></div>
+  <h1 class="title">The Archive</h1>
+  <p class="subtitle">a private correspondence, kept</p>
+  <div class="divider"></div>
+  <input id="passphrase" type="password" placeholder="Passphrase" onkeydown="if(event.key==='Enter') unlock()">
+  <button onclick="unlock()">Unlock</button>
+  <div id="error"></div>
+</div>
 
-    <div class="carousel" id="carousel">
-      <a class="menu-item" href="book.html" data-index="0">
-        <div class="top-row">
-          <div class="menu-icon">📖</div>
-          <div class="menu-title">The Archive</div>
-        </div>
-        <div class="menu-sub">Reading Room D. Enter the passphrase to continue and browse what's there.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
+<div id="content"></div>
+<div id="continueLink" style="display:none; text-align:center; margin: 20px 0 60px;">
+  <a href="hub.html" style="display:inline-block; font-size:2rem; color:#8a6d3b; text-decoration:none; border:1px solid #d8c9ae; border-radius:50%; width:56px; height:56px; line-height:52px;">→</a>
+</div>
 
-      <a class="menu-item" href="cards.html" data-index="1">
-        <div class="top-row">
-          <div class="menu-icon">🃏</div>
-          <div class="menu-title">The Cards</div>
-        </div>
-        <div class="menu-sub">A few lines, kept exactly as they were. Enter the passphrase to continue.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
+<script>
+// Public read-only credentials — safe to expose, RLS only allows SELECT
+const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 
-      <a class="menu-item" href="photographs.html" data-index="2">
-        <div class="top-row">
-          <div class="menu-icon">📷</div>
-          <div class="menu-title">The Photographs</div>
-        </div>
-        <div class="menu-sub">A few faded prints, kept the way memory keeps them. Enter the passphrase to continue and browse what's there.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
+function fromBase64(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+}
 
-      <a class="menu-item" href="deaddrop.html" data-index="3">
-        <div class="top-row">
-          <div class="menu-icon">🔐</div>
-          <div class="menu-title">Dead Drop</div>
-        </div>
-        <div class="menu-sub">Enter the shared passphrase to open this conversation.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
 
-      <a class="menu-item" href="the_record.html" data-index="4">
-        <div class="top-row">
-          <div class="menu-icon">🗂️</div>
-          <div class="menu-title">The Record</div>
-        </div>
-        <div class="menu-sub">The full correspondence, unedited. Enter the passphrase to continue.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
+async function unlock() {
+  const errorDiv = document.getElementById('error');
+  const passphrase = document.getElementById('passphrase').value;
+  errorDiv.textContent = '';
 
-      <a class="menu-item" href="the_ledger.html" data-index="5">
-        <div class="top-row">
-          <div class="menu-icon">📊</div>
-          <div class="menu-title">The Ledger</div>
-        </div>
-        <div class="menu-sub">Terms, numbers, and small proofs of it all. Enter the passphrase to continue.</div>
-        <div class="lock-badge">🔒 Locked — passphrase required</div>
-      </a>
-    </div>
+  if (!passphrase) {
+    errorDiv.textContent = 'Enter a passphrase.';
+    return;
+  }
 
-    <div class="dots" id="dots">
-      <span class="dot" data-index="0"></span>
-      <span class="dot" data-index="1"></span>
-      <span class="dot" data-index="2"></span>
-      <span class="dot" data-index="3"></span>
-      <span class="dot" data-index="4"></span>
-      <span class="dot" data-index="5"></span>
-    </div>
-  </div>
-  <div id="tp-widget">
-    <div id="tp-bubble" class="tp-bubble"></div>
-    <div id="tp-penguin" class="tp-penguin">🐧</div>
-    <div id="tp-menu" class="tp-menu" hidden>
-      <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
-      <button onclick="tpAction('coffee')">☕ Give Coffee</button>
-      <button onclick="tpAction('talk')">💬 Talk</button>
-      <button onclick="tpAction('search')">📦 Search Archive</button>
-      <button onclick="tpAction('sleep')">😴 Sleep</button>
-      <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
-    </div>
-    <div id="tp-stats" class="tp-stats">
-      <span>❤️ <b id="tp-happy">–</b></span>
-      <span>☕ <b id="tp-energy">–</b></span>
-      <span>💬 <b id="tp-social">–</b></span>
-      <span>📚 <b id="tp-curious">–</b></span>
-    </div>
-  </div>
-
-  <style>
-    #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
-    #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
-    #tp-penguin.tp-walking { animation: tp-walk 0.5s ease-in-out infinite; }
-    #tp-penguin.tp-sleeping { animation: tp-sleep 3s ease-in-out infinite; opacity: 0.75; }
-    #tp-penguin.tp-happy { animation: tp-bounce 0.4s ease-in-out infinite; }
-    @keyframes tp-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(-2deg); } }
-    @keyframes tp-walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
-    @keyframes tp-sleep { 0%, 100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(3deg) translateY(2px); } }
-    @keyframes tp-bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.08); } }
-    .tp-bubble { position: absolute; bottom: 46px; right: 0; max-width: 190px; background: #fffaf0; color: #3a3227; border: 1px solid #d8c9a8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; font-family: Georgia, serif; }
-    .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
-    @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
-    /* Without this, .tp-menu{display:flex} above always wins the cascade
-       over the browser's own [hidden]{display:none}, so toggling
-       menu.hidden in JS silently did nothing visually. */
-    .tp-menu[hidden] { display: none !important; }
-    .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
-    .tp-menu button:active { background: #241d15; }
-    .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
-    .tp-stats { position: absolute; bottom: -22px; right: 0; display: flex; gap: 6px; font-size: 9px; color: #8a7355; white-space: nowrap; opacity: 0.85; }
-  </style>
-
-  <script>
-  (function() {
-    const carousel = document.getElementById('carousel');
-    const tabBar = document.getElementById('tabBar');
-    const tabs = Array.from(tabBar.querySelectorAll('.tab-btn'));
-    const dots = Array.from(document.querySelectorAll('.dot'));
-    const cards = Array.from(carousel.querySelectorAll('.menu-item'));
-
-    function setActive(index) {
-      tabs.forEach((t, i) => t.classList.toggle('active', i === index));
-      dots.forEach((d, i) => d.classList.toggle('active', i === index));
-      const activeTab = tabs[index];
-      if (activeTab) {
-        activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/archive?select=*&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
       }
+    );
+
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      errorDiv.textContent = 'No archive content found.';
+      return;
     }
 
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => {
-        cards[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      });
-    });
+    const row = rows[0];
+    const salt = fromBase64(row.salt);
+    const iv = fromBase64(row.iv);
+    const ciphertext = fromBase64(row.ciphertext);
 
-    let scrollTimeout;
-    carousel.addEventListener('scroll', () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const cardWidth = cards[0].getBoundingClientRect().width + 14;
-        const index = Math.round(carousel.scrollLeft / cardWidth);
-        setActive(Math.max(0, Math.min(cards.length - 1, index)));
-      }, 80);
-    }, { passive: true });
+    const key = await deriveKey(passphrase, salt);
 
-    setActive(0);
-  })();
-  </script>
-  <script>
-  (function() {
-    const TP_KEY = 'tiny_penguin_state';
-    const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
-    const TP_ARTIFACTS = ["Blue Dress","The Bag","Good Morning","Sleepyhead","Normal Brad","The Hotel Key","Forever","The Magnolia House","Vulnerable Jimmy","Tommy"];
-    function tpNow() { return Date.now(); }
-    function tpLoad() {
-      try { const raw = localStorage.getItem(TP_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
-      return { happy: 70, energy: 70, social: 70, curious: 70, lastTick: tpNow(), lastInteraction: tpNow(), foundArtifacts: [], sleeping: false };
-    }
-    function tpSave(state) { try { localStorage.setItem(TP_KEY, JSON.stringify(state)); } catch (e) {} }
-    let state = tpLoad();
-    function tpDecay() {
-      const now = tpNow();
-      const minutesPassed = (now - state.lastTick) / 60000;
-      if (minutesPassed > 0) {
-        state.happy = Math.max(0, state.happy - minutesPassed * 0.6);
-        state.energy = Math.max(0, state.energy - minutesPassed * 0.4);
-        state.social = Math.max(0, state.social - minutesPassed * 0.8);
-        state.curious = Math.max(0, state.curious - minutesPassed * 0.3);
-        state.lastTick = now;
-      }
-      tpSave(state);
-    }
-    function tpClamp(v) { return Math.max(0, Math.min(100, Math.round(v))); }
-    function tpUpdateUI() {
-      document.getElementById('tp-happy').textContent = tpClamp(state.happy);
-      document.getElementById('tp-energy').textContent = tpClamp(state.energy);
-      document.getElementById('tp-social').textContent = tpClamp(state.social);
-      document.getElementById('tp-curious').textContent = tpClamp(state.curious);
-      const penguin = document.getElementById('tp-penguin');
-      penguin.classList.remove('tp-walking', 'tp-sleeping', 'tp-happy');
-      if (state.sleeping) { penguin.textContent = '😴'; penguin.classList.add('tp-sleeping'); }
-      else if (state.happy > 80) { penguin.textContent = '🐧'; penguin.classList.add('tp-happy'); }
-      else if (state.energy < 25) { penguin.textContent = '🥱'; }
-      else { penguin.textContent = '🐧'; }
-    }
-    function tpSayBubble(text, duration) {
-      const bubble = document.getElementById('tp-bubble');
-      bubble.textContent = text;
-      bubble.classList.add('show');
-      setTimeout(() => { bubble.classList.remove('show'); }, duration || 3200);
-    }
-    function tpMaybeSpeak() {
-      if (state.sleeping) return;
-      const minsSinceInteraction = (tpNow() - state.lastInteraction) / 60000;
-      if (minsSinceInteraction > 2 && Math.random() < 0.4) {
-        tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
-      }
-      if (state.social < 30 && Math.random() < 0.3) { tpSayBubble("I'm a little lonely..."); }
-    }
-    function tpWalk() {
-      if (state.sleeping) return;
-      const penguin = document.getElementById('tp-penguin');
-      penguin.classList.add('tp-walking');
-      setTimeout(() => penguin.classList.remove('tp-walking'), 900);
-    }
-    window.tpAction = function(action) {
-      state.lastInteraction = tpNow();
-      if (action === 'feed') { state.happy = tpClamp(state.happy + 20); tpSayBubble("Mmm, cupcake. 🧁"); }
-      else if (action === 'coffee') { state.energy = tpClamp(state.energy + 25); tpSayBubble("☕ Ahh, better."); }
-      else if (action === 'talk') { state.social = tpClamp(state.social + 20); tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]); }
-      else if (action === 'search') {
-        state.curious = tpClamp(state.curious + 15);
-        const found = Math.random() < 0.35;
-        if (found) {
-          const remaining = TP_ARTIFACTS.filter(a => !state.foundArtifacts.includes(a));
-          if (remaining.length > 0) {
-            const pick = remaining[Math.floor(Math.random() * remaining.length)];
-            state.foundArtifacts.push(pick);
-            tpSayBubble("📦 Recovered Artifact:\n+ " + pick, 4200);
-          } else { tpSayBubble("📦 I've found everything so far..."); }
-        } else { tpSayBubble("Nothing this time..."); }
-      } else if (action === 'sleep') { state.sleeping = !state.sleeping; tpSayBubble(state.sleeping ? "Goodnight..." : "I'm awake!"); }
-      tpSave(state); tpUpdateUI(); tpCloseMenu();
-    };
-    window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
-    document.getElementById('tp-penguin').addEventListener('click', (e) => {
-      const menu = document.getElementById('tp-menu');
-      menu.hidden = !menu.hidden;
-      state.lastInteraction = tpNow();
-      tpSave(state);
-      e.stopPropagation();
-    });
-    document.addEventListener('click', (e) => {
-      const widget = document.getElementById('tp-widget');
-      const menu = document.getElementById('tp-menu');
-      if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
-    });
-    tpDecay(); tpUpdateUI();
-    setInterval(() => { tpDecay(); tpUpdateUI(); }, 20000);
-    setInterval(tpMaybeSpeak, 15000);
-    setInterval(tpWalk, 6000);
-  })();
-  </script>
+    const decryptedBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv }, key, ciphertext
+    );
+
+    const dec = new TextDecoder();
+    const text = dec.decode(decryptedBuf);
+
+    document.getElementById('content').innerHTML = text;
+    document.getElementById('continueLink').style.display = 'block';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('gate').style.display = 'none';
+  } catch (e) {
+    errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
+  }
+}
+</script>
 </body>
 </html>

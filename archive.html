@@ -37,9 +37,6 @@
 </div>
 
 <div id="content"></div>
-<div id="continueLink" style="display:none; text-align:center; margin: 20px 0 60px;">
-  <a href="hub.html" style="display:inline-block; font-size:2rem; color:#8a6d3b; text-decoration:none; border:1px solid #d8c9ae; border-radius:50%; width:56px; height:56px; line-height:52px;">→</a>
-</div>
 
 <script>
 // Public read-only credentials — safe to expose, RLS only allows SELECT
@@ -106,7 +103,6 @@ async function unlock() {
     const text = dec.decode(decryptedBuf);
 
     document.getElementById('content').innerHTML = text;
-    document.getElementById('continueLink').style.display = 'block';
     document.getElementById('content').style.display = 'block';
     document.getElementById('gate').style.display = 'none';
   } catch (e) {

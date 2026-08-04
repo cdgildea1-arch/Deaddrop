@@ -34,13 +34,36 @@
 <input id="passphrase" type="password" placeholder="Your shared passphrase">
 
 <label>Archive content (paste full text/HTML/markdown)</label>
-<textarea id="content" placeholder="Paste the full archive content here..."></textarea>
+<div style="margin: 8px 0;">
+  <label style="display:inline-block; background:#efe6d3; border:1px solid #d8c9ae; padding:8px 14px; border-radius:4px; cursor:pointer; font-size:0.9rem;">
+    📄 Choose file to load
+    <input type="file" id="fileInput" accept=".txt,.html,.md" style="display:none;" onchange="loadFile(event)">
+  </label>
+  <span id="fileStatus" style="margin-left:10px; font-size:0.85rem; color:#8a6d3b;"></span>
+</div>
+<textarea id="content" placeholder="Paste the full archive content here, or choose a file above..."></textarea>
 
 <button onclick="encryptAndUpload()">Encrypt & Upload</button>
 
 <div id="status"></div>
 
 <script>
+function loadFile(event) {
+  const file = event.target.files[0];
+  const status = document.getElementById('fileStatus');
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('content').value = e.target.result;
+    status.textContent = `Loaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  };
+  reader.onerror = function() {
+    status.textContent = 'Failed to read file.';
+  };
+  reader.readAsText(file);
+}
+
 function toBase64(buf) {
   return btoa(String.fromCharCode(...new Uint8Array(buf)));
 }

@@ -10,8 +10,8 @@
     margin: 0;
     height: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    background: #14100c;
-    color: #ecdfc8;
+    background: #faf7f2;
+    color: #2b2b2b;
     overflow: hidden;
   }
   .wrap {
@@ -41,9 +41,9 @@
   .tab-bar::-webkit-scrollbar { display: none; }
   .tab-btn {
     flex-shrink: 0;
-    background: #241d15;
-    border: 1px solid #4a3c28;
-    color: #a3906e;
+    background: #fffdfa;
+    border: 1px solid #d8c9ae;
+    color: #6b5d47;
     border-radius: 999px;
     padding: 8px 14px;
     font-size: 13px;
@@ -51,8 +51,8 @@
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
   .tab-btn.active {
-    background: #b8895a;
-    border-color: #b8895a;
+    background: #8a6d3b;
+    border-color: #8a6d3b;
     color: #fff;
     font-weight: 600;
   }
@@ -78,28 +78,28 @@
     max-width: 340px;
     scroll-snap-align: center;
     height: 56vh;
-    background: #241d15;
-    border: 1px solid #4a3c28;
+    background: #fffdfa;
+    border: 1px solid #d8c9ae;
     border-radius: 22px;
     padding: 30px 26px;
     text-decoration: none;
-    color: #ecdfc8;
+    color: #2b2b2b;
     text-align: left;
     display: flex;
     flex-direction: column;
     touch-action: pan-x;
     transition: transform 0.15s ease, background 0.15s ease;
   }
-  a.menu-item:active { transform: scale(0.97); background: #1a140d; }
+  a.menu-item:active { transform: scale(0.97); background: #f0e8d8; }
   .top-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
   .menu-icon { font-size: 42px; flex-shrink: 0; }
   .menu-title { font-size: 24px; font-weight: 700; }
-  .menu-sub { font-size: 15.5px; color: #a3906e; line-height: 1.65; flex: 1; }
+  .menu-sub { font-size: 15.5px; color: #6b5d47; line-height: 1.65; flex: 1; }
   .lock-badge {
     align-self: flex-start; margin-top: 18px; width: 100%;
     display: flex; align-items: center; gap: 6px;
-    font-size: 12.5px; color: #a3906e; font-family: -apple-system, sans-serif;
-    border-top: 1px solid #4a3c28; padding-top: 14px;
+    font-size: 12.5px; color: #6b5d47; font-family: -apple-system, sans-serif;
+    border-top: 1px solid #d8c9ae; padding-top: 14px;
   }
 
   .dots {
@@ -109,8 +109,8 @@
     padding-top: 14px;
     flex-shrink: 0;
   }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: #4a3c28; transition: background 0.2s ease; }
-  .dot.active { background: #b8895a; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #e5d9bd; transition: background 0.2s ease; }
+  .dot.active { background: #8a6d3b; }
 </style>
 </head>
 <body>
@@ -367,3 +367,5 @@
   </script>
 </body>
 </html>
+
+    

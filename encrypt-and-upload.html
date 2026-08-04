@@ -1,1 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Archive Encrypt & Upload (LOCAL ONLY — DO NOT HOST)</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #faf7f2; color: #2b2b2b; }
+  h1 { font-size: 1.4rem; }
+  textarea, input { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0; font-family: inherit; font-size: 16px; }
+  textarea { height: 300px; }
+  button { padding: 10px 20px; background: #8a6d3b; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #6f5730; }
+  #status { margin-top: 15px; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; }
+  .warn { background: #fff3cd; border: 1px solid #d4a72c; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
 
+<div class="warn">
+  <strong>Keep this link private.</strong> This page uses your Supabase <em>service role</em>
+  key (full write access) once you paste it in. Anyone with this exact URL could publish to
+  your archive if they had your credentials too — don't share or link to this page publicly.
+</div>
+
+<h1>The Penguin Archive — Encrypt & Upload</h1>
+
+<label>Supabase Project URL</label>
+<input id="url" placeholder="https://xxxx.supabase.co">
+
+<label>Service Role Key (keep secret)</label>
+<input id="serviceKey" type="password" placeholder="eyJ...">
+
+<label>Passphrase (shared secret to decrypt later)</label>
+<input id="passphrase" type="password" placeholder="Your shared passphrase">
+
+<label>Archive content (paste full text/HTML/markdown)</label>
+<textarea id="content" placeholder="Paste the full archive content here..."></textarea>
+
+<button onclick="encryptAndUpload()">Encrypt & Upload</button>
+
+<div id="status"></div>
+
+<script>
+function toBase64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptAndUpload() {
+  const status = document.getElementById('status');
+  status.textContent = 'Encrypting...';
+
+  try {
+    const url = document.getElementById('url').value.trim().replace(/\/+$/, '');
+    const serviceKey = document.getElementById('serviceKey').value.trim();
+    const passphrase = document.getElementById('passphrase').value;
+    const content = document.getElementById('content').value;
+
+    if (!url || !serviceKey || !passphrase || !content) {
+      status.textContent = 'Fill in all fields first.';
+      return;
+    }
+
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(passphrase, salt);
+
+    const enc = new TextEncoder();
+    const ciphertextBuf = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv }, key, enc.encode(content)
+    );
+
+    status.textContent = 'Uploading...';
+
+    const res = await fetch(`${url}/rest/v1/archive`, {
+      method: 'POST',
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        salt: toBase64(salt),
+        iv: toBase64(iv),
+        ciphertext: toBase64(ciphertextBuf)
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      status.textContent = 'Upload failed:\n' + err;
+      return;
+    }
+
+    const data = await res.json();
+    status.textContent = 'Success! New row uploaded.\nRow id: ' + data[0].id +
+      '\n\nOld rows are still in the table — delete them in Supabase if you only want the latest version live.';
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>

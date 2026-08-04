@@ -62,6 +62,9 @@
     flex: 1;
     display: flex;
     overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    overscroll-behavior-y: none;
     scroll-snap-type: x mandatory;
     gap: 14px;
     padding: 4px 16px;
@@ -84,6 +87,7 @@
     text-align: left;
     display: flex;
     flex-direction: column;
+    touch-action: pan-x;
     transition: transform 0.15s ease, background 0.15s ease;
   }
   a.menu-item:active { transform: scale(0.97); background: #16211a; }

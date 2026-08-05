@@ -9,9 +9,9 @@
   html, body {
     margin: 0;
     height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    background: #0a0e0a;
-    color: #e8f5ec;
+    font-family: Georgia, serif;
+    background: #faf7f2;
+    color: #2b2b2b;
   }
   .wrap {
     min-height: 100dvh;
@@ -23,28 +23,38 @@
     padding-bottom: max(30px, env(safe-area-inset-bottom));
     text-align: center;
   }
-  .icon {
+  .emblem {
     font-size: 44px;
-    margin-bottom: 18px;
-    opacity: 0.9;
+    letter-spacing: 14px;
+    margin-bottom: 20px;
+  }
+  h1.title {
+    font-size: 26px;
+    font-weight: normal;
+    letter-spacing: 1px;
+    color: #3a2f22;
+    margin: 0 0 8px;
   }
   p.sub {
     font-size: 14px;
-    color: #8fae9a;
+    font-style: italic;
+    color: #8a6d3b;
     margin: 0 0 34px;
     max-width: 280px;
     line-height: 1.5;
   }
   a.enter-btn {
     display: inline-block;
-    background: #007aff;
-    color: #fff;
+    background: #8a6d3b;
+    color: #fdf9f2;
     text-decoration: none;
     font-size: 16px;
-    font-weight: 600;
-    padding: 14px 40px;
-    border-radius: 999px;
-    box-shadow: 0 4px 16px rgba(0,122,255,0.35);
+    font-weight: 700;
+    font-family: Georgia, serif;
+    letter-spacing: 0.5px;
+    padding: 14px 44px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(138,109,59,0.25);
     transition: transform 0.15s ease;
   }
   a.enter-btn:active {
@@ -59,10 +69,11 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="icon">&#128274;</div>
-    <p class="sub">A quiet place, just for us.</p>
+    <div class="emblem">🧁🐧</div>
+    <h1 class="title">The Archive</h1>
+    <p class="sub">a private correspondence, kept</p>
 <a class="enter-btn" href="hub.html">Enter</a>
-    <div class="footer-note">🧁 &amp; 🐧</div>
+    <div class="footer-note"></div>
   </div>
  <div id="tp-widget">
   <div id="tp-bubble" class="tp-bubble"></div>

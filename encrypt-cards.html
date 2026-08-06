@@ -79,15 +79,30 @@ function forceAscii(str) {
   return str.replace(/[^\x20-\x7E]/g, '');
 }
 
-// Test whether a string can legally be used as an HTTP header value.
-// Returns null if OK, or a description of the problem if not.
-function testHeaderValue(name, value) {
-  try {
-    new Headers({ [name]: value });
-    return null;
-  } catch (e) {
-    return `Header "${name}" rejected: ${e.message}`;
+// Detect and repair lone/unpaired UTF-16 surrogates, which can silently
+// creep into text after export/reprocessing (common with emoji-heavy chat exports)
+// and cause WebKit's fetch body encoder to throw generic errors.
+function fixSurrogates(str) {
+  let result = '';
+  let fixedCount = 0;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      // high surrogate — check next char is a valid low surrogate
+      const next = str.charCodeAt(i + 1);
+      if (next >= 0xDC00 && next <= 0xDFFF) {
+        result += str[i] + str[i + 1];
+        i++;
+      } else {
+        fixedCount++; // lone high surrogate — drop it
+      }
+    } else if (code >= 0xDC00 && code <= 0xDFFF) {
+      fixedCount++; // lone low surrogate — drop it
+    } else {
+      result += str[i];
+    }
   }
+  return { text: result, fixedCount };
 }
 
 function toBase64(bytes) {
@@ -110,6 +125,16 @@ async function deriveKey(passphrase, saltBytes) {
     false,
     ['encrypt']
   );
+}
+
+// Test whether a string can legally be used as an HTTP header value.
+function testHeaderValue(name, value) {
+  try {
+    new Headers({ [name]: value });
+    return null;
+  } catch (e) {
+    return `Header "${name}" rejected: ${e.message}`;
+  }
 }
 
 function diagnose(sbUrl, sbKey) {
@@ -149,7 +174,8 @@ async function encryptAndUpload() {
   const sbKeyRaw = sanitize(document.getElementById('sbKey').value);
   const sbKey = forceAscii(sbKeyRaw);
   const passphrase = document.getElementById('passphrase').value.trim();
-  const data = document.getElementById('data').value.trim();
+  const dataRaw = document.getElementById('data').value.trim();
+  const { text: data, fixedCount } = fixSurrogates(dataRaw);
 
   if (!sbUrl || !sbKey || !passphrase || !data) {
     statusDiv.innerHTML = '<div class="error">Fill in all fields.</div>';
@@ -159,6 +185,11 @@ async function encryptAndUpload() {
   let diagText = diagnose(sbUrl, sbKey);
   if (sbKeyRaw.length !== sbKey.length) {
     diagText += `\n⚠️ forceAscii REMOVED ${sbKeyRaw.length - sbKey.length} non-ASCII character(s) from the key — the original paste had hidden bad characters!`;
+  }
+  if (fixedCount > 0) {
+    diagText += `\n⚠️ Found and repaired ${fixedCount} broken/malformed character(s) in the Data field — this was likely the actual cause!`;
+  } else {
+    diagText += `\n✓ Data field contains no malformed characters.`;
   }
 
   // Pre-flight: test the headers BEFORE attempting to encrypt/upload,

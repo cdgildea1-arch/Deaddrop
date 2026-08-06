@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypt & Upload — Cards (Fixed)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #faf7f2; color: #2b2b2b; padding: 40px 20px; }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: normal; margin-bottom: 6px; color: #3a2f22; }
+  .sub { font-style: italic; color: #8a6d3b; margin-bottom: 28px; }
+  .field { margin-bottom: 20px; }
+  label { display: block; font-size: 13px; color: #8a6d3b; letter-spacing: 1px; margin-bottom: 6px; }
+  input, textarea { width: 100%; padding: 12px; border: 1px solid #d8c9ae; border-radius: 8px; background: #fffdfa; font-family: monospace; font-size: 13px; color: #2b2b2b; }
+  textarea { min-height: 120px; resize: vertical; font-family: monospace; }
+  button { width: 100%; background: #8a6d3b; color: #fdf9f2; border: none; padding: 13px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; font-family: Georgia, serif; }
+  button:hover { background: #6f5730; }
+  .success { background: #e8f5e9; color: #2e7d32; padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 13px; }
+  .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+  .info { background: #fff3e0; color: #e65100; padding: 14px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; line-height: 1.5; }
+  .diag { background: #eef2ff; color: #303f9f; padding: 14px; border-radius: 8px; margin-top: 12px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>The Cards</h1>
+  <p class="sub">Encrypt & Upload to Supabase (hardened build)</p>
+
+  <div class="info">
+    ⚠️ Keep this file private. It contains your Supabase credentials and encryption keys once filled in.
+    This version auto-strips hidden characters (line breaks, tabs, stray spaces) from every field before use,
+    and will show you a detailed diagnostic if anything still fails.
+  </div>
+
+  <div class="field">
+    <label>Supabase URL</label>
+    <input id="sbUrl" type="text" placeholder="https://lecudeiafwhyhufceurv.supabase.co" value="https://lecudeiafwhyhufceurv.supabase.co">
+  </div>
+
+  <div class="field">
+    <label>Service Role Key (Secret — the eyJ... legacy JWT key)</label>
+    <textarea id="sbKey" placeholder="eyJ..." style="min-height:60px;"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Passphrase</label>
+    <input id="passphrase" type="password" placeholder="e.g., cupcake">
+  </div>
+
+  <div class="field">
+    <label>Data to Encrypt (paste CARDS array)</label>
+    <textarea id="data" placeholder="Paste the const CARDS = [ ... ]; block here"></textarea>
+  </div>
+
+  <button onclick="encryptAndUpload()">Encrypt & Upload</button>
+
+  <div id="status"></div>
+</div>
+
+<script>
+const SUPABASE_TABLE = 'cards';
+
+// Strip anything that isn't a normal printable character: line breaks, tabs,
+// zero-width spaces, non-breaking spaces, smart quotes accidentally injected, etc.
+function sanitize(str) {
+  return str
+    .replace(/[\r\n\t]/g, '')          // line breaks / tabs
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width chars
+    .replace(/\u00A0/g, ' ')           // non-breaking space -> normal space
+    .trim();
+}
+
+function toBase64(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+}
+
+function diagnose(sbUrl, sbKey) {
+  let lines = [];
+  lines.push('Diagnostic:');
+  lines.push('URL length: ' + sbUrl.length);
+  lines.push('Key length: ' + sbKey.length);
+  lines.push('Key starts with "eyJ": ' + sbKey.startsWith('eyJ'));
+  lines.push('Key segment count (should be 3): ' + sbKey.split('.').length);
+  // find any char code outside normal printable ASCII range
+  const bad = [];
+  for (let i = 0; i < sbKey.length; i++) {
+    const code = sbKey.charCodeAt(i);
+    if (code < 32 || code > 126) {
+      bad.push(`pos ${i}: char code ${code}`);
+    }
+  }
+  if (bad.length) {
+    lines.push('⚠️ Found ' + bad.length + ' non-standard character(s) in key: ' + bad.slice(0,5).join(', '));
+  } else {
+    lines.push('✓ Key contains only standard characters.');
+  }
+  try {
+    new URL(sbUrl);
+    lines.push('✓ URL parses correctly.');
+  } catch (e) {
+    lines.push('⚠️ URL FAILED to parse: ' + e.message);
+  }
+  return lines.join('\n');
+}
+
+async function encryptAndUpload() {
+  const statusDiv = document.getElementById('status');
+  statusDiv.innerHTML = '';
+
+  const sbUrl = sanitize(document.getElementById('sbUrl').value);
+  const sbKey = sanitize(document.getElementById('sbKey').value);
+  const passphrase = document.getElementById('passphrase').value.trim();
+  const data = document.getElementById('data').value.trim();
+
+  if (!sbUrl || !sbKey || !passphrase || !data) {
+    statusDiv.innerHTML = '<div class="error">Fill in all fields.</div>';
+    return;
+  }
+
+  const diagText = diagnose(sbUrl, sbKey);
+
+  try {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(passphrase, salt);
+
+    const enc = new TextEncoder();
+    const ciphertextBuf = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv }, key, enc.encode(data)
+    );
+    const ciphertext = new Uint8Array(ciphertextBuf);
+
+    const res = await fetch(`${sbUrl}/rest/v1/${SUPABASE_TABLE}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': sbKey,
+        'Authorization': `Bearer ${sbKey}`
+      },
+      body: JSON.stringify({
+        salt: toBase64(salt),
+        iv: toBase64(iv),
+        ciphertext: toBase64(ciphertext)
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      statusDiv.innerHTML = `<div class="error">Upload failed: ${err}</div><div class="diag">${diagText}</div>`;
+      return;
+    }
+
+    const result = await res.json();
+    statusDiv.innerHTML = `<div class="success">✓ Success! Row ID: ${result[0].id}</div>`;
+
+    document.getElementById('passphrase').value = '';
+    document.getElementById('sbKey').value = '';
+    document.getElementById('data').value = '';
+
+  } catch (e) {
+    statusDiv.innerHTML = `<div class="error">Error: ${e.message}</div><div class="diag">${diagText}</div>`;
+  }
+}
+</script>
+
+</body>
+</html>

@@ -31,6 +31,9 @@
 <label>Service Role Key (keep secret)</label>
 <input id="serviceKey" type="password" placeholder="eyJ...">
 
+<label>Table Name</label>
+<input id="tableName" placeholder="archive" value="archive">
+
 <label>Passphrase (shared secret to decrypt later)</label>
 <input id="passphrase" type="password" placeholder="Your shared passphrase">
 
@@ -97,6 +100,7 @@ async function encryptAndUpload() {
   try {
     const url = document.getElementById('url').value.trim().replace(/\/+$/, '');
     const serviceKey = document.getElementById('serviceKey').value.trim();
+    const tableName = document.getElementById('tableName').value.trim() || 'archive';
     const passphrase = document.getElementById('passphrase').value;
     const content = document.getElementById('content').value;
 
@@ -116,7 +120,7 @@ async function encryptAndUpload() {
 
     status.textContent = 'Uploading...';
 
-    const res = await fetch(`${url}/rest/v1/archive`, {
+    const res = await fetch(`${url}/rest/v1/${tableName}`, {
       method: 'POST',
       headers: {
         'apikey': serviceKey,

@@ -2,160 +2,125 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>The Cards</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Record</title>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
   html, body {
-    margin: 0;
     height: 100%;
-    overflow: hidden;
-    background: #faf7f2;
-    color: #2b2b2b;
-    font-family: -apple-system, sans-serif;
+    background: #0a0e0a;
+    color: #e8f5ec;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   }
+
+  /* ---- Lock screen (matches site convention) ---- */
   .lock-screen {
     min-height: 100dvh;
+    background: #faf7f2;
+    color: #2b2b2b;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 30px;
-    padding-bottom: max(30px, env(safe-area-inset-bottom));
     text-align: center;
   }
   .lock-icon { font-size: 56px; margin-bottom: 28px; letter-spacing: 14px; }
-  .lock-title { font-size: 40px; font-weight: 400; margin-bottom: 14px; letter-spacing: normal; font-family: Georgia, 'Iowan Old Style', serif; color: #3a2f22; }
+  .lock-title { font-size: 40px; font-weight: 400; margin-bottom: 14px; font-family: Georgia, 'Iowan Old Style', serif; color: #3a2f22; }
   .lock-sub { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #8a6d3b; margin-bottom: 20px; max-width: 300px; line-height: 1.5; }
   .lock-divider { width: 44px; height: 1px; background: #c9a876; margin-bottom: 34px; }
   .lock-input {
     width: 100%; max-width: 300px;
-    background: transparent;
-    border: 1px solid #d8c9ae;
-    color: #2b2b2b;
-    border-radius: 12px;
-    padding: 15px 16px;
-    font-size: 16px;
-    margin-bottom: 16px;
-    text-align: center;
+    background: transparent; border: 1px solid #d8c9ae; color: #2b2b2b;
+    border-radius: 12px; padding: 15px 16px; font-size: 16px; margin-bottom: 16px; text-align: center;
   }
   .lock-btn {
     width: 100%; max-width: 300px;
-    background: #6b5535;
-    color: #fdf9f2;
-    border: none;
-    border-radius: 12px;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: Georgia, serif;
+    background: #6b5535; color: #fdf9f2; border: none; border-radius: 12px;
+    padding: 16px; font-size: 16px; font-weight: 700; font-family: Georgia, serif;
   }
-  .lock-btn:disabled { opacity: 0.6; }
-  .lock-error { color: #d17a6a; font-size: 12px; margin-top: 10px; min-height: 16px; }
+  .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
 
-  .gallery { display: none; height: 100dvh; flex-direction: column; padding: max(20px, env(safe-area-inset-top)) 0 max(16px, env(safe-area-inset-bottom)); }
-  .gallery.show { display: flex; }
-  .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px 10px;
-    flex-shrink: 0;
-  }
-  .top-bar button {
-    background: none;
-    border: none;
-    color: #8a6d3b;
-    font-size: 14px;
-  }
-  .archive-title {
-    text-align: center;
-    font-size: 12px;
-    letter-spacing: 3px;
-    color: #8a6d3b;
-    margin-bottom: 2px;
-    flex-shrink: 0;
-  }
-  .archive-sub { text-align: center; font-size: 22px; margin-bottom: 6px; letter-spacing: 6px; flex-shrink: 0; }
-  .card-counter { text-align: center; font-size: 11px; color: #6b5a45; margin-bottom: 16px; flex-shrink: 0; }
-
-  .carousel {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0 24px;
-    gap: 16px;
-    padding: 10px 24px 10px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .carousel::-webkit-scrollbar { display: none; }
-
-  .quote-card {
-    flex: 0 0 86%;
-    max-width: 320px;
-    scroll-snap-align: center;
+  /* ---- Reader (matches book.html's cream Reading Room look) ---- */
+  .reader {
+    display: none;
+    min-height: 100vh;
     background: #f4ecdd;
     color: #3a3227;
-    border-radius: 14px;
-    padding: 20px 18px;
     font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
   }
-  .card-icons { font-size: 16px; margin-bottom: 10px; letter-spacing: 6px; }
-  .card-headline { font-size: 15.5px; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
-  .card-lines { flex: 1; }
-  .card-line {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    font-size: 13.5px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    border-left: 3px solid #d8c9a8;
-    padding-left: 10px;
+  .reader.show { display: block; }
+
+  .book-header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(244,236,221,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #d8c9a8;
   }
-  .card-line .who { flex-shrink: 0; }
-  .card-footer {
-    margin-top: 12px;
-    font-size: 11px;
-    color: #8a7a63;
-    font-style: italic;
+  .book-header button {
+    background: none; border: none; color: #a9835a; font-size: 13px;
+    font-family: -apple-system, sans-serif; padding: 4px 0;
+  }
+  .book-header .title-mini {
+    font-size: 12px; letter-spacing: 2px; color: #8a7a63; font-family: -apple-system, sans-serif;
+  }
+
+  .archive-emoji { text-align: center; font-size: 26px; margin: 28px 0 8px; letter-spacing: 8px; }
+  .loaded-note {
+    text-align: center; font-size: 11px; color: #a9835a; font-family: -apple-system, sans-serif;
+    margin-bottom: 24px; letter-spacing: 0.3px;
+  }
+
+  .reader-body { max-width: 560px; margin: 0 auto; padding: 0 26px 100px; }
+
+  .date-header {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    margin: 38px 0 16px;
+    color: #6b4423;
     border-top: 1px solid #d8c9a8;
-    padding-top: 10px;
+    padding-top: 20px;
     font-family: -apple-system, sans-serif;
   }
+  .date-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
-  .hint { text-align: center; font-size: 11px; color: #6b5a45; margin-top: 4px; flex-shrink: 0; }
-</style>
-</head>
- <div id="tp-widget">
-  <div id="tp-bubble" class="tp-bubble"></div>
-  <div id="tp-penguin" class="tp-penguin">🐧</div>
-  <div id="tp-menu" class="tp-menu" hidden>
-    <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
-    <button onclick="tpAction('coffee')">☕ Give Coffee</button>
-    <button onclick="tpAction('talk')">💬 Talk</button>
-    <button onclick="tpAction('search')">📦 Search Archive</button>
-    <button onclick="tpAction('sleep')">😴 Sleep</button>
-    <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
-  </div>
-  <div id="tp-stats" class="tp-stats">
-    <span>❤️ <b id="tp-happy">–</b></span>
-    <span>☕ <b id="tp-energy">–</b></span>
-    <span>💬 <b id="tp-social">–</b></span>
-    <span>📚 <b id="tp-curious">–</b></span>
-  </div>
-</div>
+  p.msg {
+    font-size: 17px;
+    line-height: 1.75;
+    margin: 0 0 18px;
+  }
+  p.msg.pinned {
+    background: rgba(169,131,90,0.08);
+    border-left: 3px solid #a9835a;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+  }
+  .msg-meta {
+    color: #8a7a63;
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-style: italic;
+    font-family: -apple-system, sans-serif;
+  }
+  .pin-badge { color: #a9835a; font-weight: 600; margin-left: 8px; font-style: normal; }
+  .media-note { color: #6b5a45; font-style: italic; font-size: 15px; margin-bottom: 4px; display: block; }
 
-<style>
+  .sentinel { height: 1px; }
+  .loading-spinner {
+    text-align: center; padding: 24px; color: #a9835a;
+    font-family: -apple-system, sans-serif; font-size: 13px;
+  }
+  .end-note {
+    text-align: center; padding: 40px 20px; color: #8a7a63;
+    font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic;
+  }
+
+  /* ---- Penguin widget ---- */
   #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
   #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
   #tp-penguin.tp-walking { animation: tp-walk 0.5s ease-in-out infinite; }
@@ -166,140 +131,59 @@
   @keyframes tp-sleep { 0%, 100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(3deg) translateY(2px); } }
   @keyframes tp-bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.08); } }
   .tp-bubble { position: absolute; bottom: 46px; right: 0; max-width: 190px; background: #fffaf0; color: #3a3227; border: 1px solid #d8c9a8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; font-family: Georgia, serif; }
-  .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
-  @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .tp-bubble.show { display: block; }
   .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
   .tp-menu[hidden] { display: none !important; }
   .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
-  .tp-menu button:active { background: #241d15; }
   .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
-  .tp-stats { position: absolute; bottom: -22px; right: 0; display: flex; gap: 6px; font-size: 9px; color: #8a7355; white-space: nowrap; opacity: 0.85; }
 </style>
-
-<script>
-(function() {
-  const TP_KEY = 'tiny_penguin_state';
-  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
-  const TP_ARTIFACTS = ["Blue Dress","The Bag","Good Morning","Sleepyhead","Normal Brad","The Hotel Key","Forever","The Magnolia House","Vulnerable Jimmy","Tommy"];
-  function tpNow() { return Date.now(); }
-  function tpLoad() {
-    try { const raw = localStorage.getItem(TP_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
-    return { happy: 70, energy: 70, social: 70, curious: 70, lastTick: tpNow(), lastInteraction: tpNow(), foundArtifacts: [], sleeping: false };
-  }
-  function tpSave(state) { try { localStorage.setItem(TP_KEY, JSON.stringify(state)); } catch (e) {} }
-  let state = tpLoad();
-  function tpDecay() {
-    const now = tpNow();
-    const minutesPassed = (now - state.lastTick) / 60000;
-    if (minutesPassed > 0) {
-      state.happy = Math.max(0, state.happy - minutesPassed * 0.6);
-      state.energy = Math.max(0, state.energy - minutesPassed * 0.4);
-      state.social = Math.max(0, state.social - minutesPassed * 0.8);
-      state.curious = Math.max(0, state.curious - minutesPassed * 0.3);
-      state.lastTick = now;
-    }
-    tpSave(state);
-  }
-  function tpClamp(v) { return Math.max(0, Math.min(100, Math.round(v))); }
-  function tpUpdateUI() {
-    document.getElementById('tp-happy').textContent = tpClamp(state.happy);
-    document.getElementById('tp-energy').textContent = tpClamp(state.energy);
-    document.getElementById('tp-social').textContent = tpClamp(state.social);
-    document.getElementById('tp-curious').textContent = tpClamp(state.curious);
-    const penguin = document.getElementById('tp-penguin');
-    penguin.classList.remove('tp-walking', 'tp-sleeping', 'tp-happy');
-    if (state.sleeping) { penguin.textContent = '😴'; penguin.classList.add('tp-sleeping'); }
-    else if (state.happy > 80) { penguin.textContent = '🐧'; penguin.classList.add('tp-happy'); }
-    else if (state.energy < 25) { penguin.textContent = '🥱'; }
-    else { penguin.textContent = '🐧'; }
-  }
-  function tpSayBubble(text, duration) {
-    const bubble = document.getElementById('tp-bubble');
-    bubble.textContent = text;
-    bubble.classList.add('show');
-    setTimeout(() => { bubble.classList.remove('show'); }, duration || 3200);
-  }
-  function tpMaybeSpeak() {
-    if (state.sleeping) return;
-    const minsSinceInteraction = (tpNow() - state.lastInteraction) / 60000;
-    if (minsSinceInteraction > 2 && Math.random() < 0.4) {
-      tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
-    }
-    if (state.social < 30 && Math.random() < 0.3) { tpSayBubble("I'm a little lonely..."); }
-  }
-  function tpWalk() {
-    if (state.sleeping) return;
-    const penguin = document.getElementById('tp-penguin');
-    penguin.classList.add('tp-walking');
-    setTimeout(() => penguin.classList.remove('tp-walking'), 900);
-  }
-  window.tpAction = function(action) {
-    state.lastInteraction = tpNow();
-    if (action === 'feed') { state.happy = tpClamp(state.happy + 20); tpSayBubble("Mmm, cupcake. 🧁"); }
-    else if (action === 'coffee') { state.energy = tpClamp(state.energy + 25); tpSayBubble("☕ Ahh, better."); }
-    else if (action === 'talk') { state.social = tpClamp(state.social + 20); tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]); }
-    else if (action === 'search') {
-      state.curious = tpClamp(state.curious + 15);
-      const found = Math.random() < 0.35;
-      if (found) {
-        const remaining = TP_ARTIFACTS.filter(a => !state.foundArtifacts.includes(a));
-        if (remaining.length > 0) {
-          const pick = remaining[Math.floor(Math.random() * remaining.length)];
-          state.foundArtifacts.push(pick);
-          tpSayBubble("📦 Recovered Artifact:\n+ " + pick, 4200);
-        } else { tpSayBubble("📦 I've found everything so far..."); }
-      } else { tpSayBubble("Nothing this time..."); }
-    } else if (action === 'sleep') { state.sleeping = !state.sleeping; tpSayBubble(state.sleeping ? "Goodnight..." : "I'm awake!"); }
-    tpSave(state); tpUpdateUI(); tpCloseMenu();
-  };
-  window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
-  document.getElementById('tp-penguin').addEventListener('click', (e) => {
-    const menu = document.getElementById('tp-menu');
-    menu.hidden = !menu.hidden;
-    state.lastInteraction = tpNow();
-    tpSave(state);
-    e.stopPropagation();
-  });
-  document.addEventListener('click', (e) => {
-    const widget = document.getElementById('tp-widget');
-    const menu = document.getElementById('tp-menu');
-    if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
-  });
-  tpDecay(); tpUpdateUI();
-  setInterval(() => { tpDecay(); tpUpdateUI(); }, 20000);
-  setInterval(tpMaybeSpeak, 15000);
-  setInterval(tpWalk, 6000);
-})();
-</script>
-
+</head>
 <body>
 
   <div id="lockScreen" class="lock-screen">
-    <div class="lock-icon">🧁 🃏 🐧</div>
-    <div class="lock-title">The Cards</div>
-    <div class="lock-sub">A few lines, kept exactly as they were.</div>
+    <div class="lock-icon">🧁 🗂️ 🐧</div>
+    <div class="lock-title">The Record</div>
+    <div class="lock-sub">The full correspondence, unedited.</div>
     <div class="lock-divider"></div>
     <input type="password" id="passInput" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
     <button id="unlockBtn" class="lock-btn">Enter</button>
     <div class="lock-error" id="lockError"></div>
   </div>
 
-  <div id="gallery" class="gallery">
-    <div class="top-bar">
-      <button id="lockAgainBtn">🔒 Lock</button>
-      <span></span>
+  <div id="reader" class="reader">
+    <div class="book-header">
+      <button id="backBtn" type="button">← Back</button>
+      <span class="title-mini">THE RECORD</span>
+      <span style="width:44px"></span>
     </div>
-    <div class="archive-title">THE PENGUIN ARCHIVE</div>
-    <div class="archive-sub">🐧 🧁</div>
-    <div class="card-counter" id="cardCounter"></div>
 
-    <div class="carousel" id="carousel"></div>
-    <div class="hint">← swipe through the cards →</div>
+    <div class="archive-emoji">🐧 &nbsp; 🧁</div>
+    <div class="loaded-note" id="loadedNote">Loading…</div>
+
+    <div class="reader-body" id="readerBody"></div>
+
+    <div class="sentinel" id="sentinel"></div>
+    <div class="loading-spinner hidden" id="loadingSpinner">loading more…</div>
+    <div class="end-note hidden" id="endNote">— end of the record —</div>
+  </div>
+
+  <div id="tp-widget">
+    <div id="tp-bubble" class="tp-bubble"></div>
+    <div id="tp-penguin" class="tp-penguin">🐧</div>
+    <div id="tp-menu" class="tp-menu" hidden>
+      <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
+      <button onclick="tpAction('coffee')">☕ Give Coffee</button>
+      <button onclick="tpAction('talk')">💬 Talk</button>
+      <button onclick="tpAction('search')">📦 Search Archive</button>
+      <button onclick="tpAction('sleep')">😴 Sleep</button>
+      <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
+    </div>
   </div>
 
 <script>
 const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+const CHUNK_DIR = "record_chunks";
 
 function fromBase64(str) {
   return Uint8Array.from(atob(str), c => c.charCodeAt(0));
@@ -315,115 +199,200 @@ async function deriveKey(passphrase, saltBytes) {
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
-    ['encrypt', 'decrypt']
+    ['decrypt']
   );
 }
 
-let CARDS = [];
-let currentIndex = 0;
+// Checks the typed passphrase against the encrypted verification row in
+// Supabase's "record" table. AES-GCM's built-in authentication tag means
+// decryption itself fails (throws) if the passphrase is wrong — so a
+// successful decrypt IS the verification, we don't need to use the content.
+async function verifyPassphrase(passphrase) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/record?select=*&order=created_at.desc&limit=1`,
+    {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+  const rows = await res.json();
+  if (!rows || rows.length === 0) {
+    throw new Error('No verification record found.');
+  }
+  const row = rows[0];
+  const salt = fromBase64(row.salt);
+  const iv = fromBase64(row.iv);
+  const ciphertext = fromBase64(row.ciphertext);
+  const key = await deriveKey(passphrase, salt);
+  // This throws if the passphrase is wrong — that's the actual check.
+  await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+}
+let nextChunk = 0;
+let numChunks = 0;
+let loading = false;
+let done = false;
+let lastRenderedDate = null;
 
-function renderCards() {
-  const carousel = document.getElementById('carousel');
-  carousel.innerHTML = CARDS.map((card, i) => {
-    const speakers = [...new Set(card.lines.map(l => l[0]))].join(' ');
-    const linesHtml = card.lines.map(([who, text]) =>
-      '<div class="card-line"><span class="who">' + who + '</span><span>' + text + '</span></div>'
-    ).join('');
-    return '<div class="quote-card" data-index="' + i + '">' +
-      '<div class="card-icons">' + speakers + '</div>' +
-      '<div class="card-headline">' + card.headline + '</div>' +
-      '<div class="card-lines">' + linesHtml + '</div>' +
-      '<div class="card-footer">' + card.footer + '</div>' +
-      '</div>';
-  }).join('');
-  updateCounter();
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 
-function updateCounter() {
-  document.getElementById('cardCounter').textContent = (currentIndex + 1) + ' / ' + CARDS.length;
+async function loadIndex() {
+  const res = await fetch(`${CHUNK_DIR}/index.json`);
+  return res.json();
 }
 
-document.getElementById('carousel').addEventListener('scroll', function() {
-  const carousel = document.getElementById('carousel');
-  const slideWidth = carousel.scrollWidth / CARDS.length;
-  currentIndex = Math.round(carousel.scrollLeft / slideWidth);
-  updateCounter();
-}, { passive: true });
+async function loadChunk(n) {
+  const res = await fetch(`${CHUNK_DIR}/chunk_${String(n).padStart(4, '0')}.json`);
+  return res.json();
+}
 
-async function unlock() {
-  const errorDiv = document.getElementById('lockError');
+function renderMessages(messages) {
+  const body = document.getElementById('readerBody');
+  const frag = document.createDocumentFragment();
+
+  messages.forEach((m) => {
+    if (m.d !== lastRenderedDate) {
+      const header = document.createElement('div');
+      header.className = 'date-header';
+      header.textContent = m.d;
+      frag.appendChild(header);
+      lastRenderedDate = m.d;
+    }
+
+    const p = document.createElement('p');
+    p.className = 'msg' + (m.p ? ' pinned' : '');
+
+    const meta = document.createElement('em');
+    meta.className = 'msg-meta';
+    meta.innerHTML = `${m.s} &middot; ${esc(m.d)} &middot; ${esc(m.t)}` + (m.p ? '<span class="pin-badge">📌 pinned</span>' : '');
+    p.appendChild(meta);
+
+    if (m.m) {
+      const mediaLabels = { photo: '📷 a photo was here', voice: '🎙️ a voice message was here', video: '🎬 a video was here', sticker: '🖼️ a sticker was here', gif: '🎞️ a gif was here', file: '📎 a file was here' };
+      const note = document.createElement('span');
+      note.className = 'media-note';
+      note.textContent = mediaLabels[m.m] || '📎 attachment was here';
+      p.appendChild(note);
+    }
+
+    if (m.x) {
+      p.appendChild(document.createTextNode(m.x));
+    }
+
+    frag.appendChild(p);
+  });
+
+  body.appendChild(frag);
+}
+
+async function loadNextChunk() {
+  if (loading || done) return;
+  loading = true;
+  document.getElementById('loadingSpinner').classList.remove('hidden');
+
+  const data = await loadChunk(nextChunk);
+  renderMessages(data);
+  nextChunk += 1;
+
+  document.getElementById('loadedNote').textContent =
+    `Showing ${Math.min(nextChunk * 500, nextChunk * 500)} of many thousands — keep scrolling`;
+
+  if (nextChunk >= numChunks) {
+    done = true;
+    document.getElementById('loadingSpinner').classList.add('hidden');
+    document.getElementById('endNote').classList.remove('hidden');
+  }
+
+  loading = false;
+  document.getElementById('loadingSpinner').classList.add('hidden');
+}
+
+function setupInfiniteScroll() {
+  const sentinel = document.getElementById('sentinel');
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      loadNextChunk();
+    }
+  }, { rootMargin: '600px' });
+  observer.observe(sentinel);
+}
+
+document.getElementById('unlockBtn').addEventListener('click', async () => {
+  const pass = document.getElementById('passInput').value;
   const btn = document.getElementById('unlockBtn');
-  const passphrase = document.getElementById('passInput').value;
+  const errorDiv = document.getElementById('lockError');
   errorDiv.textContent = '';
 
-  if (!passphrase) {
+  if (!pass) {
     errorDiv.textContent = 'Enter a passphrase.';
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Loading...';
+  btn.textContent = 'Checking…';
 
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/cards?select=*&order=created_at.desc&limit=1`,
-      {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
-
-    const rows = await res.json();
-    if (!rows || rows.length === 0) {
-      errorDiv.textContent = 'No card content found.';
-      btn.disabled = false;
-      btn.textContent = 'Enter';
-      return;
-    }
-
-    const row = rows[0];
-    const salt = fromBase64(row.salt);
-    const iv = fromBase64(row.iv);
-    const ciphertext = fromBase64(row.ciphertext);
-
-    const key = await deriveKey(passphrase, salt);
-
-    const decryptedBuf = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv }, key, ciphertext
-    );
-
-    const dec = new TextDecoder();
-    const text = dec.decode(decryptedBuf);
-
-    // The decrypted text is a "const CARDS = [ ... ];" block.
-    // Evaluate it in an isolated scope to extract the array.
-    CARDS = new Function(text + '\nreturn CARDS;')();
-
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('gallery').classList.add('show');
-    renderCards();
+    await verifyPassphrase(pass);
   } catch (e) {
     errorDiv.textContent = 'Incorrect passphrase.';
     btn.disabled = false;
     btn.textContent = 'Enter';
+    return;
   }
-}
 
-document.getElementById('unlockBtn').addEventListener('click', unlock);
-document.getElementById('passInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') unlock();
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('reader').classList.add('show');
+
+  const index = await loadIndex();
+  numChunks = index.numChunks;
+  document.getElementById('loadedNote').textContent = `${index.totalMessages.toLocaleString()} messages · ${index.firstDate} to ${index.lastDate}`;
+
+  setupInfiniteScroll();
+  loadNextChunk();
 });
 
-document.getElementById('lockAgainBtn').addEventListener('click', () => {
-  document.getElementById('gallery').classList.remove('show');
-  document.getElementById('passInput').value = '';
-  document.getElementById('unlockBtn').disabled = false;
-  document.getElementById('unlockBtn').textContent = 'Enter';
-  document.getElementById('lockScreen').style.display = 'flex';
+document.getElementById('passInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
 });
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'hub.html';
+});
+
+/* ---- Penguin widget ---- */
+(function() {
+  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
+  function tpSayBubble(text) {
+    const bubble = document.getElementById('tp-bubble');
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    setTimeout(() => { bubble.classList.remove('show'); }, 3200);
+  }
+  window.tpAction = function(action) {
+    if (action === 'feed') tpSayBubble("Mmm, cupcake. 🧁");
+    else if (action === 'coffee') tpSayBubble("☕ Ahh, better.");
+    else if (action === 'talk') tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
+    else if (action === 'search') tpSayBubble("📦 Searching...");
+    else if (action === 'sleep') tpSayBubble("Goodnight...");
+    tpCloseMenu();
+  };
+  window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
+  document.getElementById('tp-penguin').addEventListener('click', (e) => {
+    const menu = document.getElementById('tp-menu');
+    menu.hidden = !menu.hidden;
+    e.stopPropagation();
+  });
+  document.addEventListener('click', (e) => {
+    const widget = document.getElementById('tp-widget');
+    const menu = document.getElementById('tp-menu');
+    if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
+  });
+})();
 </script>
-
 </body>
 </html>

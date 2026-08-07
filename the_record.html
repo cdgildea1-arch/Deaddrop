@@ -136,6 +136,7 @@
   .tp-menu[hidden] { display: none !important; }
   .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
   .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -183,7 +184,7 @@
 <script>
 const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
-const CHUNK_DIR = "record_chunks";
+const CHUNK_DIR = ".";
 
 function fromBase64(str) {
   return Uint8Array.from(atob(str), c => c.charCodeAt(0));

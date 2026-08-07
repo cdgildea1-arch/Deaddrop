@@ -47,6 +47,7 @@
     font-size: 15px;
     font-weight: 700;
   }
+  .lock-btn:disabled { opacity: 0.6; }
   .lock-error { color: #d17a6a; font-size: 12px; margin-top: 10px; min-height: 16px; }
 
   .gallery { display: none; height: 100dvh; flex-direction: column; padding: max(20px, env(safe-area-inset-top)) 0 max(16px, env(safe-area-inset-bottom)); }
@@ -165,9 +166,6 @@
   .tp-bubble.show { display: block; animation: tp-fade 0.25s ease; }
   @keyframes tp-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
-  /* Without this, .tp-menu{display:flex} above always wins the cascade
-     over the browser's own [hidden]{display:none}, so toggling
-     menu.hidden in JS silently did nothing visually. */
   .tp-menu[hidden] { display: none !important; }
   .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
   .tp-menu button:active { background: #241d15; }
@@ -296,206 +294,28 @@
   </div>
 
 <script>
-const PASSPHRASE = "cupcake";
+const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 
-const CARDS = [
-  { headline: "Before this archive even begins, Penny wrote her own timeline of how it started.", lines: [
-    ["🐧","Timeline 10/24 first ride 11/1 you apologized for not seeing me that week 11/18 I watched Yellowstone 12/2 basically texting 5 days a week 1/4 I laid on forty 1/14 you lied to me"]
-  ], footer: "She pinned this message three separate times." },
+function fromBase64(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+}
 
-  { headline: "Twenty months. 208,998 messages. Maybe never once, cleanly, without a hedge:", lines: [
-    ["🧁","But I love you on top of me feeling your body against me."],
-    ["🧁","You said I love you… haha decently long pause"],
-    ["🧁","But the full sentence was I love you ……… being inside me."],
-    ["🐧","Hahaha you said \"I love you inside me\"??"],
-    ["🐧","You need to hear me say I love you…."]
-  ], footer: "February 17, 2025 — nine months in." },
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
 
-  { headline: "Kept, and answered right back.", lines: [
-    ["🐧","Brad... yeah. Let's stay like this forever."],
-    ["🧁","Fuck 🐧! I need you!"],
-    ["🧁","Yes. I want to stay like this forever."],
-    ["🧁","Deal."]
-  ], footer: "January 20, 2025. Pinned by 🧁." },
-
-  { headline: "He said it. She's the one who pinned it.", lines: [
-    ["🧁","December 8, 2023"]
-  ], footer: "April 22, 2025. What it means is not in the record. Pinned by 🐧." },
-
-  { headline: "They weren't just pinning messages. They were sorting them.", lines: [
-    ["🧁","Move sad pins to google sheet."],
-    ["🐧","Sharing about kids. Boundaries. Moving. And more questions. Review our pins."]
-  ], footer: "March 13 and 16, 2025. A greatest-hits archive, built by them, before this one existed. Pinned by 🧁." },
-
-  { headline: "Not every pin is tender. Some are just a strange, unexplained worry.", lines: [
-    ["🧁","Research… on how to find a tracker***"]
-  ], footer: "August 14, 2025. He pinned it himself; the context around it is mundane, not explained." },
-
-  { headline: "He kept this one himself — and she answered him a few minutes later.", lines: [
-    ["🧁","Don't have to worry about losing each other."],
-    ["🐧","I love hearing that! It was nice to talk to you with no one around. No rush."]
-  ], footer: "May 5, 2025. Pinned by 🧁." },
-
-  { headline: "One month in, already fluent in a language neither of them was ever taught.", lines: [
-    ["🐧","What? You changed your name?"],
-    ["🧁","I'd say Joshua was supposed to come, still might not happen. No babysitter."],
-    ["🧁","Purposeful hang up?"],
-    ["🐧","lol I love our fake ish texts."]
-  ], footer: "June 3, 2024. Folder 004." },
-
-  { headline: "The first thing said about the box, before either of them had opened it.", lines: [
-    ["","\"It's heavier than it looks.\""],
-    ["","\"It usually surprises people.\""],
-    ["","\"What's in it?\""],
-    ["","\"Years.\""]
-  ], footer: "The Record Begins. Folder 001." },
-
-  { headline: "A version of himself, performed for everyone else — and he named it himself.", lines: [
-    ["🧁","I was just gonna ask if I was acting like Normal Brad on texting lol."],
-    ["🐧","lol yeah I think so. Normal Brad."]
-  ], footer: "May 4, 2024. Folder 017." },
-
-  { headline: "One hour of the day outweighs any other four combined.", lines: [
-    ["","36,261 messages between 7:00 and 8:00 PM."],
-    ["","Nearly three times an average daytime hour."]
-  ], footer: "This record didn't live in stolen daytime minutes. It lived in evenings." },
-
-  { headline: "Of 6,704 uses of the word \"sorry\" in the archive:", lines: [
-    ["🧁","3,847"],
-    ["🐧","2,696"]
-  ], footer: "The imbalance holds steady across nearly the entire record." },
-
-  { headline: "A year later, it comes back to both of them at once, unprompted.", lines: [
-    ["🐧","What did you do with that hotel key?"],
-    ["🧁","I do believe I threw it away."],
-    ["🧁","Fuck, we need another hotel key, and a whole night."],
-    ["🐧","At the time I really didn't think anything of it, and just yesterday I remembered it and thought — uh oh."]
-  ], footer: "May 13, 2024." },
-
-  { headline: "She was already afraid of losing it, months before the ending.", lines: [
-    ["🐧","I want to make sure all my pins are also pinned for you. So in case I lose my Telegram, you'll have my favs for me!! 💗"]
-  ], footer: "September 12, 2025. Pinned by 🧁." },
-
-  { headline: "The closest thing to it in the entire record — still shortened, three weeks before the end.", lines: [
-    ["🧁","ILY so much. So much it's often unbearable and you happen to be the only thing to fix it."]
-  ], footer: "December 11, 2025. Pinned by 🐧." },
-
-  { headline: "Pinned on the final day the archive records.", lines: [
-    ["🐧","I mean honestly I prayed about it all day yesterday. I didn't know I was going to. But I was worried all day for you. I want you and Hillary to be happy."]
-  ], footer: "January 7, 2026. Pinned by 🧁." },
-
-  { headline: "The very first emoji ritual, four days into the whole archive.", lines: [
-    ["🐧","🫶🏻 love it. Goodnight!"],
-    ["🐧","That's my new fav emoji!"]
-  ], footer: "May 7, 2024." },
-
-  { headline: "What a stranger would have seen, if they'd looked.", lines: [
-    ["🧁","If a neutral 3rd party saw us hanging out they would be like — why do 🧁 and 🐧 look so happy?!"]
-  ], footer: "May 30, 2024." },
-
-  { headline: "A small ritual, described in her own words as she lived it.", lines: [
-    ["🐧","Pinned for me to hear every night made me so happy! Goodnight 🧁 😘🫶🏻"]
-  ], footer: "June 15, 2024." },
-
-  { headline: "A blue dress, remembered word for word a year later.", lines: [
-    ["🐧","I wore a blue dress to church one day and you txted something like — I like the blue."],
-    ["🧁","Yes your blue dress. Or blue coat. I guess both. Actually \"I like the blue\" is exactly what probably said! You nailed it."]
-  ], footer: "May 3, 2024." },
-
-  { headline: "Where the nickname \"Sleepyhead\" actually came from.", lines: [
-    ["🐧","Have I said anything lately that's as evident how tired I am? Oh we should add that to the timeline. The first sleepyhead."],
-    ["🐧","Lol I wondered if I had not said that to you like I thought I might have. That's what I called the red Bible from Ricky Stanicky."],
-    ["🧁","Haha oh yeah! No I totally forgot that reference! Yep. Just had to throw it out there!"]
-  ], footer: "May 14, 2024." },
-
-  { headline: "A small secret, kept between just the two of them.", lines: [
-    ["🐧","I have thought about sending you voice messages. Could say a lot more."],
-    ["🧁","Only you and me will know you have this."]
-  ], footer: "May 26, 2024." },
-
-  { headline: "A dream that crossed over before either of them was fully awake.", lines: [
-    ["🧁","Awake for now! did dream of you"],
-    ["🐧","Good? I literally just woke up! How is that possible?"],
-    ["🧁","Really... that is sorta crazy!"]
-  ], footer: "July 19, 2024." },
-
-  { headline: "A careful distinction, drawn and then immediately walked back.", lines: [
-    ["🧁","This was \"I heart you\" and not \"I love you\" don't worry! Don't freak out! 😊 Of course I can say whatever I would like to say, after the fact."]
-  ], footer: "December 7, 2024." },
-
-  { headline: "Almost called off the day before — glad it wasn't.", lines: [
-    ["🐧","So I'm really glad I saw you today. I was seriously reconsidering after yesterday's sign. But didn't even think of that today."],
-    ["🧁","I'm really glad we did as well! Yeah I thought that yesterday was very likely to be called off. So yes I am glad as well. Obviously:)"]
-  ], footer: "May 6, 2024." },
-
-  { headline: "A phrase repeated so often it became its own kind of goodnight.", lines: [
-    ["🧁","Sleeep tight my dear! You are fucking amazing. Seriously. I think about you pillow to pillow."],
-    ["🐧","Pinned this. Pillow to pillow 🫶🏻"]
-  ], footer: "July 16, 2024." },
-
-  { headline: "A property visit that carried more feeling than the errand itself.", lines: [
-    ["🧁","I'm heading to that first Padsplit that we watched love is blind…. I hope I can hold all my emotions in 😊"],
-    ["🐧","How fun!! Wish I could go!!"],
-    ["🧁","Yes! Simpler times, easier times lol!"]
-  ], footer: "May 14, 2025." },
-
-  { headline: "Item one of a promised hundred: the very first ride.", lines: [
-    ["🧁","When we first rode, you were obviously carrying the conversation because I'm shy. So you would look back at me pretty often as you carried the conversation. First off I loved that. Seeing your face. Although whenever you looked at me, it actually increased my level of shyness, which caused you to make more eye contact. A big cycle of me becoming more shy because it was YOU that was looking at me. You are stunning and breathtaking and I was so happy."]
-  ], footer: "October 22, 2024. Item 1 of a list he called \"100 fond memories.\"" },
-
-  { headline: "Whose house it technically was, and whose it felt like.", lines: [
-    ["🧁","We play house ya know. I realize it's actually your house! But for me yeah it's ours 😊"],
-    ["🐧","Somebody better stop sneaking into our house and getting the pillows dirty!!"],
-    ["🧁","Our house… 🫶😊❤️"]
-  ], footer: "January 31, 2025." },
-
-  { headline: "Twin beds in a backyard, a dog jumping into a car, and nothing else she could remember.", lines: [
-    ["🐧","I had a dream you told me you had two twin beds in your backyard. We could just go there. I was driving when you said this. Pulled over to park shortly after. My windows were all the way down. And a dog jumped in my car! The owner came to grab him quickly and thanked me for catching the dog."]
-  ], footer: "June 5, 2024." },
-
-  { headline: "A wish list, written out like it might actually happen.", lines: [
-    ["🧁","Things to do (happy wish list) • Take you out on a real date • Drive in movie ❤️❤️❤️❤️ • Ride horses • Get massages together • Play some pickle ball • Go to a nice park somewhere far enough away to be out in the open like we're a couple • I just want to drive you anywhere • Watch a movie at your office • Overnight stay • Teach you how to whistle • Take a bath with you • Night riding • Go to some open houses • Schedule some showings and fun houses"]
-  ], footer: "July 8, 2025. Trimmed from a longer list; full version kept in the archive record." },
-
-  { headline: "Granbury, remembered two different ways.", lines: [
-    ["🧁","I think it was first Granbury that I have fond memories of you in a t shirt"],
-    ["🐧","I loved saying goodnight to you in person in Granbury. I'd been waiting. Just to say. Hold me. Goodnight 🧁"]
-  ], footer: "May 6, 2025 and August 16, 2025." },
-
-  { headline: "A game they weren't sure they'd already been playing.", lines: [
-    ["🧁","Pretend like we are married and happy?"],
-    ["🐧","Oh have we pretended that? 😊"],
-    ["🧁","Well what are you talking about?"]
-  ], footer: "December 21, 2024." },
-
-  { headline: "A short, specific wish list for what a photo could actually be.", lines: [
-    ["🐧","We need more photos. We also need a real one we can keep. We have one riding one I feel good about. I want one somehow normal. Sunday school. Pickleball. Something that isn't crazy that can be on my phone. 🤷🏻‍♀️ is that too much to ask."]
-  ], footer: "December 31, 2025." },
-
-  { headline: "A question about an outfit he'd already seen twice.", lines: [
-    ["🧁","What did your birthday outfit look like?!"],
-    ["🐧","You saw it 😊 I didn't change clothes. Just fixed my hair"],
-    ["🧁","Ahh yes! Saw it twice practically."]
-  ], footer: "November 18, 2024." },
-
-  { headline: "Laughing hard enough to forget what started it.", lines: [
-    ["🐧","I think my stomach hurt I was laughing so hard but I don't even have a clue why 😂"]
-  ], footer: "March 1, 2025." },
-
-  { headline: "A compliment that had nothing to do with what she'd actually asked.", lines: [
-    ["🐧","Oh I was just asking where you were instead of checking your location so it made me wonder if you'd possibly just check and if you checked since I was here"],
-    ["🧁","Haha lots of wonder. I love your brain."]
-  ], footer: "September 3, 2025." },
-
-  { headline: "A whole imagined life, built in under a minute and never mentioned again.", lines: [
-    ["🐧","I feel like it's bound to have crossed our minds. All the different ways we could actually be together."],
-    ["🐧","It'd have been crazy at first but by now no one would even know we weren't the same age. Blue eyes curly haired kids."],
-    ["🐧","We'd play pickleball as couples every week. Definitely have a pet turtle. Hot tub but no pool."],
-    ["🐧","Tommy."],
-    ["🧁","Damn right Tommy!"]
-  ], footer: "October 5, 2025. “Tommy” appears exactly once in the full 208,998-message record — here, and nowhere else." }
-];
-
+let CARDS = [];
 let currentIndex = 0;
 
 function renderCards() {
@@ -526,24 +346,77 @@ document.getElementById('carousel').addEventListener('scroll', function() {
   updateCounter();
 }, { passive: true });
 
-document.getElementById('unlockBtn').addEventListener('click', () => {
-  const pass = document.getElementById('passInput').value;
-  if (pass === PASSPHRASE) {
+async function unlock() {
+  const errorDiv = document.getElementById('lockError');
+  const btn = document.getElementById('unlockBtn');
+  const passphrase = document.getElementById('passInput').value;
+  errorDiv.textContent = '';
+
+  if (!passphrase) {
+    errorDiv.textContent = 'Enter a passphrase.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/cards?select=*&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      errorDiv.textContent = 'No card content found.';
+      btn.disabled = false;
+      btn.textContent = 'Enter';
+      return;
+    }
+
+    const row = rows[0];
+    const salt = fromBase64(row.salt);
+    const iv = fromBase64(row.iv);
+    const ciphertext = fromBase64(row.ciphertext);
+
+    const key = await deriveKey(passphrase, salt);
+
+    const decryptedBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv }, key, ciphertext
+    );
+
+    const dec = new TextDecoder();
+    const text = dec.decode(decryptedBuf);
+
+    // The decrypted text is a "const CARDS = [ ... ];" block.
+    // Evaluate it in an isolated scope to extract the array.
+    CARDS = new Function(text + '\nreturn CARDS;')();
+
     document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('gallery').classList.add('show');
     renderCards();
-  } else {
-    document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+  } catch (e) {
+    errorDiv.textContent = 'Incorrect passphrase.';
+    btn.disabled = false;
+    btn.textContent = 'Enter';
   }
-});
+}
 
+document.getElementById('unlockBtn').addEventListener('click', unlock);
 document.getElementById('passInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+  if (e.key === 'Enter') unlock();
 });
 
 document.getElementById('lockAgainBtn').addEventListener('click', () => {
   document.getElementById('gallery').classList.remove('show');
   document.getElementById('passInput').value = '';
+  document.getElementById('unlockBtn').disabled = false;
+  document.getElementById('unlockBtn').textContent = 'Enter';
   document.getElementById('lockScreen').style.display = 'flex';
 });
 </script>

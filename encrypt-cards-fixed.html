@@ -272,14 +272,28 @@ async function encryptAndUpload() {
     return;
   }
 
+  diagText += `\n📡 HTTP status: ${res.status} ${res.statusText}`;
+
   try {
     if (!res.ok) {
-      const err = await res.text();
-      statusDiv.innerHTML = `<div class="error">Upload failed: ${err}</div><div class="diag">${diagText}</div>`;
+      let err = '(could not read response body)';
+      try {
+        err = await res.text();
+      } catch (bodyErr) {
+        err = `(failed to read error body: ${bodyErr.message})`;
+      }
+      statusDiv.innerHTML = `<div class="error">Upload failed [HTTP ${res.status}]: ${err}</div><div class="diag">${diagText}</div>`;
       return;
     }
 
-    const result = await res.json();
+    let result;
+    try {
+      result = await res.json();
+    } catch (jsonErr) {
+      const rawText = await res.clone().text().catch(() => '(unreadable)');
+      statusDiv.innerHTML = `<div class="error">Upload succeeded (HTTP ${res.status}) but response wasn't valid JSON: ${jsonErr.message}\nRaw response: ${rawText}</div><div class="diag">${diagText}</div>`;
+      return;
+    }
     statusDiv.innerHTML = `<div class="success">✓ Success! Row ID: ${result[0].id}</div>`;
 
     document.getElementById('passphrase').value = '';

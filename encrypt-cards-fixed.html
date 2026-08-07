@@ -258,7 +258,8 @@ async function encryptAndUpload() {
       headers: {
         'Content-Type': 'application/json',
         'apikey': sbKey,
-        'Authorization': `Bearer ${sbKey}`
+        'Authorization': `Bearer ${sbKey}`,
+        'Prefer': 'return=representation'
       },
       body: JSON.stringify({
         salt: toBase64(salt),

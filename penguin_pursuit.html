@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Penguin Pursuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a1220;
+    --void-2:#0e1a2c;
+    --ice-deep:#173952;
+    --ice-mid:#2c5771;
+    --ice-shine:#bfe8f0;
+    --mint:#6ee7c4;
+    --pink:#f2a6c9;
+    --violet:#9b8cf2;
+    --snow:#eaf2f5;
+    --snow-dim:#a9bac4;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:radial-gradient(ellipse 120% 80% at 50% -10%, #142640 0%, var(--void) 55%, #060a12 100%);
+    color:var(--snow);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  .aurora{
+    position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.55; mix-blend-mode:screen;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(60px);
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(1){width:60vw;height:60vw;top:-20vw;left:-10vw;background:radial-gradient(circle, var(--mint), transparent 70%); animation-delay:0s;}
+  .aurora span:nth-child(2){width:50vw;height:50vw;top:10vh;right:-15vw;background:radial-gradient(circle, var(--violet), transparent 70%); animation-delay:-6s;}
+  .aurora span:nth-child(3){width:45vw;height:45vw;bottom:-20vh;left:20vw;background:radial-gradient(circle, var(--pink), transparent 70%); animation-delay:-12s;}
+  @keyframes drift{ from{transform:translate(0,0) scale(1);} to{transform:translate(4vw,3vh) scale(1.12);} }
+
+  .wrap{position:relative; z-index:1; max-width:min(560px, 92vh); margin:0 auto; padding:14px 16px 18px; min-height:100vh; display:flex; flex-direction:column;}
+
+  header{text-align:center; margin-bottom:8px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--mint); opacity:.85; margin-bottom:3px;
+  }
+  h1{
+    font-family:'Fraunces',serif; font-weight:700; font-size:clamp(22px,7vw,32px);
+    margin:0 0 4px; letter-spacing:-.01em; line-height:1;
+    background:linear-gradient(120deg, var(--snow) 30%, var(--ice-shine) 60%, var(--mint) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{font-size:11px; color:var(--snow-dim); max-width:38ch; margin:0 auto; line-height:1.35;}
+
+  .scoreboard{
+    display:flex; align-items:baseline; justify-content:center; gap:7px;
+    margin-top:8px;
+  }
+  .scoreboard-label{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--snow-dim);
+  }
+  .scoreboard-value{
+    font-family:'Fraunces',serif; font-weight:700; font-size:28px; line-height:1;
+    background:linear-gradient(120deg, var(--mint), var(--ice-shine));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transition:transform .15s ease;
+  }
+  .scoreboard-value.bump{transform:scale(1.12);}
+  .scoreboard-unit{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--snow-dim);
+  }
+  .hud{
+    display:flex; align-items:center; gap:8px; margin:0 0 6px;
+  }
+  .hud:first-of-type{margin-top:10px;}
+  .badge{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    border-radius:9px; padding:6px 10px; display:flex; align-items:center; gap:6px;
+    backdrop-filter:blur(6px); white-space:nowrap;
+  }
+  .badge.score{flex:1;}
+  .badge.clicks{flex:1; justify-content:center;}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);}
+  .badge.time .dot{background:var(--pink);}
+  .timebar-outer{
+    flex:1; height:26px; border-radius:9px; background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.09); overflow:hidden; position:relative;
+  }
+  .timebar-inner{
+    height:100%; width:100%;
+    background:linear-gradient(90deg, var(--mint), var(--ice-shine) 60%, var(--pink));
+    transition:width 1s linear;
+  }
+  .timebar-outer .tlabel{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:var(--void);
+    mix-blend-mode:normal;
+    text-shadow:0 1px 0 rgba(255,255,255,.3);
+  }
+
+  .board{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:5px;
+    margin-top:4px;
+  }
+  .tile{
+    position:relative; aspect-ratio:1; border:none; padding:0; border-radius:8px;
+    background:linear-gradient(155deg, var(--ice-mid), var(--ice-deep) 65%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 3px 0 rgba(0,0,0,.25);
+    cursor:pointer; overflow:hidden; isolation:isolate;
+  }
+  .tile:active{transform:translateY(1px);}
+  .tile::before{
+    content:''; position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 25% 20%, rgba(255,255,255,.25), transparent 40%),
+      radial-gradient(circle at 75% 75%, rgba(255,255,255,.1), transparent 45%);
+    opacity:.9; transition:opacity .25s;
+  }
+  .tile .crackline{
+    position:absolute; inset:0; opacity:0; transition:opacity .2s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0 L46 22 L58 30 L40 44 L60 55 L38 64 L52 78 L44 100' stroke='%23BFE8F0' stroke-width='2' fill='none' opacity='0.6'/%3E%3C/svg%3E");
+    background-size:cover;
+  }
+  .tile:not(.broken):hover .crackline{opacity:.5;}
+
+  .shard{
+    position:absolute; inset:0; background:linear-gradient(155deg, var(--ice-mid), var(--ice-deep) 65%);
+    transition:transform .5s cubic-bezier(.2,.8,.3,1), opacity .5s ease;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .shard-a{clip-path:polygon(0 0,100% 0,62% 38%,78% 55%,48% 68%,60% 100%,0 100%);}
+  .shard-b{clip-path:polygon(100% 0,100% 100%,60% 100%,48% 68%,78% 55%,62% 38%);}
+  .tile.broken .shard-a{transform:translate(-70%,-55%) rotate(-18deg); opacity:0;}
+  .tile.broken .shard-b{transform:translate(70%,55%) rotate(16deg); opacity:0;}
+
+  .content{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:20px; opacity:0; transform:scale(.4); transition:transform .35s cubic-bezier(.3,1.4,.4,1), opacity .25s;
+    transition-delay:.15s;
+  }
+  .tile.broken .content{opacity:1; transform:scale(1);}
+  .tile.broken{background:linear-gradient(155deg,#0d1c29,#0a141f); cursor:default; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);}
+  .tile.broken::before{opacity:0;}
+  .tile.hint .content{font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700;}
+  .tile.hint .content.h0{font-family:'Inter',sans-serif; font-size:12px;}
+  .tile.hint .content.h1{color:var(--snow-dim);}
+  .tile.hint .content.h2{color:var(--ice-shine);}
+  .tile.hint .content.h3{color:var(--pink);}
+  .tile.hint .content.h4{color:var(--violet);}
+  .tile.complete{box-shadow:inset 0 0 0 1.5px var(--mint), 0 0 14px -2px rgba(110,231,196,.6);}
+  .tile.difficult::after{
+    content:'★'; position:absolute; top:2px; right:3px; font-size:8px; color:var(--pink);
+    text-shadow:0 0 4px rgba(242,166,201,.8);
+  }
+  .tile.complete .content{filter:drop-shadow(0 0 6px rgba(110,231,196,.7));}
+
+  footer.legend{
+    margin-top:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:5px 12px;
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--snow-dim);
+  }
+
+  .overlay{
+    position:fixed; inset:0; z-index:5; background:rgba(6,10,18,.78); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition:opacity .35s;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .card{
+    background:linear-gradient(160deg, #101f33, #0b1626);
+    border:1px solid rgba(255,255,255,.09); border-radius:18px; padding:30px 26px;
+    max-width:340px; width:100%; text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:translateY(10px) scale(.97); transition:transform .35s;
+  }
+  .overlay.show .card{transform:translateY(0) scale(1);}
+  .card .icon{font-size:38px; margin-bottom:6px;}
+  .card h2{font-family:'Fraunces',serif; font-size:26px; margin:0 0 8px;}
+  .card p{font-size:13px; color:var(--snow-dim); margin:0 0 18px; line-height:1.5;}
+  .card .stat{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--mint); margin-bottom:6px;}
+  .card .breakdown{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--snow-dim); margin-bottom:20px;}
+  .playagain{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; color:var(--void);
+    background:linear-gradient(90deg, var(--mint), var(--ice-shine));
+    border:none; border-radius:10px; padding:12px 22px; cursor:pointer; width:100%;
+  }
+  .playagain:active{transform:translateY(1px);}
+
+  @media (prefers-reduced-motion: reduce){
+    .aurora span{animation:none;}
+    .shard{transition:opacity .3s;}
+    .content{transition:opacity .3s; transform:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="aurora"><span></span><span></span><span></span></div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Ice Field Expedition</div>
+    <h1>Penguin Pursuit</h1>
+    <p class="sub">Break the ice before the field refreezes. 6 penguins are hiding beneath — one takes 4 blocks, one takes 2, and four take just 1. Empty ice reveals how many penguin blocks are touching it.</p>
+  </header>
+
+  <div class="scoreboard">
+    <span class="scoreboard-label">Score</span>
+    <span class="scoreboard-value" id="scoreValueLabel">0</span>
+    <span class="scoreboard-unit">pts</span>
+  </div>
+
+  <div class="hud">
+    <div class="badge score"><span class="dot"></span><span id="scoreLabel">PENGUINS 0/6</span></div>
+    <div class="badge clicks"><span class="dot" style="background:var(--pink)"></span><span id="clicksLabel">0 CLICKS</span></div>
+  </div>
+  <div class="hud">
+    <div class="timebar-outer">
+      <div class="timebar-inner" id="timebarInner"></div>
+      <div class="tlabel" id="timeLabel">45</div>
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <footer class="legend">
+    <span>🐧 penguin block</span>
+    <span>№ blocks touching this tile</span>
+    <span>★ difficult catch, no clue pointed here</span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="card">
+    <div class="icon" id="resultIcon">🐧</div>
+    <h2 id="resultTitle">Catch of the day!</h2>
+    <p id="resultText">You found every penguin before the field refroze.</p>
+    <div class="stat" id="resultStat">8/8 found · 42s remaining</div>
+    <div class="breakdown" id="breakdownEl">100 base · 15 difficulty · 30 speed</div>
+    <button class="playagain" id="playAgain">Play again</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const COLS = 6, ROWS = 6, TOTAL = COLS*ROWS, DURATION = 45;
+  const PENGUIN_SIZES = [4, 2, 1, 1, 1, 1]; // one 4-block, one 2-block, four 1-blocks
+  const PENGUIN_COUNT = PENGUIN_SIZES.length;
+  const PAR = PENGUIN_SIZES.reduce((a, b) => a + b, 0); // fewest clicks possible: only ever break penguin blocks
+  const BLOCK_POINTS = 10;       // points per penguin block found
+  const DIFFICULTY_BONUS = 5;    // bonus for finding a block with no hint or prior block pointing to it
+  const MAX_SPEED_BONUS = 100;   // awarded on full clear, scaled by time remaining
+
+  const boardEl = document.getElementById('board');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const clicksLabel = document.getElementById('clicksLabel');
+  const timebarInner = document.getElementById('timebarInner');
+  const timeLabel = document.getElementById('timeLabel');
+  const overlay = document.getElementById('overlay');
+  const resultIcon = document.getElementById('resultIcon');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultText = document.getElementById('resultText');
+  const resultStat = document.getElementById('resultStat');
+  const breakdownEl = document.getElementById('breakdownEl');
+  const scoreValueLabel = document.getElementById('scoreValueLabel');
+  const playAgainBtn = document.getElementById('playAgain');
+
+  let cellPenguin;   // array TOTAL long: -1 empty, else penguin id
+  let placements;    // array of arrays: cell indices per penguin id
+  let brokenAt, foundCount, clickCount, timeLeft, timerId, ended;
+  let score, difficultyCount, speedBonus;
+
+  function idxOf(r,c){ return r*COLS + c; }
+
+  function tryPlacePenguins(){
+    const cells = new Array(TOTAL).fill(-1);
+    const placed = [];
+    for (let pid = 0; pid < PENGUIN_SIZES.length; pid++){
+      const size = PENGUIN_SIZES[pid];
+      let ok = false, attempts = 0;
+      while (!ok && attempts < 300){
+        attempts++;
+        const horizontal = Math.random() < 0.5;
+        const r = Math.floor(Math.random() * ROWS);
+        const c = Math.floor(Math.random() * COLS);
+        const coords = [];
+        let fits = true;
+        for (let k = 0; k < size; k++){
+          const rr = horizontal ? r : r + k;
+          const cc = horizontal ? c + k : c;
+          if (rr >= ROWS || cc >= COLS){ fits = false; break; }
+          coords.push(idxOf(rr, cc));
+        }
+        if (fits){
+          // no overlap, and no touching (including diagonals) another penguin
+          outer:
+          for (const idx of coords){
+            const rr = Math.floor(idx / COLS), cc = idx % COLS;
+            for (let dr = -1; dr <= 1; dr++){
+              for (let dc = -1; dc <= 1; dc++){
+                const nr = rr + dr, nc = cc + dc;
+                if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+                if (cells[idxOf(nr, nc)] !== -1){ fits = false; break outer; }
+              }
+            }
+          }
+        }
+        if (fits){
+          coords.forEach(idx => cells[idx] = pid);
+          placed.push(coords);
+          ok = true;
+        }
+      }
+      if (!ok) return null; // failed layout, caller retries fresh
+    }
+    return { cells, placed };
+  }
+
+  function generateLayout(){
+    let result = null;
+    while (!result) result = tryPlacePenguins();
+    return result;
+  }
+
+  function neighborHint(idx){
+    const r = Math.floor(idx / COLS), c = idx % COLS;
+    let count = 0;
+    for (let dr = -1; dr <= 1; dr++){
+      for (let dc = -1; dc <= 1; dc++){
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        if (cellPenguin[idxOf(nr, nc)] !== -1) count++;
+      }
+    }
+    return count;
+  }
+
+  // A catch counts as "difficult" if, at the moment of the click, nothing on
+  // the board pointed to it: no already-broken block of the same penguin
+  // sitting next to it, and no broken hint tile nearby showing a nonzero count.
+  function isDifficultCatch(i, pid){
+    const r = Math.floor(i / COLS), c = i % COLS;
+    const ortho = [];
+    if (r > 0) ortho.push(idxOf(r - 1, c));
+    if (r < ROWS - 1) ortho.push(idxOf(r + 1, c));
+    if (c > 0) ortho.push(idxOf(r, c - 1));
+    if (c < COLS - 1) ortho.push(idxOf(r, c + 1));
+    for (const n of ortho){
+      if (cellPenguin[n] === pid && brokenAt.has(n)) return false;
+    }
+    for (let dr = -1; dr <= 1; dr++){
+      for (let dc = -1; dc <= 1; dc++){
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        const nIdx = idxOf(nr, nc);
+        if (brokenAt.has(nIdx) && cellPenguin[nIdx] === -1 && neighborHint(nIdx) > 0) return false;
+      }
+    }
+    return true;
+  }
+
+  function buildBoard(){
+    boardEl.innerHTML = '';
+    for (let i = 0; i < TOTAL; i++){
+      const btn = document.createElement('button');
+      btn.className = 'tile';
+      btn.setAttribute('aria-label', 'Unbroken ice tile');
+      btn.dataset.idx = i;
+      btn.innerHTML = `
+        <div class="shard shard-a"></div>
+        <div class="shard shard-b"></div>
+        <div class="crackline"></div>
+        <div class="content"></div>
+      `;
+      btn.addEventListener('click', () => onTileClick(i, btn));
+      boardEl.appendChild(btn);
+    }
+  }
+
+  function onTileClick(i, btn){
+    if (ended || brokenAt.has(i)) return;
+    const pid = cellPenguin[i];
+    const blind = pid !== -1 ? isDifficultCatch(i, pid) : false;
+
+    breakTile(i, btn);
+    clickCount++;
+    clicksLabel.textContent = `${clickCount} CLICK${clickCount === 1 ? '' : 'S'}`;
+
+    if (pid !== -1){
+      score += BLOCK_POINTS;
+      if (blind){
+        score += DIFFICULTY_BONUS;
+        difficultyCount++;
+        btn.classList.add('difficult');
+      }
+      bumpScore();
+
+      const allBroken = placements[pid].every(idx => brokenAt.has(idx));
+      if (allBroken){
+        foundCount++;
+        scoreLabel.textContent = `PENGUINS ${foundCount}/${PENGUIN_COUNT}`;
+        placements[pid].forEach(idx => {
+          boardEl.children[idx].classList.add('complete');
+        });
+        if (foundCount === PENGUIN_COUNT) endGame(true);
+      }
+    }
+  }
+
+  function bumpScore(){
+    scoreValueLabel.textContent = score;
+    scoreValueLabel.classList.remove('bump');
+    void scoreValueLabel.offsetWidth; // restart animation
+    scoreValueLabel.classList.add('bump');
+  }
+
+  function breakTile(i, btn){
+    brokenAt.add(i);
+    btn.classList.add('broken');
+    const pid = cellPenguin[i];
+    const content = btn.querySelector('.content');
+    if (pid !== -1){
+      content.textContent = '🐧';
+      btn.setAttribute('aria-label', 'Penguin block found');
+    } else {
+      const hint = neighborHint(i);
+      btn.classList.add('hint');
+      content.classList.add(`h${hint}`);
+      content.textContent = hint === 0 ? '❄️' : String(hint);
+      btn.setAttribute('aria-label', hint === 0 ? 'Empty ice, no penguins nearby' : `Empty ice, ${hint} penguin block${hint > 1 ? 's' : ''} nearby`);
+    }
+  }
+
+  function tick(){
+    timeLeft--;
+    timeLabel.textContent = timeLeft;
+    timebarInner.style.width = `${Math.max(0,(timeLeft/DURATION)*100)}%`;
+    if (timeLeft <= 0) endGame(false);
+  }
+
+  function endGame(won){
+    if (ended) return;
+    ended = true;
+    clearInterval(timerId);
+
+    if (won){
+      speedBonus = Math.round((timeLeft / DURATION) * MAX_SPEED_BONUS);
+      score += speedBonus;
+      bumpScore();
+    }
+
+    const tiles = Array.from(boardEl.children);
+    let delay = 0;
+    for (let i = 0; i < TOTAL; i++){
+      if (cellPenguin[i] !== -1 && !brokenAt.has(i)){
+        setTimeout(() => breakTile(i, tiles[i]), delay);
+        delay += 70;
+      }
+    }
+
+    setTimeout(() => {
+      resultIcon.textContent = won ? '🐧' : '🧊';
+      resultTitle.textContent = won ? 'Catch of the day!' : 'Frozen out';
+      resultText.textContent = won
+        ? ratingText(clickCount)
+        : 'Time ran out before you cleared the field.';
+      resultStat.textContent = won
+        ? `${score} pts · ${PENGUIN_COUNT}/${PENGUIN_COUNT} found · ${timeLeft}s left`
+        : `${score} pts · ${foundCount}/${PENGUIN_COUNT} found`;
+      breakdownEl.textContent = won
+        ? `${PAR * BLOCK_POINTS} base · ${difficultyCount} difficult ×${DIFFICULTY_BONUS} · ${speedBonus} speed`
+        : `${score - difficultyCount * DIFFICULTY_BONUS} base · ${difficultyCount} difficult ×${DIFFICULTY_BONUS} · no speed bonus`;
+      overlay.classList.add('show');
+    }, delay + 300);
+  }
+
+  function ratingText(clicks){
+    if (clicks <= PAR) return 'Flawless — every click landed on a penguin.';
+    if (clicks <= PAR + 3) return 'Sharp hunting, barely a wasted swing.';
+    if (clicks <= PAR + 7) return 'Solid run, a bit of ice broken for nothing.';
+    return 'You found them all, eventually.';
+  }
+
+  function newGame(){
+    const layout = generateLayout();
+    cellPenguin = layout.cells;
+    placements = layout.placed;
+    brokenAt = new Set();
+    foundCount = 0;
+    clickCount = 0;
+    score = 0;
+    difficultyCount = 0;
+    speedBonus = 0;
+    timeLeft = DURATION;
+    ended = false;
+    overlay.classList.remove('show');
+    scoreLabel.textContent = `PENGUINS 0/${PENGUIN_COUNT}`;
+    clicksLabel.textContent = '0 CLICKS';
+    scoreValueLabel.textContent = '0';
+    timeLabel.textContent = timeLeft;
+    timebarInner.style.width = '100%';
+    buildBoard();
+    clearInterval(timerId);
+    timerId = setInterval(tick, 1000);
+  }
+
+  playAgainBtn.addEventListener('click', newGame);
+  newGame();
+})();
+</script>
+
+</body>
+</html>

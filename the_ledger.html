@@ -13,6 +13,7 @@
   .lock-sub { font-size: 13px; color: #8a998f; margin-bottom: 28px; max-width: 280px; line-height: 1.5; }
   .lock-input { width: 100%; max-width: 280px; background: #1a140d; border: 1px solid #4a3c28; color: #ecdfc8; border-radius: 10px; padding: 14px; font-size: 16px; margin-bottom: 14px; text-align: center; }
   .lock-btn { background: #b8895a; color: #fff; border: none; border-radius: 10px; padding: 13px 32px; font-size: 16px; font-weight: 600; }
+  .lock-btn:disabled { opacity: 0.6; }
   .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
   .reader { display: none; min-height: 100vh; background: #f4ecdd; color: #3a3227; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
   .reader.show { display: block; }
@@ -54,6 +55,7 @@
   .footnote { font-size: 12px; color: #8a7a63; font-style: italic; margin-top: 10px; line-height: 1.6; }
   .bucket-list { padding-left: 22px; margin-top: 10px; }
   .bucket-list li { font-size: 15px; line-height: 1.9; margin-bottom: 4px; }
+  .loading-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
   #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
   #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
   @keyframes tp-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(-2deg); } }
@@ -85,140 +87,8 @@
 
     <div class="archive-emoji">🐧 &nbsp; 🧁</div>
 
-    <div class="content-body">
-
-      <div class="section-title">Glossary</div>
-      <div class="section-intro">A quick key to the recurring names and phrases used throughout this archive.</div>
-
-      <div class="term"><div class="term-name">Reading Room D</div><div class="term-def">The framing device for the whole site — a fictional preservation archive that these pages are styled as belonging to.</div></div>
-      <div class="term"><div class="term-name">The Cataloger</div><div class="term-def">The narrator's voice used in editorial asides throughout the Book and Archive — cool, observational, never inventing what it hasn't verified.</div></div>
-      <div class="term"><div class="term-name">🧁 / Cupcake</div><div class="term-def">The Cupcake's pseudonym and emoji — with a real, concrete origin. On July 7, 2024, 🐧 brought him an actual cupcake as a pretext to see him ("I really did just want to bring you a cupcake and see you!!"). It became a running bit ("cupcake only" as code for "not necessarily for sex"), and five days later he was already asking for the 🧁 emoji on his "frequently used."</div></div>
-      <div class="term"><div class="term-name">🐧 / Penguin</div><div class="term-def">The Penguin's pseudonym and emoji throughout the archive.</div></div>
-      <div class="term"><div class="term-name">ML</div><div class="term-def">"My Love," proposed by 🧁 on May 10, 2025 as a shorter goodnight tag. 43 uses, almost entirely his (41 vs. 2).</div></div>
-      <div class="term"><div class="term-name">Soulmate</div><div class="term-def">22 uses, mostly 🧁 (18 vs. 4). First real use: February 12, 2025. She briefly countered with "penguin lovers" before agreeing "soulmate works though."</div></div>
-      <div class="term"><div class="term-name">Pillow to pillow</div><div class="term-def">A recurring phrase of endearment, first said (and first pinned) on July 16, 2024.</div></div>
-      <div class="term"><div class="term-name">Olive you</div><div class="term-def">A voice-to-text mishearing of "I love you" (or "all of you") that turned into its own running inside joke — 8 separate uses across the archive.</div></div>
-      <div class="term"><div class="term-name">MMFT</div><div class="term-def">Shorthand for a FaceTime call combined with mutual masturbation. First used September 22, 2024 — 19 uses total, still going as of January 2026.</div></div>
-      <div class="term"><div class="term-name">Indescribable</div><div class="term-def">A word that became genuinely load-bearing — 28 separate uses from June 2024 through November 2025, almost always describing how being together feels.</div></div>
-      <div class="term"><div class="term-name">🐘💩</div><div class="term-def">A paired emoji sign-off with a documented origin: "I think I found the happiest poo emoji possible" (December 13, 2024). Used together ~30 times since, mostly by 🐧, usually attached to a goodnight.</div></div>
-      <div class="term"><div class="term-name">Normal Brad</div><div class="term-def">A nickname for the more composed, "performed" version of himself in texting.</div></div>
-      <div class="term"><div class="term-name">Sleepyhead</div><div class="term-def">A nickname with a specific origin: a reference to a red Bible in the movie <i>Ricky Stanicky</i>.</div></div>
-      <div class="term"><div class="term-name">Granbury</div><div class="term-def">A recurring real place tied to some of the archive's most-quoted memories.</div></div>
-      <div class="term"><div class="term-name">The Fuckit Bucket List</div><div class="term-def">A running wish list of things to do together — the full thing is below.</div></div>
-
-      <div class="section-title">The Numbers</div>
-      <div class="section-intro">Everything below is computed directly from the real archive — no estimates.</div>
-
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-number">219,738</div><div class="stat-label">Total Messages</div></div>
-        <div class="stat-card"><div class="stat-number">614</div><div class="stat-label">Days Spanned</div></div>
-        <div class="stat-card"><div class="stat-number">10,730,807</div><div class="stat-label">Total Letters</div></div>
-        <div class="stat-card"><div class="stat-number">1,961,374</div><div class="stat-label">Total Words</div></div>
-      </div>
-
-      <div class="subhead">Letters Written</div>
-      <div class="vs-row">
-        <div class="vs-card"><div class="vs-emoji">🐧</div><div class="vs-number">3,985,527</div><div class="vs-label">characters</div></div>
-        <div class="vs-card"><div class="vs-emoji">🧁</div><div class="vs-number">6,745,280</div><div class="vs-label">characters</div></div>
-      </div>
-
-      <div class="subhead">Messages by Month</div>
-      <div class="chart-wrap"><div class="bar-wrap"><div class="bar" style="height:42%" title="May '24: 5631"></div><span class="bar-label">May '24</span></div><div class="bar-wrap"><div class="bar" style="height:63%" title="Jun '24: 8478"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:79%" title="Jul '24: 10612"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:82%" title="Aug '24: 11101"></div><span class="bar-label">Aug '24</span></div><div class="bar-wrap"><div class="bar" style="height:75%" title="Sep '24: 10054"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:76%" title="Oct '24: 10215"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:86%" title="Nov '24: 11595"></div><span class="bar-label">Nov '24</span></div><div class="bar-wrap"><div class="bar" style="height:88%" title="Dec '24: 11904"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:73%" title="Jan '25: 9801"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:81%" title="Feb '25: 10939"></div><span class="bar-label">Feb '25</span></div><div class="bar-wrap"><div class="bar" style="height:78%" title="Mar '25: 10557"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:92%" title="Apr '25: 12343"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:98%" title="May '25: 13168"></div><span class="bar-label">May '25</span></div><div class="bar-wrap"><div class="bar" style="height:78%" title="Jun '25: 10482"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:65%" title="Jul '25: 8783"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:100%" title="Aug '25: 13423"></div><span class="bar-label">Aug '25</span></div><div class="bar-wrap"><div class="bar" style="height:77%" title="Sep '25: 10353"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:81%" title="Oct '25: 10891"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:93%" title="Nov '25: 12602"></div><span class="bar-label">Nov '25</span></div><div class="bar-wrap"><div class="bar" style="height:100%" title="Dec '25: 13483"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar" style="height:25%" title="Jan '26: 3323"></div><span class="bar-label"></span></div></div>
-
-      <div class="subhead">Messages by Hour of Day</div>
-      <div class="chart-wrap"><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="0:00 &mdash; 570 messages"></div><span class="bar-label">0</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="1:00 &mdash; 656 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="2:00 &mdash; 694 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="3:00 &mdash; 452 messages"></div><span class="bar-label">3</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="4:00 &mdash; 1483 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:19%" title="5:00 &mdash; 6943 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:28%" title="6:00 &mdash; 10008 messages"></div><span class="bar-label">6</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:26%" title="7:00 &mdash; 9338 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:16%" title="8:00 &mdash; 5818 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:15%" title="9:00 &mdash; 5539 messages"></div><span class="bar-label">9</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:20%" title="10:00 &mdash; 7135 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:27%" title="11:00 &mdash; 9650 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:25%" title="12:00 &mdash; 9209 messages"></div><span class="bar-label">12</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:28%" title="13:00 &mdash; 10050 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:28%" title="14:00 &mdash; 10241 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:23%" title="15:00 &mdash; 8216 messages"></div><span class="bar-label">15</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:26%" title="16:00 &mdash; 9286 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:37%" title="17:00 &mdash; 13495 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:58%" title="18:00 &mdash; 21160 messages"></div><span class="bar-label">18</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:100%" title="19:00 &mdash; 36228 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:90%" title="20:00 &mdash; 32624 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:25%" title="21:00 &mdash; 8896 messages"></div><span class="bar-label">21</span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="22:00 &mdash; 1519 messages"></div><span class="bar-label"></span></div><div class="bar-wrap"><div class="bar hour-bar" style="height:4%" title="23:00 &mdash; 528 messages"></div><span class="bar-label"></span></div></div>
-      <div class="section-intro" style="margin-top:6px;">Peak hour: 7:00 PM — 36,228 messages sent at that hour across the whole archive.</div>
-
-      <div class="section-title">Response Time</div>
-      <div class="fact-line">🧁 (you) replies in an average of <b>3.1 minutes</b></div>
-      <div class="fact-line">🐧 replies in an average of <b>5.4 minutes</b></div>
-      <div class="footnote">Average (mean) time-to-reply whenever the sender switches, capped at same-day responses. About half of all replies happen in under a minute during live back-and-forth stretches, which is why a "typical" median would've shown near-zero — the average is the more honest number here.</div>
-
-      <div class="section-title">"Huh"</div>
-      <div class="vs-row">
-        <div class="vs-card"><div class="vs-emoji">🐧</div><div class="vs-number">598</div><div class="vs-label">times said "huh"</div></div>
-        <div class="vs-card"><div class="vs-emoji">🧁</div><div class="vs-number">709</div><div class="vs-label">times said "huh"</div></div>
-      </div>
-
-      <div class="section-title">Who Seemed Most Confused?</div>
-      <div class="fact-line">🐧 — <b>26,244</b> question marks, <b>1,679</b> confusion-phrases ("confused," "wait what," "huh," etc.)</div>
-      <div class="fact-line">🧁 — <b>22,409</b> question marks, <b>1,490</b> confusion-phrases</div>
-      <div class="section-intro" style="margin-top:10px;">🐧 takes it — more questions, more "wait what"s (97 vs. 9). 🧁 wins on "huh" specifically (709 vs. 598) and "confusing" (246 vs. 109), so it's less "confused" and more "actively confused by you."</div>
-
-      <div class="section-title">Videos</div>
-      <div class="vs-row">
-        <div class="vs-card"><div class="vs-emoji">🐧</div><div class="vs-number">398</div><div class="vs-label">videos sent</div></div>
-        <div class="vs-card"><div class="vs-emoji">🧁</div><div class="vs-number">3,482</div><div class="vs-label">videos sent</div></div>
-      </div>
-      <div class="fact-line">Goodnight videos specifically: <b>42</b> (captioned "goodnight" directly).</div>
-
-      <div class="section-title">Most "Sorry"</div>
-      <div class="vs-row">
-        <div class="vs-card"><div class="vs-emoji">🐧</div><div class="vs-number">2,732</div><div class="vs-label">times said sorry</div></div>
-        <div class="vs-card"><div class="vs-emoji">🧁</div><div class="vs-number">3,978</div><div class="vs-label">times said sorry</div></div>
-      </div>
-      <div class="section-intro">🧁 also said "love" 3,179 times, versus 1,553 from 🐧.</div>
-
-      <div class="section-title">Most Used Emoji</div>
-      <div class="subhead">🐧</div>
-      <div class="word-row"><span class="emoji-label">😊</span><div class="word-bar-track"><div class="word-bar" style="width:100%"></div></div><span class="word-count">4,166</span></div><div class="word-row"><span class="emoji-label">😔</span><div class="word-bar-track"><div class="word-bar" style="width:41%"></div></div><span class="word-count">1,700</span></div><div class="word-row"><span class="emoji-label">🤷🏻‍♀️</span><div class="word-bar-track"><div class="word-bar" style="width:38%"></div></div><span class="word-count">1,591</span></div><div class="word-row"><span class="emoji-label">🫶🏻</span><div class="word-bar-track"><div class="word-bar" style="width:31%"></div></div><span class="word-count">1,281</span></div><div class="word-row"><span class="emoji-label">😂</span><div class="word-bar-track"><div class="word-bar" style="width:24%"></div></div><span class="word-count">992</span></div><div class="word-row"><span class="emoji-label">😘</span><div class="word-bar-track"><div class="word-bar" style="width:23%"></div></div><span class="word-count">950</span></div>
-      <div class="subhead">🧁</div>
-      <div class="word-row"><span class="emoji-label">😊</span><div class="word-bar-track"><div class="word-bar" style="width:100%"></div></div><span class="word-count">2,302</span></div><div class="word-row"><span class="emoji-label">🫶</span><div class="word-bar-track"><div class="word-bar" style="width:64%"></div></div><span class="word-count">1,481</span></div><div class="word-row"><span class="emoji-label">🤷🏼‍♂️</span><div class="word-bar-track"><div class="word-bar" style="width:45%"></div></div><span class="word-count">1,027</span></div><div class="word-row"><span class="emoji-label">❤️</span><div class="word-bar-track"><div class="word-bar" style="width:28%"></div></div><span class="word-count">640</span></div><div class="word-row"><span class="emoji-label">😉</span><div class="word-bar-track"><div class="word-bar" style="width:25%"></div></div><span class="word-count">579</span></div><div class="word-row"><span class="emoji-label">😘</span><div class="word-bar-track"><div class="word-bar" style="width:21%"></div></div><span class="word-count">493</span></div>
-
-      <div class="section-title">Most Used Words</div>
-      <div class="section-intro">Common filler words excluded — these are the words each of them actually leaned on.</div>
-      <div class="subhead">🐧</div>
-      <div class="word-row"><span class="word-label">sorry</span><div class="word-bar-track"><div class="word-bar" style="width:100%"></div></div><span class="word-count">2,731</span></div><div class="word-row"><span class="word-label">talk</span><div class="word-bar-track"><div class="word-bar" style="width:94%"></div></div><span class="word-count">2,554</span></div><div class="word-row"><span class="word-label">see</span><div class="word-bar-track"><div class="word-bar" style="width:88%"></div></div><span class="word-count">2,401</span></div><div class="word-row"><span class="word-label">say</span><div class="word-bar-track"><div class="word-bar" style="width:80%"></div></div><span class="word-count">2,194</span></div><div class="word-row"><span class="word-label">thought</span><div class="word-bar-track"><div class="word-bar" style="width:71%"></div></div><span class="word-count">1,937</span></div><div class="word-row"><span class="word-label">said</span><div class="word-bar-track"><div class="word-bar" style="width:71%"></div></div><span class="word-count">1,930</span></div><div class="word-row"><span class="word-label">mean</span><div class="word-bar-track"><div class="word-bar" style="width:67%"></div></div><span class="word-count">1,834</span></div><div class="word-row"><span class="word-label">fun</span><div class="word-bar-track"><div class="word-bar" style="width:67%"></div></div><span class="word-count">1,832</span></div>
-      <div class="subhead">🧁</div>
-      <div class="word-row"><span class="word-label">ohh</span><div class="word-bar-track"><div class="word-bar" style="width:100%"></div></div><span class="word-count">4,012</span></div><div class="word-row"><span class="word-label">mean</span><div class="word-bar-track"><div class="word-bar" style="width:99%"></div></div><span class="word-count">3,980</span></div><div class="word-row"><span class="word-label">sorry</span><div class="word-bar-track"><div class="word-bar" style="width:99%"></div></div><span class="word-count">3,978</span></div><div class="word-row"><span class="word-label">talk</span><div class="word-bar-track"><div class="word-bar" style="width:94%"></div></div><span class="word-count">3,755</span></div><div class="word-row"><span class="word-label">see</span><div class="word-bar-track"><div class="word-bar" style="width:90%"></div></div><span class="word-count">3,625</span></div><div class="word-row"><span class="word-label">say</span><div class="word-bar-track"><div class="word-bar" style="width:88%"></div></div><span class="word-count">3,513</span></div><div class="word-row"><span class="word-label">said</span><div class="word-bar-track"><div class="word-bar" style="width:84%"></div></div><span class="word-count">3,388</span></div><div class="word-row"><span class="word-label">love</span><div class="word-bar-track"><div class="word-bar" style="width:79%"></div></div><span class="word-count">3,179</span></div>
-
-      <div class="section-title">A Few More</div>
-      <div class="fact-line">Active on <b>608 of 614</b> days spanned — only 6 days with zero messages, ever.</div>
-      <div class="fact-line">Longest unbroken daily streak: <b>423 days</b> (May 3, 2024 → June 29, 2025).</div>
-      <div class="fact-line">Longest gap in <i>this</i> chat: <b>7 days, 13 hours</b> (June 29 &ndash; July 7, 2025) &mdash; not a real silence, they switched to Signal for that stretch ("We need to switch apps. Can we try signal.").</div>
-      <div class="fact-line">Late-night texts (11pm&ndash;4am): 🐧 1,387 &middot; 🧁 1,513.</div>
-      <div class="fact-line">Busiest single day: <b>05/10/25</b> — 1,029 messages.</div>
-      <div class="fact-line">🐧's longest single message: <b>1,414 characters</b> (05/24/25).</div>
-      <div class="fact-line">🧁's longest single message: <b>3,234 characters</b> (01/01/26).</div>
-
-      <div class="section-title">Lines Said Over and Over</div>
-      <div class="section-intro">Exact repeated phrasing, word for word — not just a recurring idea, the literal same sentence.</div>
-      <div class="fact-line">🧁 — <b>"I like you 🐧!"</b> typed exactly, <b>11 times</b> (plus 7 more as "I like you Meredith." — 18 total).</div>
-      <div class="fact-line">🧁 — "How's your day going?" (10x) &middot; "Goodmorning my dear!" (7x)</div>
-      <div class="fact-line">🐧 — "How are you feeling?" (10x) &middot; "What are you up to today?" (9x)</div>
-
-      <div class="section-title">How Many Times</div>
-      <div class="section-intro">They actually asked each other this. August 19, 2024, about 3.5 months in:</div>
-      <div class="fact-line">🐧: <i>"How many times have we fucked?! 😳🤷🏻‍♀️"</i></div>
-      <div class="fact-line">🧁: <i>"I'd say right at 10 🤷🏼‍♂️"</i></div>
-      <div class="footnote">That was an early-relationship estimate — the archive runs another 17 months past that conversation. Counting only messages with explicit retrospective language ("we fucked," "we had sex," etc.) across the full record turns up <b>62 distinct dates</b> with confirmed language — almost certainly a floor, not the real total, since not every encounter gets an explicit callback like that in text.</div>
-
-      <div class="section-title">The Private Language</div>
-      <div class="section-intro">Patterns that show up again and again — real, counted, not curated for effect.</div>
-
-      <div class="fact-line">🧁 has replied with just <b>"Perfect"</b> (nothing else) <b>89 times</b>. 🐧 has done the same <b>45 times</b>. 134 total.</div>
-      <div class="fact-line">🐧 has said some version of <b>"I could stay up all night with you"</b> five separate times, May 2024 &ndash; March 2025.</div>
-
-      <div class="subhead">"Babe"</div>
-      <div class="vs-row">
-        <div class="vs-card"><div class="vs-emoji">🐧</div><div class="vs-number">575</div><div class="vs-label">times said "babe"</div></div>
-        <div class="vs-card"><div class="vs-emoji">🧁</div><div class="vs-number">1,314</div><div class="vs-label">times said "babe"</div></div>
-      </div>
-      <div class="footnote">🐧 said it first — June 30, 2024: "Ha I called you babe in my dream 😂 just remembered that." 🧁 then more than doubled her total. "Aww babe" specifically is almost entirely his: 86 uses vs. her 20 (106 total), starting nearly a year later on May 6, 2025.</div>
-
-      <div class="fact-line" style="margin-top:14px;">"Are you okay?" — asked by 🧁 <b>33 times</b>, by 🐧 <b>16 times</b> (49 total). He's the one checking in more, at least in these exact words.</div>
-
-      <div class="subhead">A Few Recurring Emoji</div>
-      <div class="word-row"><span class="emoji-label">🫂</span><div class="word-bar-track"><div class="word-bar" style="width:100%"></div></div><span class="word-count">103</span></div>
-      <div class="word-row"><span class="emoji-label">♾️</span><div class="word-bar-track"><div class="word-bar" style="width:82%"></div></div><span class="word-count">85</span></div>
-      <div class="word-row"><span class="emoji-label">🐘💩</span><div class="word-bar-track"><div class="word-bar" style="width:30%"></div></div><span class="word-count">~31</span></div>
-      <div class="word-row"><span class="emoji-label">🧲</span><div class="word-bar-track"><div class="word-bar" style="width:29%"></div></div><span class="word-count">30</span></div>
-      <div class="footnote">🫂 skews heavily 🐧 (72 vs. 31). ♾️ skews heavily 🧁 (57 vs. 28), often paired with 🫶🏻 as a sign-off. 🧲 is almost entirely 🐧 (27 of 30) — one message calls it out directly: "I love how many we have that mean fun things."</div>
-
-      <div class="section-title">The Fuckit Bucket List</div>
-      <div class="section-intro">The full list, unedited, from July 8, 2025 — a running wish list that (per 🐧, July 30, 2025) they "add things to faster than we can cross them off."</div>
-      <ul class="bucket-list"><li>Take you out on a real date</li><li>Drive in movie ❤️❤️❤️❤️</li><li>Fuckit bucket list*</li><li>Ride horses</li><li>Get massages together</li><li>Play some pickle ball</li><li>Go to a nice park somewhere far enough away to be out in the open like we're a couple</li><li>Curtains in your car for good fuck</li><li>I just want to drive you anywhere</li><li>Watch a movie at your office</li><li>Swim</li><li>Overnight stay</li><li>Would love to go up to Denton and pick you up at a bar</li><li>Teach you how to whistle</li><li>Potentially buy you a whistle</li><li>When the Internet goes out, go to your house and fuck/cuddle</li><li>10 AM sonic holding you</li><li>10 PM sonic holding you</li><li>Take a bath with you</li><li>Night riding</li><li>Take the TRE into Dallas for a sporting event?</li><li>Go to some open houses</li><li>Schedule some showings and fun houses</li><li>Penguin pursuit BG</li><li>Dress up as penguins and fuck</li></ul>
-
+    <div class="content-body" id="contentBody">
+      <div class="loading-note">Loading…</div>
     </div>
   </div>
 
@@ -236,18 +106,82 @@
   </div>
 
 <script>
-const PASSPHRASE = "cupcake";
-document.getElementById('unlockBtn').addEventListener('click', () => {
+const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+
+function fromBase64(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+}
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+async function unlock() {
   const pass = document.getElementById('passInput').value;
-  if (pass !== PASSPHRASE) {
-    document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+  const btn = document.getElementById('unlockBtn');
+  const errorDiv = document.getElementById('lockError');
+  errorDiv.textContent = '';
+
+  if (!pass) {
+    errorDiv.textContent = 'Enter a passphrase.';
     return;
   }
-  document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('reader').classList.add('show');
-});
+
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/ledger?select=*&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      errorDiv.textContent = 'No ledger content found.';
+      btn.disabled = false;
+      btn.textContent = 'Enter';
+      return;
+    }
+
+    const row = rows[0];
+    const salt = fromBase64(row.salt);
+    const iv = fromBase64(row.iv);
+    const ciphertext = fromBase64(row.ciphertext);
+    const key = await deriveKey(pass, salt);
+
+    const decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+    const dec = new TextDecoder();
+    const html = dec.decode(decryptedBuf);
+
+    document.getElementById('contentBody').innerHTML = html;
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('reader').classList.add('show');
+  } catch (e) {
+    errorDiv.textContent = 'Incorrect passphrase.';
+    btn.disabled = false;
+    btn.textContent = 'Enter';
+  }
+}
+
+document.getElementById('unlockBtn').addEventListener('click', unlock);
 document.getElementById('passInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+  if (e.key === 'Enter') unlock();
 });
 document.getElementById('backBtn').addEventListener('click', () => {
   window.location.href = 'hub.html';

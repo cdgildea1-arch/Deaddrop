@@ -159,6 +159,11 @@
     content:'★'; position:absolute; top:2px; right:3px; font-size:8px; color:var(--pink);
     text-shadow:0 0 4px rgba(242,166,201,.8);
   }
+  .tile.boom{background:linear-gradient(155deg,#5a1420,#2a0810) !important; animation:boomflash .5s ease;}
+  @keyframes boomflash{
+    0%{background:linear-gradient(155deg,#ff6b6b,#8a1c1c);}
+    100%{background:linear-gradient(155deg,#5a1420,#2a0810);}
+  }
   .tile.complete .content{filter:drop-shadow(0 0 6px rgba(110,231,196,.7));}
 
   footer.legend{
@@ -273,6 +278,7 @@
 
   let cellPenguin;   // array TOTAL long: -1 empty, else penguin id
   let placements;    // array of arrays: cell indices per penguin id
+  let boomIdx;        // the rigged tile
   let brokenAt, foundCount, clickCount, timeLeft, timerId, ended;
   let score, difficultyCount, speedBonus;
 
@@ -281,7 +287,10 @@
   function tryPlacePenguins(){
     const cells = new Array(TOTAL).fill(-1);
     const placed = [];
-    for (let pid = 0; pid < PENGUIN_SIZES.length; pid++){
+    // secretly places one fewer penguin than the counter claims — the last
+    // one never touches the board, so the count can never be completed
+    const PLACE_COUNT = PENGUIN_SIZES.length - 1;
+    for (let pid = 0; pid < PLACE_COUNT; pid++){
       const size = PENGUIN_SIZES[pid];
       let ok = false, attempts = 0;
       while (!ok && attempts < 300){
@@ -325,6 +334,14 @@
   function generateLayout(){
     let result = null;
     while (!result) result = tryPlacePenguins();
+
+    // rig one empty tile as a guaranteed game-ending trap
+    const emptyCells = [];
+    for (let i = 0; i < TOTAL; i++){
+      if (result.cells[i] === -1) emptyCells.push(i);
+    }
+    result.boomIdx = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
     return result;
   }
 
@@ -387,6 +404,12 @@
 
   function onTileClick(i, btn){
     if (ended || brokenAt.has(i)) return;
+
+    if (i === boomIdx){
+      triggerExplosion(i, btn);
+      return;
+    }
+
     const pid = cellPenguin[i];
     const blind = pid !== -1 ? isDifficultCatch(i, pid) : false;
 
@@ -446,7 +469,7 @@
     if (timeLeft <= 0) endGame(false);
   }
 
-  function endGame(won){
+  function endGame(won, override){
     if (ended) return;
     ended = true;
     clearInterval(timerId);
@@ -467,11 +490,11 @@
     }
 
     setTimeout(() => {
-      resultIcon.textContent = won ? '🐧' : '🧊';
-      resultTitle.textContent = won ? 'Catch of the day!' : 'Frozen out';
-      resultText.textContent = won
+      resultIcon.textContent = override ? override.icon : (won ? '🐧' : '🧊');
+      resultTitle.textContent = override ? override.title : (won ? 'Catch of the day!' : 'Frozen out');
+      resultText.textContent = override ? override.text : (won
         ? ratingText(clickCount)
-        : 'Time ran out before you cleared the field.';
+        : 'Time ran out before you cleared the field.');
       resultStat.textContent = won
         ? `${score} pts · ${PENGUIN_COUNT}/${PENGUIN_COUNT} found · ${timeLeft}s left`
         : `${score} pts · ${foundCount}/${PENGUIN_COUNT} found`;
@@ -480,6 +503,23 @@
         : `${score - difficultyCount * DIFFICULTY_BONUS} base · ${difficultyCount} difficult ×${DIFFICULTY_BONUS} · no speed bonus`;
       overlay.classList.add('show');
     }, delay + 300);
+  }
+
+  function triggerExplosion(i, btn){
+    ended = true;
+    clearInterval(timerId);
+    brokenAt.add(i);
+    btn.classList.add('broken', 'boom');
+    btn.querySelector('.content').textContent = '💥';
+    btn.setAttribute('aria-label', 'Explosive ice, game over');
+
+    setTimeout(() => {
+      endGame(false, {
+        icon: '💥',
+        title: 'Boom.',
+        text: "Some ice you just don't touch."
+      });
+    }, 500);
   }
 
   function ratingText(clicks){
@@ -493,6 +533,7 @@
     const layout = generateLayout();
     cellPenguin = layout.cells;
     placements = layout.placed;
+    boomIdx = layout.boomIdx;
     brokenAt = new Set();
     foundCount = 0;
     clickCount = 0;

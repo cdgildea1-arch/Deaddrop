@@ -36,9 +36,26 @@
   #content .divider { width: 70px; height: 1px; background: #c9a876; margin: 0 auto 36px; }
   #continueLink { display: none; text-align: center; margin: 20px 0 60px; }
   #continueLink a { display: inline-block; font-size: 2rem; color: #8a6d3b; text-decoration: none; border: 1px solid #d8c9ae; border-radius: 50%; width: 56px; height: 56px; line-height: 52px; }
+  .pin-popup {
+    position: fixed; z-index: 9997; background: #3a2f22; color: #f4ecdd;
+    border: none; border-radius: 999px; padding: 9px 16px; font-size: 13px;
+    font-family: -apple-system, sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    display: none; transform: translate(-50%, -120%);
+  }
+  .pin-popup.show { display: block; }
+  .pin-toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #3a2f22; color: #f4ecdd; padding: 10px 18px; border-radius: 999px;
+    font-family: -apple-system, sans-serif; font-size: 13px; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index: 9998;
+  }
+  .pin-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
+
+<button id="pinPopup" class="pin-popup">📌 Pin this</button>
+<div class="pin-toast" id="pinToast"></div>
 
 <div id="gate">
   <div class="emblem"><span>🧁</span><span>🐧</span></div>
@@ -76,6 +93,132 @@ async function deriveKey(passphrase, saltBytes) {
     ['encrypt', 'decrypt']
   );
 }
+
+function toBase64(bytes) {
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+
+let currentPassphrase = null; // set on successful unlock, kept only in memory
+
+async function loadExistingPins(passphrase) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/pins?select=*&order=created_at.desc&limit=1`,
+    { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+  );
+  const rows = await res.json();
+  if (!rows || rows.length === 0) return [];
+  const row = rows[0];
+  const salt = fromBase64(row.salt);
+  const iv = fromBase64(row.iv);
+  const ciphertext = fromBase64(row.ciphertext);
+  const key = await deriveKey(passphrase, salt);
+  const buf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+
+async function savePin(pinObj) {
+  if (!currentPassphrase) return;
+  const existing = await loadExistingPins(currentPassphrase);
+  existing.push(pinObj);
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(currentPassphrase, salt);
+  const enc = new TextEncoder();
+  const ciphertextBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(existing)));
+
+  await fetch(`${SUPABASE_URL}/rest/v1/pins`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      salt: toBase64(salt),
+      iv: toBase64(iv),
+      ciphertext: toBase64(new Uint8Array(ciphertextBuf))
+    })
+  });
+}
+
+function showPinToast(text) {
+  const t = document.getElementById('pinToast');
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function findNearestContext(startEl) {
+  let date = null, folder = null, speaker = null;
+
+  const dialogueEl = startEl.closest ? startEl.closest('p.dialogue') : null;
+  if (dialogueEl) {
+    if (dialogueEl.classList.contains('penguin')) speaker = '🐧';
+    else if (dialogueEl.classList.contains('cupcake')) speaker = '🧁';
+  }
+
+  let node = startEl;
+  while (node) {
+    if (node.nodeType === 1) {
+      if (!date && node.matches && node.matches('p.date')) date = node.textContent.trim();
+      if (!folder && node.matches && node.matches('h3.folder')) folder = node.textContent.trim();
+    }
+    node = node.previousElementSibling || node.parentElement;
+    if (date && folder) break;
+  }
+  return { date, folder, speaker };
+}
+
+(function setupPinCapture() {
+  const popup = document.getElementById('pinPopup');
+  let pendingSelection = null;
+
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    const text = sel.toString().trim();
+    const contentEl = document.getElementById('content');
+    if (!text || contentEl.style.display === 'none' || sel.rangeCount === 0) {
+      popup.classList.remove('show');
+      pendingSelection = null;
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) { popup.classList.remove('show'); return; }
+
+    let node = range.startContainer;
+    while (node && node.nodeType !== 1) node = node.parentNode;
+    const ctx = node ? findNearestContext(node) : { date: null, folder: null, speaker: null };
+
+    pendingSelection = { text, date: ctx.date || ctx.folder, speaker: ctx.speaker };
+    popup.style.left = (rect.left + rect.width / 2) + 'px';
+    popup.style.top = rect.top + 'px';
+    popup.classList.add('show');
+  });
+
+  popup.addEventListener('click', async () => {
+    if (!pendingSelection) return;
+    popup.classList.remove('show');
+    const pinObj = {
+      text: pendingSelection.text,
+      speaker: pendingSelection.speaker,
+      date: pendingSelection.date,
+      source: 'Archive',
+      pinnedAt: new Date().toISOString()
+    };
+    window.getSelection().removeAllRanges();
+    try {
+      await savePin(pinObj);
+      showPinToast('📌 Pinned to the Memory Jar');
+    } catch (e) {
+      showPinToast('Couldn\'t save the pin — try again');
+    }
+  });
+})();
 
 async function unlock() {
   const errorDiv = document.getElementById('error');
@@ -122,6 +265,7 @@ async function unlock() {
     document.getElementById('continueLink').style.display = 'block';
     document.getElementById('content').style.display = 'block';
     document.getElementById('gate').style.display = 'none';
+    currentPassphrase = passphrase;
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }

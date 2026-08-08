@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memory Jar</title>
+<style>
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #14100c; color: #ecdfc8; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  .lock-screen { min-height: 100dvh; background: #faf7f2; color: #2b2b2b; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+  .lock-icon { font-size: 56px; margin-bottom: 28px; letter-spacing: 14px; }
+  .lock-title { font-size: 40px; font-weight: 400; margin-bottom: 14px; font-family: Georgia, 'Iowan Old Style', serif; color: #3a2f22; }
+  .lock-sub { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #8a6d3b; margin-bottom: 20px; max-width: 300px; line-height: 1.5; }
+  .lock-divider { width: 44px; height: 1px; background: #c9a876; margin-bottom: 34px; }
+  .lock-input { width: 100%; max-width: 300px; background: transparent; border: 1px solid #d8c9ae; color: #2b2b2b; border-radius: 12px; padding: 15px 16px; font-size: 16px; margin-bottom: 16px; text-align: center; }
+  .lock-btn { width: 100%; max-width: 300px; background: #6b5535; color: #fdf9f2; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
+  .lock-btn:disabled { opacity: 0.6; }
+  .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
+
+  .reader { display: none; min-height: 100vh; background: #f4ecdd; color: #3a3227; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+  .reader.show { display: block; }
+  .book-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(244,236,221,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #d8c9a8; }
+  .book-header button { background: none; border: none; color: #a9835a; font-size: 13px; font-family: -apple-system, sans-serif; padding: 4px 0; }
+  .book-header .title-mini { font-size: 12px; letter-spacing: 2px; color: #8a7a63; font-family: -apple-system, sans-serif; }
+
+  .archive-emoji { text-align: center; font-size: 26px; margin: 28px 0 6px; letter-spacing: 8px; }
+  .jar-sub { text-align: center; font-size: 13px; font-style: italic; color: #a9835a; margin-bottom: 26px; }
+
+  .content-body { max-width: 560px; margin: 0 auto; padding: 0 22px 120px; }
+
+  .pin-card {
+    background: #fffdf8;
+    border: 1px solid #d8c9a8;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(107,68,35,0.06);
+  }
+  .pin-line { font-size: 16.5px; line-height: 1.65; margin-bottom: 6px; }
+  .pin-line .tag { display: inline-block; width: 1.3em; text-align: center; margin-right: 0.35em; }
+  .pin-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid #ede3cd;
+    font-family: -apple-system, sans-serif; font-size: 11.5px; color: #a9835a; letter-spacing: 0.2px;
+  }
+  .pin-source {
+    background: rgba(169,131,90,0.12); border-radius: 999px; padding: 3px 10px; font-weight: 600;
+  }
+  .pin-source.record { background: rgba(92,138,111,0.14); color: #4a7a5c; }
+  .pin-source.archive { background: rgba(169,131,90,0.14); color: #8a6d3b; }
+
+  .empty-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-style: italic; font-size: 15px; }
+  .loading-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #3a2f22; color: #f4ecdd; padding: 10px 18px; border-radius: 999px;
+    font-family: -apple-system, sans-serif; font-size: 13px; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index: 9998;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
+  #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; }
+  @keyframes tp-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(-2deg); } }
+  .tp-bubble { position: absolute; bottom: 46px; right: 0; max-width: 190px; background: #fffaf0; color: #3a3227; border: 1px solid #d8c9a8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; font-family: Georgia, serif; }
+  .tp-bubble.show { display: block; }
+  .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
+  .tp-menu[hidden] { display: none !important; }
+  .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
+  .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-icon">🧁 📌 🐧</div>
+    <div class="lock-title">Memory Jar</div>
+    <div class="lock-sub">A place to pin things.</div>
+    <div class="lock-divider"></div>
+    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button id="unlockBtn" class="lock-btn">Enter</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+
+  <div id="reader" class="reader">
+    <div class="book-header">
+      <button id="backBtn" type="button">← Back</button>
+      <span class="title-mini">MEMORY JAR</span>
+      <span style="width:44px"></span>
+    </div>
+
+    <div class="archive-emoji">🐧 &nbsp; 📌 &nbsp; 🧁</div>
+    <div class="jar-sub">Pinned from the Archive and the Record.</div>
+
+    <div class="content-body" id="contentBody">
+      <div class="loading-note">Loading…</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div id="tp-widget">
+    <div id="tp-bubble" class="tp-bubble"></div>
+    <div id="tp-penguin" class="tp-penguin">🐧</div>
+    <div id="tp-menu" class="tp-menu" hidden>
+      <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
+      <button onclick="tpAction('coffee')">☕ Give Coffee</button>
+      <button onclick="tpAction('talk')">💬 Talk</button>
+      <button onclick="tpAction('search')">📦 Search Archive</button>
+      <button onclick="tpAction('sleep')">😴 Sleep</button>
+      <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
+    </div>
+  </div>
+
+<script>
+const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+
+function fromBase64(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+}
+function toBase64(bytes) {
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function fmtPinnedAt(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  } catch (e) { return ''; }
+}
+
+function renderPins(pins) {
+  const body = document.getElementById('contentBody');
+  if (!pins || pins.length === 0) {
+    body.innerHTML = '<div class="empty-note">Nothing pinned yet. Highlight a line in the Archive or the Record to add one.</div>';
+    return;
+  }
+  // newest pinned first
+  const sorted = [...pins].sort((a, b) => new Date(b.pinnedAt) - new Date(a.pinnedAt));
+  body.innerHTML = sorted.map(p => {
+    const tag = p.speaker ? `<span class="tag">${esc(p.speaker)}</span> ` : '';
+    const sourceClass = p.source === 'Record' ? 'record' : 'archive';
+    const dateBit = p.date ? esc(p.date) : '';
+    return `
+      <div class="pin-card">
+        <p class="pin-line">${tag}${esc(p.text)}</p>
+        <div class="pin-meta">
+          <span>${dateBit}${dateBit ? ' · ' : ''}pinned ${esc(fmtPinnedAt(p.pinnedAt))}</span>
+          <span class="pin-source ${sourceClass}">${esc(p.source || 'Archive')}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadPins(passphrase) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/pins?select=*&order=created_at.desc&limit=1`,
+    { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+  );
+  const rows = await res.json();
+  if (!rows || rows.length === 0) return [];
+
+  const row = rows[0];
+  const salt = fromBase64(row.salt);
+  const iv = fromBase64(row.iv);
+  const ciphertext = fromBase64(row.ciphertext);
+  const key = await deriveKey(passphrase, salt);
+  const decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  const dec = new TextDecoder();
+  return JSON.parse(dec.decode(decryptedBuf));
+}
+
+document.getElementById('unlockBtn').addEventListener('click', async () => {
+  const pass = document.getElementById('passInput').value;
+  const btn = document.getElementById('unlockBtn');
+  const errorDiv = document.getElementById('lockError');
+  errorDiv.textContent = '';
+
+  if (!pass) {
+    errorDiv.textContent = 'Enter a passphrase.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    const pins = await loadPins(pass);
+    renderPins(pins);
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('reader').classList.add('show');
+  } catch (e) {
+    errorDiv.textContent = 'Incorrect passphrase, or nothing pinned yet.';
+    // Still let them in with an empty jar if there's simply no row yet.
+    if (e && e.message === 'no-row') {
+      renderPins([]);
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('reader').classList.add('show');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Enter';
+  }
+});
+
+document.getElementById('passInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+});
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'hub.html';
+});
+
+/* ---- Penguin widget ---- */
+const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
+function tpSayBubble(text) {
+  const bubble = document.getElementById('tp-bubble');
+  bubble.textContent = text;
+  bubble.classList.add('show');
+  setTimeout(() => { bubble.classList.remove('show'); }, 3200);
+}
+window.tpAction = function(action) {
+  if (action === 'feed') tpSayBubble("Mmm, cupcake. 🧁");
+  else if (action === 'coffee') tpSayBubble("☕ Ahh, better.");
+  else if (action === 'talk') tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
+  else if (action === 'search') tpSayBubble("📦 Searching...");
+  else if (action === 'sleep') tpSayBubble("Goodnight...");
+  tpCloseMenu();
+};
+window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
+document.getElementById('tp-penguin').addEventListener('click', (e) => {
+  const menu = document.getElementById('tp-menu');
+  menu.hidden = !menu.hidden;
+  e.stopPropagation();
+});
+document.addEventListener('click', (e) => {
+  const widget = document.getElementById('tp-widget');
+  const menu = document.getElementById('tp-menu');
+  if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
+});
+</script>
+</body>
+</html>

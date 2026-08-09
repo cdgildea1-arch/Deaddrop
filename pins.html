@@ -49,6 +49,7 @@
   }
   .pin-source.record { background: rgba(92,138,111,0.14); color: #4a7a5c; }
   .pin-source.archive { background: rgba(169,131,90,0.14); color: #8a6d3b; }
+  .pin-source.written { background: rgba(122,110,163,0.14); color: #6b5a9e; }
 
   .empty-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-style: italic; font-size: 15px; }
   .loading-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
@@ -70,6 +71,26 @@
   .tp-menu[hidden] { display: none !important; }
   .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
   .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
+  .write-box {
+    background: #fffdf8; border: 1px solid #d8c9a8; border-radius: 14px;
+    padding: 16px 18px; margin: 0 0 26px;
+  }
+  .write-box textarea {
+    width: 100%; border: 1px solid #ede3cd; border-radius: 10px; padding: 10px 12px;
+    font-family: Georgia, serif; font-size: 15.5px; color: #3a3227; resize: vertical;
+    min-height: 60px; margin-bottom: 10px; background: #fffef9;
+  }
+  .write-box-row { display: flex; gap: 8px; align-items: center; }
+  .write-box select {
+    font-family: -apple-system, sans-serif; font-size: 13px; color: #6b5535;
+    border: 1px solid #ede3cd; border-radius: 8px; padding: 8px 10px; background: #fffef9;
+  }
+  .write-box button {
+    margin-left: auto; background: #6b5535; color: #fdf9f2; border: none;
+    border-radius: 999px; padding: 9px 18px; font-size: 13px; font-family: -apple-system, sans-serif; font-weight: 600;
+  }
+  .write-box button:disabled { opacity: 0.5; }
+  .jar-divider { text-align: center; color: #a9835a; font-size: 12px; letter-spacing: 2px; margin: 0 0 20px; font-family: -apple-system, sans-serif; }
 </style>
 </head>
 <body>
@@ -92,10 +113,25 @@
     </div>
 
     <div class="archive-emoji">🐧 &nbsp; 📌 &nbsp; 🧁</div>
-    <div class="jar-sub">Pinned from the Archive and the Record.</div>
+    <div class="jar-sub">Pinned from the Archive and the Record — or written straight in.</div>
 
-    <div class="content-body" id="contentBody">
-      <div class="loading-note">Loading…</div>
+    <div class="content-body">
+      <div class="write-box">
+        <textarea id="writeInput" placeholder="Write a memory..." maxlength="600"></textarea>
+        <div class="write-box-row">
+          <select id="writeSpeaker">
+            <option value="">No speaker</option>
+            <option value="🐧">🐧 Penny</option>
+            <option value="🧁">🧁 Brad</option>
+          </select>
+          <button id="writeSaveBtn" type="button">Add to jar</button>
+        </div>
+      </div>
+      <div class="jar-divider">✦</div>
+
+      <div id="contentBody">
+        <div class="loading-note">Loading…</div>
+      </div>
     </div>
   </div>
 
@@ -157,14 +193,14 @@ function fmtPinnedAt(iso) {
 function renderPins(pins) {
   const body = document.getElementById('contentBody');
   if (!pins || pins.length === 0) {
-    body.innerHTML = '<div class="empty-note">Nothing pinned yet. Highlight a line in the Archive or the Record to add one.</div>';
+    body.innerHTML = '<div class="empty-note">Nothing pinned yet. Highlight a line in the Archive or the Record, or write one down above.</div>';
     return;
   }
   // newest pinned first
   const sorted = [...pins].sort((a, b) => new Date(b.pinnedAt) - new Date(a.pinnedAt));
   body.innerHTML = sorted.map(p => {
     const tag = p.speaker ? `<span class="tag">${esc(p.speaker)}</span> ` : '';
-    const sourceClass = p.source === 'Record' ? 'record' : 'archive';
+    const sourceClass = p.source === 'Record' ? 'record' : (p.source === 'Written' ? 'written' : 'archive');
     const dateBit = p.date ? esc(p.date) : '';
     return `
       <div class="pin-card">
@@ -175,6 +211,42 @@ function renderPins(pins) {
         </div>
       </div>`;
   }).join('');
+}
+
+let currentPassphrase = null; // set on successful unlock, kept only in memory
+let currentPins = [];
+
+async function savePin(pinObj) {
+  if (!currentPassphrase) return;
+  currentPins.push(pinObj);
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(currentPassphrase, salt);
+  const enc = new TextEncoder();
+  const ciphertextBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(currentPins)));
+
+  await fetch(`${SUPABASE_URL}/rest/v1/pins`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      salt: toBase64(salt),
+      iv: toBase64(iv),
+      ciphertext: toBase64(new Uint8Array(ciphertextBuf))
+    })
+  });
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 async function loadPins(passphrase) {
@@ -195,6 +267,34 @@ async function loadPins(passphrase) {
   return JSON.parse(dec.decode(decryptedBuf));
 }
 
+document.getElementById('writeSaveBtn').addEventListener('click', async () => {
+  const textEl = document.getElementById('writeInput');
+  const speakerEl = document.getElementById('writeSpeaker');
+  const btn = document.getElementById('writeSaveBtn');
+  const text = textEl.value.trim();
+  if (!text) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    await savePin({
+      text,
+      speaker: speakerEl.value || null,
+      date: null,
+      source: 'Written',
+      pinnedAt: new Date().toISOString()
+    });
+    textEl.value = '';
+    speakerEl.value = '';
+    renderPins(currentPins);
+    showToast('📌 Added to the jar');
+  } catch (e) {
+    showToast('Couldn\'t save — try again');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Add to jar';
+});
+
 document.getElementById('unlockBtn').addEventListener('click', async () => {
   const pass = document.getElementById('passInput').value;
   const btn = document.getElementById('unlockBtn');
@@ -211,17 +311,13 @@ document.getElementById('unlockBtn').addEventListener('click', async () => {
 
   try {
     const pins = await loadPins(pass);
+    currentPassphrase = pass;
+    currentPins = pins;
     renderPins(pins);
     document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('reader').classList.add('show');
   } catch (e) {
-    errorDiv.textContent = 'Incorrect passphrase, or nothing pinned yet.';
-    // Still let them in with an empty jar if there's simply no row yet.
-    if (e && e.message === 'no-row') {
-      renderPins([]);
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('reader').classList.add('show');
-    }
+    errorDiv.textContent = 'Incorrect passphrase.';
     btn.disabled = false;
     btn.textContent = 'Enter';
   }

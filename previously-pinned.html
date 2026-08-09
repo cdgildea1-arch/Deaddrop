@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Previously Pinned</title>
+<style>
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #14100c; color: #ecdfc8; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  .reader { min-height: 100vh; background: #f4ecdd; color: #3a3227; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+  .book-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(244,236,221,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #d8c9a8; }
+  .book-header button { background: none; border: none; color: #a9835a; font-size: 13px; font-family: -apple-system, sans-serif; padding: 4px 0; }
+  .book-header .title-mini { font-size: 12px; letter-spacing: 2px; color: #8a7a63; font-family: -apple-system, sans-serif; }
+
+  .archive-emoji { text-align: center; font-size: 26px; margin: 28px 0 6px; letter-spacing: 8px; }
+  .jar-sub { text-align: center; font-size: 13px; font-style: italic; color: #a9835a; margin-bottom: 8px; }
+  .jar-note { text-align: center; font-size: 11.5px; color: #a9967a; margin-bottom: 30px; padding: 0 30px; font-family: -apple-system, sans-serif; }
+
+  .content-body { max-width: 560px; margin: 0 auto; padding: 0 22px 120px; }
+
+  .pin-card {
+    background: #fffdf8;
+    border: 1px solid #d8c9a8;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(107,68,35,0.06);
+  }
+  .pin-headline { font-size: 13.5px; font-style: italic; color: #8a6d3b; margin-bottom: 10px; line-height: 1.4; }
+  .pin-line { font-size: 16.5px; line-height: 1.65; margin-bottom: 4px; }
+  .pin-line .tag { display: inline-block; width: 1.3em; text-align: center; margin-right: 0.35em; }
+  .pin-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid #ede3cd;
+    font-family: -apple-system, sans-serif; font-size: 11.5px; color: #a9835a; letter-spacing: 0.2px;
+  }
+  .pin-fact {
+    font-family: -apple-system, sans-serif; font-size: 12px; color: #6b5a45; font-style: italic;
+    margin-top: 8px;
+  }
+  .pin-source {
+    background: rgba(169,131,90,0.14); color: #8a6d3b; border-radius: 999px; padding: 3px 10px; font-weight: 600;
+  }
+
+  .end-note { text-align: center; padding: 40px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
+</style>
+</head>
+<body>
+
+  <div class="reader">
+    <div class="book-header">
+      <button id="backBtn" type="button">← Back</button>
+      <span class="title-mini">PREVIOUSLY PINNED</span>
+      <span style="width:44px"></span>
+    </div>
+
+    <div class="archive-emoji">🐧 &nbsp; 📌 &nbsp; 🧁</div>
+    <div class="jar-sub">The pins that were already real — from before this jar existed.</div>
+    <div class="jar-note">Pulled from what they actually pinned in the correspondence itself, not written after the fact.</div>
+
+    <div class="content-body">
+
+      <div class="pin-card">
+        <div class="pin-headline">Before this archive even begins, Penny wrote her own timeline of how it started.</div>
+        <p class="pin-line"><span class="tag">🐧</span>Timeline — 10/24 first ride, 11/1 you apologized for not seeing me that week, 11/18 I watched Yellowstone, 12/2 basically texting 5 days a week, 1/4 I laid on forty, 1/14 you lied to me.</p>
+        <div class="pin-fact">She pinned this message three separate times.</div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">Twenty months. 208,998 messages. Maybe never once, cleanly, without a hedge.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"You said I love you… haha decently long pause." "But the full sentence was I love you ……… being inside me."</p>
+        <p class="pin-line"><span class="tag">🐧</span>"Hahaha you said 'I love you inside me'?? You need to hear me say I love you…."</p>
+        <div class="pin-meta">
+          <span>February 17, 2025 — nine months in</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">Kept, and answered right back.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"Let's stay like this forever." "Fuck 🐧! I need you!"</p>
+        <p class="pin-line"><span class="tag">🧁</span>"Yes. I want to stay like this forever." "Deal."</p>
+        <div class="pin-meta">
+          <span>January 20, 2025</span>
+          <span class="pin-source">Pinned by 🧁</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">He said it. She's the one who pinned it.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"December 8, 2023"</p>
+        <div class="pin-meta">
+          <span>April 22, 2025</span>
+          <span class="pin-source">Pinned by 🐧</span>
+        </div>
+        <div class="pin-fact">What it means is not in the record.</div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">They weren't just pinning messages. They were sorting them.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"Move sad pins to google sheet."</p>
+        <p class="pin-line"><span class="tag">🐧</span>"Sharing about kids. Boundaries. Moving. And more questions. Review our pins."</p>
+        <div class="pin-meta">
+          <span>March 13 and 16, 2025</span>
+          <span class="pin-source">Pinned by 🧁</span>
+        </div>
+        <div class="pin-fact">A greatest-hits archive, built by them, before this one existed.</div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">Not every pin is tender. Some are just a strange, unexplained worry.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"Research… on how to find a tracker***"</p>
+        <div class="pin-meta">
+          <span>August 14, 2025</span>
+        </div>
+        <div class="pin-fact">He pinned it himself; the context around it is mundane, not explained.</div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">He kept this one himself — and she answered him a few minutes later.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"Don't have to worry about losing each other."</p>
+        <p class="pin-line"><span class="tag">🐧</span>"I love hearing that! It was nice to talk to you with no one around. No rush."</p>
+        <div class="pin-meta">
+          <span>May 5, 2025</span>
+          <span class="pin-source">Pinned by 🧁</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">She was already afraid of losing it, months before the ending.</div>
+        <p class="pin-line"><span class="tag">🐧</span>"I want to make sure all my pins are also pinned for you. So in case I lose my Telegram, you'll have my favs for me!! 💕"</p>
+        <div class="pin-meta">
+          <span>September 12, 2025</span>
+          <span class="pin-source">Pinned by 🧁</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">The closest thing to it in the entire record — still shortened, three weeks before the end.</div>
+        <p class="pin-line"><span class="tag">🧁</span>"ILY so much. So much it's often unbearable and you happen to be the only thing to fix it."</p>
+        <div class="pin-meta">
+          <span>December 11, 2025</span>
+          <span class="pin-source">Pinned by 🐧</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <div class="pin-headline">Pinned on the final day the archive records.</div>
+        <p class="pin-line"><span class="tag">🐧</span>"I mean honestly I prayed about it all day yesterday. I didn't know I was going to. But I was worried all day for you. I want you and Hillary to be happy."</p>
+        <div class="pin-meta">
+          <span>January 7, 2026</span>
+          <span class="pin-source">Pinned by 🧁</span>
+        </div>
+      </div>
+
+      <div class="end-note">— that's every pin the record itself remembers —</div>
+
+    </div>
+  </div>
+
+<script>
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'pins.html';
+});
+</script>
+</body>
+</html>

@@ -2,188 +2,95 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Record</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>The Cards</title>
 <style>
-  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    height: 100%;
-    background: #0a0e0a;
-    color: #e8f5ec;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: Georgia, serif; background: #faf7f2; color: #2b2b2b; }
 
-  /* ---- Lock screen (matches site convention) ---- */
-  .lock-screen {
-    min-height: 100dvh;
-    background: #faf7f2;
-    color: #2b2b2b;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    text-align: center;
+  #gate {
+    min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; padding: 0 24px;
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
   }
-  .lock-icon { font-size: 56px; margin-bottom: 28px; letter-spacing: 14px; }
-  .lock-title { font-size: 40px; font-weight: 400; margin-bottom: 14px; font-family: Georgia, 'Iowan Old Style', serif; color: #3a2f22; }
-  .lock-sub { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #8a6d3b; margin-bottom: 20px; max-width: 300px; line-height: 1.5; }
-  .lock-divider { width: 44px; height: 1px; background: #c9a876; margin-bottom: 34px; }
-  .lock-input {
-    width: 100%; max-width: 300px;
-    background: transparent; border: 1px solid #d8c9ae; color: #2b2b2b;
-    border-radius: 12px; padding: 15px 16px; font-size: 16px; margin-bottom: 16px; text-align: center;
-  }
-  .lock-btn {
-    width: 100%; max-width: 300px;
-    background: #6b5535; color: #fdf9f2; border: none; border-radius: 12px;
-    padding: 16px; font-size: 16px; font-weight: 700; font-family: Georgia, serif;
-  }
-  .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
+  .gate-back { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 20px; font-size: 13px; color: #a9835a; text-decoration: none; font-family: -apple-system, sans-serif; z-index: 5; }
+  .emblem { font-size: 3.6rem; letter-spacing: 22px; margin-bottom: 14px; }
+  .emblem span { display: inline-block; }
+  .divider { width: 70px; height: 1px; background: #c9a876; margin: 26px auto 42px; }
+  h1.title { font-size: 2.6rem; font-weight: normal; letter-spacing: 1px; margin-bottom: 8px; color: #3a2f22; }
+  .subtitle { font-style: italic; color: #8a6d3b; font-size: 1.15rem; margin-bottom: 36px; }
+  input { padding: 12px 14px; font-size: 16px; width: 100%; max-width: 320px; font-family: inherit; border: 1px solid #d8c9ae; border-radius: 8px; background: #fffdfa; display: block; margin: 0 auto; }
+  input:focus { outline: none; border-color: #b08d4f; }
+  button { padding: 13px 18px; background: #8a6d3b; color: #fdf9f2; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-family: Georgia, serif; letter-spacing: 0.5px; display: block; width: 100%; max-width: 320px; margin: 16px auto 0; }
+  button:hover { background: #6f5730; }
+  #error { color: #a33; margin-top: 14px; font-size: 0.85rem; font-style: italic; }
 
-  /* ---- Reader (matches book.html's cream Reading Room look) ---- */
-  .reader {
-    display: none;
-    min-height: 100vh;
-    background: #f4ecdd;
-    color: #3a3227;
-    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-  }
-  .reader.show { display: block; }
+  #reader { display: none; min-height: 100vh; background: #f4ecdd; color: #3a3227; }
+  .book-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(244,236,221,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #d8c9a8; font-family: -apple-system, sans-serif; }
+  .book-header button { background: none; border: none; color: #a9835a; font-size: 13px; padding: 4px 0; width: auto; margin: 0; }
+  .book-header .title-mini { font-size: 12px; letter-spacing: 2px; color: #8a7a63; }
 
-  .book-header {
-    position: sticky; top: 0; z-index: 10;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px;
-    background: rgba(244,236,221,0.92);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid #d8c9a8;
-  }
-  .book-header button {
-    background: none; border: none; color: #a9835a; font-size: 13px;
-    font-family: -apple-system, sans-serif; padding: 4px 0;
-  }
-  .book-header .title-mini {
-    font-size: 12px; letter-spacing: 2px; color: #8a7a63; font-family: -apple-system, sans-serif;
-  }
+  .card-emoji { text-align: center; font-size: 26px; margin: 28px 0 6px; letter-spacing: 8px; }
+  .card-counter { text-align: center; font-size: 12px; letter-spacing: 1px; color: #a9835a; font-family: -apple-system, sans-serif; margin-bottom: 24px; }
 
-  .archive-emoji { text-align: center; font-size: 26px; margin: 28px 0 8px; letter-spacing: 8px; }
-  .loaded-note {
-    text-align: center; font-size: 11px; color: #a9835a; font-family: -apple-system, sans-serif;
-    margin-bottom: 24px; letter-spacing: 0.3px;
+  .card-stage { max-width: 520px; margin: 0 auto; padding: 0 22px 40px; min-height: 340px; }
+  .the-card {
+    background: #fffdf8; border: 1px solid #d8c9a8; border-radius: 18px;
+    padding: 28px 24px; box-shadow: 0 4px 18px rgba(107,68,35,0.1);
   }
+  .card-headline { font-size: 1.15rem; font-style: italic; color: #6b4423; line-height: 1.5; margin-bottom: 20px; text-align: center; }
+  .card-line { font-size: 1.05rem; line-height: 1.7; margin-bottom: 10px; }
+  .card-line .tag { display: inline-block; width: 1.3em; text-align: center; margin-right: 0.35em; }
+  .card-footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid #ede3cd; font-family: -apple-system, sans-serif; font-size: 12px; color: #a9835a; text-align: center; font-style: italic; }
 
-  .reader-body { max-width: 560px; margin: 0 auto; padding: 0 26px 100px; }
+  .card-nav { display: flex; justify-content: space-between; align-items: center; max-width: 520px; margin: 0 auto; padding: 0 22px calc(50px + env(safe-area-inset-bottom)); }
+  .nav-btn {
+    width: auto; margin: 0; background: #fffdf8; color: #6b4423; border: 1px solid #d8c9a8;
+    border-radius: 999px; padding: 12px 22px; font-size: 14px;
+  }
+  .nav-btn:disabled { opacity: 0.35; }
+  .nav-btn.primary { background: #6b5535; color: #fdf9f2; border: none; }
 
-  .date-header {
-    display: block;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-    margin: 38px 0 16px;
-    color: #6b4423;
-    border-top: 1px solid #d8c9a8;
-    padding-top: 20px;
-    font-family: -apple-system, sans-serif;
-  }
-  .date-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
-
-  p.msg {
-    font-size: 17px;
-    line-height: 1.75;
-    margin: 0 0 18px;
-  }
-  p.msg.pinned {
-    background: rgba(169,131,90,0.08);
-    border-left: 3px solid #a9835a;
-    padding: 10px 14px;
-    border-radius: 0 6px 6px 0;
-  }
-  .msg-meta {
-    color: #8a7a63;
-    display: block;
-    font-size: 12px;
-    margin-bottom: 4px;
-    font-style: italic;
-    font-family: -apple-system, sans-serif;
-  }
-  .pin-badge { color: #a9835a; font-weight: 600; margin-left: 8px; font-style: normal; }
-  .media-note { color: #6b5a45; font-style: italic; font-size: 15px; margin-bottom: 4px; display: block; }
-
-  .sentinel { height: 1px; }
-  .loading-spinner {
-    text-align: center; padding: 24px; color: #a9835a;
-    font-family: -apple-system, sans-serif; font-size: 13px;
-  }
-  .end-note {
-    text-align: center; padding: 40px 20px; color: #8a7a63;
-    font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic;
-  }
-
-  /* ---- Penguin widget ---- */
-  #tp-widget { position: fixed; bottom: calc(34px + env(safe-area-inset-bottom)); right: 14px; z-index: 9999; font-family: -apple-system, sans-serif; user-select: none; }
-  #tp-penguin { font-size: 34px; cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: tp-idle 2.4s ease-in-out infinite; transition: transform 0.4s ease; }
-  #tp-penguin.tp-walking { animation: tp-walk 0.5s ease-in-out infinite; }
-  #tp-penguin.tp-sleeping { animation: tp-sleep 3s ease-in-out infinite; opacity: 0.75; }
-  #tp-penguin.tp-happy { animation: tp-bounce 0.4s ease-in-out infinite; }
-  @keyframes tp-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(-2deg); } }
-  @keyframes tp-walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
-  @keyframes tp-sleep { 0%, 100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(3deg) translateY(2px); } }
-  @keyframes tp-bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.08); } }
-  .tp-bubble { position: absolute; bottom: 46px; right: 0; max-width: 190px; background: #fffaf0; color: #3a3227; border: 1px solid #d8c9a8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; font-family: Georgia, serif; }
-  .tp-bubble.show { display: block; }
-  .tp-menu { position: absolute; bottom: 46px; right: 0; background: #14100c; border: 1px solid #4a3c28; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); min-width: 160px; }
-  .tp-menu[hidden] { display: none !important; }
-  .tp-menu button { background: none; border: none; color: #ecdfc8; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
-  .tp-menu-close { text-align: center !important; color: #b8895a !important; font-size: 11px !important; margin-top: 2px; }
+  .loading-note { text-align: center; padding: 60px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
 </style>
 </head>
 <body>
 
-  <div id="lockScreen" class="lock-screen">
-    <div class="lock-icon">🧁 🗂️ 🐧</div>
-    <div class="lock-title">The Record</div>
-    <div class="lock-sub">The full correspondence, unedited.</div>
-    <div class="lock-divider"></div>
-    <input type="password" id="passInput" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button id="unlockBtn" class="lock-btn">Enter</button>
-    <div class="lock-error" id="lockError"></div>
+<div id="gate">
+  <a href="hub.html" class="gate-back">← Back</a>
+  <div class="emblem"><span>🧁</span><span>🐧</span></div>
+  <h1 class="title">The Cards</h1>
+  <p class="subtitle">small proofs, pulled and kept</p>
+  <div class="divider"></div>
+  <input id="passphrase" type="password" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter') unlock()">
+  <button onclick="unlock()">Unlock</button>
+  <div id="error"></div>
+</div>
+
+<div id="reader">
+  <div class="book-header">
+    <button id="backBtn" type="button">← Back</button>
+    <span class="title-mini">THE CARDS</span>
+    <span style="width:44px"></span>
   </div>
 
-  <div id="reader" class="reader">
-    <div class="book-header">
-      <button id="backBtn" type="button">← Back</button>
-      <span class="title-mini">THE RECORD</span>
-      <span style="width:44px"></span>
-    </div>
+  <div class="card-emoji">🐧 &nbsp; 🃏 &nbsp; 🧁</div>
+  <div class="card-counter" id="cardCounter"></div>
 
-    <div class="archive-emoji">🐧 &nbsp; 🧁</div>
-    <div class="loaded-note" id="loadedNote">Loading…</div>
-
-    <div class="reader-body" id="readerBody"></div>
-
-    <div class="sentinel" id="sentinel"></div>
-    <div class="loading-spinner hidden" id="loadingSpinner">loading more…</div>
-    <div class="end-note hidden" id="endNote">— end of the record —</div>
+  <div class="card-stage" id="cardStage">
+    <div class="loading-note">Loading…</div>
   </div>
 
-  <div id="tp-widget">
-    <div id="tp-bubble" class="tp-bubble"></div>
-    <div id="tp-penguin" class="tp-penguin">🐧</div>
-    <div id="tp-menu" class="tp-menu" hidden>
-      <button onclick="tpAction('feed')">🍰 Feed Cupcake</button>
-      <button onclick="tpAction('coffee')">☕ Give Coffee</button>
-      <button onclick="tpAction('talk')">💬 Talk</button>
-      <button onclick="tpAction('search')">📦 Search Archive</button>
-      <button onclick="tpAction('sleep')">😴 Sleep</button>
-      <button onclick="tpCloseMenu()" class="tp-menu-close">✕</button>
-    </div>
+  <div class="card-nav" id="cardNav" style="display:none;">
+    <button class="nav-btn" id="prevBtn" type="button">← Prev</button>
+    <button class="nav-btn primary" id="nextBtn" type="button">Next →</button>
   </div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
-const CHUNK_DIR = "record_chunks";
 
 function fromBase64(str) {
   return Uint8Array.from(atob(str), c => c.charCodeAt(0));
@@ -203,196 +110,92 @@ async function deriveKey(passphrase, saltBytes) {
   );
 }
 
-// Checks the typed passphrase against the encrypted verification row in
-// Supabase's "record" table. AES-GCM's built-in authentication tag means
-// decryption itself fails (throws) if the passphrase is wrong — so a
-// successful decrypt IS the verification, we don't need to use the content.
-async function verifyPassphrase(passphrase) {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/record?select=*&order=created_at.desc&limit=1`,
-    {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
-  const rows = await res.json();
-  if (!rows || rows.length === 0) {
-    throw new Error('No verification record found.');
-  }
-  const row = rows[0];
-  const salt = fromBase64(row.salt);
-  const iv = fromBase64(row.iv);
-  const ciphertext = fromBase64(row.ciphertext);
-  const key = await deriveKey(passphrase, salt);
-  // This throws if the passphrase is wrong — that's the actual check.
-  await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-}
-let nextChunk = 0;
-let numChunks = 0;
-let loading = false;
-let done = false;
-let lastRenderedDate = null;
-
 function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
 }
 
-async function loadIndex() {
-  const res = await fetch(`${CHUNK_DIR}/index.json`);
-  return res.json();
+let CARDS = [];
+let currentIndex = 0;
+
+function renderCard(i) {
+  const card = CARDS[i];
+  const stage = document.getElementById('cardStage');
+  const linesHtml = card.lines.map(([speaker, text]) =>
+    `<p class="card-line"><span class="tag">${esc(speaker)}</span>${esc(text)}</p>`
+  ).join('');
+  stage.innerHTML = `
+    <div class="the-card">
+      <div class="card-headline">${esc(card.headline)}</div>
+      ${linesHtml}
+      <div class="card-footer">${esc(card.footer)}</div>
+    </div>
+  `;
+  document.getElementById('cardCounter').textContent = `${i + 1} / ${CARDS.length}`;
+  document.getElementById('prevBtn').disabled = (i === 0);
+  document.getElementById('nextBtn').disabled = (i === CARDS.length - 1);
 }
 
-async function loadChunk(n) {
-  const res = await fetch(`${CHUNK_DIR}/chunk_${String(n).padStart(4, '0')}.json`);
-  return res.json();
-}
-
-function renderMessages(messages) {
-  const body = document.getElementById('readerBody');
-  const frag = document.createDocumentFragment();
-
-  messages.forEach((m) => {
-    if (m.d !== lastRenderedDate) {
-      const header = document.createElement('div');
-      header.className = 'date-header';
-      header.textContent = m.d;
-      frag.appendChild(header);
-      lastRenderedDate = m.d;
-    }
-
-    const p = document.createElement('p');
-    p.className = 'msg' + (m.p ? ' pinned' : '');
-
-    const meta = document.createElement('em');
-    meta.className = 'msg-meta';
-    meta.innerHTML = `${m.s} &middot; ${esc(m.d)} &middot; ${esc(m.t)}` + (m.p ? '<span class="pin-badge">📌 pinned</span>' : '');
-    p.appendChild(meta);
-
-    if (m.m) {
-      const mediaLabels = { photo: '📷 a photo was here', voice: '🎙️ a voice message was here', video: '🎬 a video was here', sticker: '🖼️ a sticker was here', gif: '🎞️ a gif was here', file: '📎 a file was here' };
-      const note = document.createElement('span');
-      note.className = 'media-note';
-      note.textContent = mediaLabels[m.m] || '📎 attachment was here';
-      p.appendChild(note);
-    }
-
-    if (m.x) {
-      p.appendChild(document.createTextNode(m.x));
-    }
-
-    frag.appendChild(p);
-  });
-
-  body.appendChild(frag);
-}
-
-async function loadNextChunk() {
-  if (loading || done) return;
-  loading = true;
-  document.getElementById('loadingSpinner').classList.remove('hidden');
-
-  const data = await loadChunk(nextChunk);
-  renderMessages(data);
-  nextChunk += 1;
-
-  document.getElementById('loadedNote').textContent =
-    `Showing ${Math.min(nextChunk * 500, nextChunk * 500)} of many thousands — keep scrolling`;
-
-  if (nextChunk >= numChunks) {
-    done = true;
-    document.getElementById('loadingSpinner').classList.add('hidden');
-    document.getElementById('endNote').classList.remove('hidden');
-  }
-
-  loading = false;
-  document.getElementById('loadingSpinner').classList.add('hidden');
-}
-
-function setupInfiniteScroll() {
-  const sentinel = document.getElementById('sentinel');
-  const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      loadNextChunk();
-    }
-  }, { rootMargin: '600px' });
-  observer.observe(sentinel);
-}
-
-document.getElementById('unlockBtn').addEventListener('click', async () => {
-  const pass = document.getElementById('passInput').value;
-  const btn = document.getElementById('unlockBtn');
-  const errorDiv = document.getElementById('lockError');
-  errorDiv.textContent = '';
-
-  if (!pass) {
-    errorDiv.textContent = 'Enter a passphrase.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Checking…';
-
-  try {
-    await verifyPassphrase(pass);
-  } catch (e) {
-    errorDiv.textContent = 'Incorrect passphrase.';
-    btn.disabled = false;
-    btn.textContent = 'Enter';
-    return;
-  }
-
-  document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('reader').classList.add('show');
-
-  const index = await loadIndex();
-  numChunks = index.numChunks;
-  document.getElementById('loadedNote').textContent = `${index.totalMessages.toLocaleString()} messages · ${index.firstDate} to ${index.lastDate}`;
-
-  setupInfiniteScroll();
-  loadNextChunk();
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentIndex > 0) { currentIndex--; renderCard(currentIndex); }
 });
-
-document.getElementById('passInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('unlockBtn').click();
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentIndex < CARDS.length - 1) { currentIndex++; renderCard(currentIndex); }
 });
-
 document.getElementById('backBtn').addEventListener('click', () => {
   window.location.href = 'hub.html';
 });
 
-/* ---- Penguin widget ---- */
-(function() {
-  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
-  function tpSayBubble(text) {
-    const bubble = document.getElementById('tp-bubble');
-    bubble.textContent = text;
-    bubble.classList.add('show');
-    setTimeout(() => { bubble.classList.remove('show'); }, 3200);
+async function unlock() {
+  const errorDiv = document.getElementById('error');
+  const passphrase = document.getElementById('passphrase').value;
+  errorDiv.textContent = '';
+
+  if (!passphrase) {
+    errorDiv.textContent = 'Enter a passphrase.';
+    return;
   }
-  window.tpAction = function(action) {
-    if (action === 'feed') tpSayBubble("Mmm, cupcake. 🧁");
-    else if (action === 'coffee') tpSayBubble("☕ Ahh, better.");
-    else if (action === 'talk') tpSayBubble(TP_LINES_IDLE[Math.floor(Math.random() * TP_LINES_IDLE.length)]);
-    else if (action === 'search') tpSayBubble("📦 Searching...");
-    else if (action === 'sleep') tpSayBubble("Goodnight...");
-    tpCloseMenu();
-  };
-  window.tpCloseMenu = function() { document.getElementById('tp-menu').hidden = true; };
-  document.getElementById('tp-penguin').addEventListener('click', (e) => {
-    const menu = document.getElementById('tp-menu');
-    menu.hidden = !menu.hidden;
-    e.stopPropagation();
-  });
-  document.addEventListener('click', (e) => {
-    const widget = document.getElementById('tp-widget');
-    const menu = document.getElementById('tp-menu');
-    if (!menu.hidden && !widget.contains(e.target)) { menu.hidden = true; }
-  });
-})();
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/cards?select=*&order=created_at.desc&limit=1`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      errorDiv.textContent = 'No cards found.';
+      return;
+    }
+
+    const row = rows[0];
+    const salt = fromBase64(row.salt);
+    const iv = fromBase64(row.iv);
+    const ciphertext = fromBase64(row.ciphertext);
+    const key = await deriveKey(passphrase, salt);
+
+    const decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+    const dec = new TextDecoder();
+    const text = dec.decode(decryptedBuf);
+
+    // The stored content is the raw "const CARDS = [ ... ];" block.
+    // Evaluate it in an isolated function scope (not global) and pull out CARDS.
+    CARDS = new Function(text + '\nreturn CARDS;')();
+
+    if (!Array.isArray(CARDS) || CARDS.length === 0) {
+      errorDiv.textContent = 'Cards data looked empty or malformed.';
+      return;
+    }
+
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('cardNav').style.display = 'flex';
+    currentIndex = 0;
+    renderCard(0);
+  } catch (e) {
+    errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
+  }
+}
 </script>
 </body>
 </html>

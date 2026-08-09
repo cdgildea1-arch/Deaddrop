@@ -36,6 +36,17 @@
   #content .divider { width: 70px; height: 1px; background: #c9a876; margin: 0 auto 36px; }
   #continueLink { display: none; text-align: center; margin: 20px 0 60px; }
   #continueLink a { display: inline-block; font-size: 2rem; color: #8a6d3b; text-decoration: none; border: 1px solid #d8c9ae; border-radius: 50%; width: 56px; height: 56px; line-height: 52px; }
+  .book-header {
+    display: none;
+    position: sticky; top: 0; z-index: 10;
+    align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: rgba(250,247,242,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid #d8c9a8;
+    font-family: -apple-system, sans-serif;
+  }
+  .book-header.show { display: flex; }
+  .book-header button { background: none; border: none; color: #a9835a; font-size: 13px; padding: 4px 0; }
+  .book-header .title-mini { font-size: 12px; letter-spacing: 2px; color: #8a7a63; }
   .pin-popup {
     position: fixed; z-index: 9997; background: #3a2f22; color: #f4ecdd;
     border: none; border-radius: 999px; padding: 9px 16px; font-size: 13px;
@@ -56,6 +67,12 @@
 
 <button id="pinPopup" class="pin-popup">📌 Pin this</button>
 <div class="pin-toast" id="pinToast"></div>
+
+<div class="book-header" id="bookHeader">
+  <button id="backBtn" type="button">← Back</button>
+  <span class="title-mini">THE ARCHIVE</span>
+  <span style="width:44px"></span>
+</div>
 
 <div id="gate">
   <div class="emblem"><span>🧁</span><span>🐧</span></div>
@@ -265,11 +282,14 @@ async function unlock() {
     document.getElementById('continueLink').style.display = 'block';
     document.getElementById('content').style.display = 'block';
     document.getElementById('gate').style.display = 'none';
+    document.getElementById('bookHeader').classList.add('show');
     currentPassphrase = passphrase;
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }
-}
+}document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'hub.html';
+});
 </script>
 </body>
 </html>

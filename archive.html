@@ -287,7 +287,9 @@ async function unlock() {
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }
-}document.getElementById('backBtn').addEventListener('click', () => {
+}
+
+document.getElementById('backBtn').addEventListener('click', () => {
   window.location.href = 'hub.html';
 });
 </script>

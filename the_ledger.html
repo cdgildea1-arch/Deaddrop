@@ -17,6 +17,7 @@
   .lock-btn { width: 100%; max-width: 300px; background: #6b5535; color: #fdf9f2; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
   .lock-btn:disabled { opacity: 0.6; }
   .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
+  .gate-back { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 20px; font-size: 13px; color: #a9835a; text-decoration: none; font-family: -apple-system, sans-serif; z-index: 5; }
   .reader { display: none; min-height: 100vh; background: #f4ecdd; color: #3a3227; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
   .reader.show { display: block; }
   .book-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(244,236,221,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #d8c9a8; }
@@ -72,6 +73,7 @@
 <body>
 
   <div id="lockScreen" class="lock-screen">
+    <a href="hub.html" class="gate-back">← Back</a>
     <div class="lock-icon">🧁 📊 🐧</div>
     <div class="lock-title">The Ledger</div>
     <div class="lock-sub">Terms, numbers, and small proofs of it all.</div>

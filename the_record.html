@@ -40,6 +40,7 @@
     padding: 16px; font-size: 16px; font-weight: 700; font-family: Georgia, serif;
   }
   .lock-error { color: #e07a5f; font-size: 13px; margin-top: 12px; min-height: 16px; }
+  .gate-back { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 20px; font-size: 13px; color: #a9835a; text-decoration: none; font-family: -apple-system, sans-serif; z-index: 5; }
 
   /* ---- Reader (matches book.html's cream Reading Room look) ---- */
   .reader {
@@ -159,6 +160,7 @@
   <div class="pin-toast" id="pinToast"></div>
 
   <div id="lockScreen" class="lock-screen">
+    <a href="hub.html" class="gate-back">← Back</a>
     <div class="lock-icon">🧁 🗂️ 🐧</div>
     <div class="lock-title">The Record</div>
     <div class="lock-sub">The full correspondence, unedited.</div>

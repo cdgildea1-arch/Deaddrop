@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confirmed Pins</title>
+<style>
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #14100c; color: #ecdfc8; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  .reader { min-height: 100vh; background: #f4ecdd; color: #3a3227; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+  .book-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(244,236,221,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #d8c9a8; }
+  .book-header button { background: none; border: none; color: #a9835a; font-size: 13px; font-family: -apple-system, sans-serif; padding: 4px 0; }
+  .book-header .title-mini { font-size: 12px; letter-spacing: 2px; color: #8a7a63; font-family: -apple-system, sans-serif; }
+
+  .archive-emoji { text-align: center; font-size: 26px; margin: 28px 0 6px; letter-spacing: 8px; }
+  .jar-sub { text-align: center; font-size: 13px; font-style: italic; color: #a9835a; margin-bottom: 6px; }
+  .jar-note { text-align: center; font-size: 11.5px; color: #a9967a; margin-bottom: 24px; padding: 0 30px; font-family: -apple-system, sans-serif; line-height: 1.5; }
+
+  .stats-box {
+    max-width: 560px; margin: 0 auto 20px; padding: 18px 20px;
+    background: #fffdf8; border: 1px solid #d8c9a8; border-radius: 14px;
+    font-family: -apple-system, sans-serif;
+  }
+  .stats-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+  .stats-row:last-child { margin-bottom: 0; }
+  .stats-label { color: #8a7a63; }
+  .stats-value { color: #3a2f22; font-weight: 600; }
+
+  .nav-link { text-align: center; margin-bottom: 28px; }
+  .nav-link a {
+    display: inline-block; font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600;
+    color: #8a6d3b; text-decoration: none; border: 1px solid #d8c9a8; border-radius: 999px;
+    padding: 9px 18px; background: #fffdf8; margin: 0 4px;
+  }
+
+  .content-body { max-width: 560px; margin: 0 auto; padding: 0 22px 120px; }
+
+  .pin-card {
+    background: #fffdf8;
+    border: 1px solid #d8c9a8;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(107,68,35,0.06);
+  }
+  .pin-line { font-size: 16.5px; line-height: 1.65; margin-bottom: 4px; }
+  .pin-line .tag { display: inline-block; width: 1.3em; text-align: center; margin-right: 0.35em; }
+  .pin-meta {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid #ede3cd;
+    font-family: -apple-system, sans-serif; font-size: 11.5px; color: #a9835a; letter-spacing: 0.2px;
+  }
+  .pin-source.confirmed { background: rgba(92,138,111,0.14); color: #4a7a5c; border-radius: 999px; padding: 3px 10px; font-weight: 600; }
+
+  .end-note { text-align: center; padding: 40px 20px; color: #8a7a63; font-family: -apple-system, sans-serif; font-size: 13px; font-style: italic; }
+</style>
+</head>
+<body>
+
+  <div class="reader">
+    <div class="book-header">
+      <button id="backBtn" type="button">← Back</button>
+      <span class="title-mini">CONFIRMED PINS</span>
+      <span style="width:44px"></span>
+    </div>
+
+    <div class="archive-emoji">🐧 &nbsp; ✅ &nbsp; 🧁</div>
+    <div class="jar-sub">The pins where the record says, in their own words, who did it.</div>
+    <div class="jar-note">Found by searching every message for the moment someone announced pinning something &mdash; "I'll pin this," "just pinned," "pinning this to come back to." These are the only pins with real, confirmed attribution.</div>
+
+    <div class="stats-box">
+      <div class="stats-row"><span class="stats-label">Confirmed pins</span><span class="stats-value">91</span></div>
+      <div class="stats-row"><span class="stats-label">🧁 Brad</span><span class="stats-value">58</span></div>
+      <div class="stats-row"><span class="stats-label">🐧 Penny</span><span class="stats-value">33</span></div>
+    </div>
+
+    <div class="nav-link">
+      <a href="previously-pinned.html">📌 All 290 Pins</a>
+      <a href="pins.html">🫙 Memory Jar</a>
+    </div>
+
+    <div class="content-body">
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Ha I tried to delete and pinned it? 😂</p>
+        <div class="pin-meta">
+          <span>June 4, 2024 · 8:37 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Haha it's ok you can just owe me again. I'll pin this 😉</p>
+        <div class="pin-meta">
+          <span>June 14, 2024 · 8:11 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>😊Yep I just wanted you to know that I pinned this… I love it.</p>
+        <div class="pin-meta">
+          <span>July 1, 2024 · 7:03 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Cannot search like our black hole topics. Or the pen 🖊️ and ✋ reaction to know to come back to it. Like I pinned this (one moment ) because I really wanted to come back to it asap. but pinning a ton of stuff to talk about just seems a Little messy imo.</p>
+        <div class="pin-meta">
+          <span>July 6, 2024 · 6:33 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pin it.</p>
+        <div class="pin-meta">
+          <span>July 8, 2024 · 3:05 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Did you pin this?</p>
+        <div class="pin-meta">
+          <span>July 12, 2024 · 5:06 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Because you pinned it:)</p>
+        <div class="pin-meta">
+          <span>July 12, 2024 · 5:06 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>lol oh I pinned it?</p>
+        <div class="pin-meta">
+          <span>July 12, 2024 · 5:06 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Can you send that again so I can pin it?</p>
+        <div class="pin-meta">
+          <span>July 16, 2024 · 5:49 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pinned this. Pillow to pillow 🫶🏻</p>
+        <div class="pin-meta">
+          <span>July 17, 2024 · 5:17 AM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>How would you feel about me pinning this?</p>
+        <div class="pin-meta">
+          <span>July 20, 2024 · 11:49 AM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I’m just gonna mention it so I can pin it and not forget :)</p>
+        <div class="pin-meta">
+          <span>September 13, 2024 · 8:36 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Okay just pinned!</p>
+        <div class="pin-meta">
+          <span>September 13, 2024 · 9:01 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I’m glad you pinned that:)</p>
+        <div class="pin-meta">
+          <span>October 1, 2024 · 3:52 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pinned it. Just for the face 😊</p>
+        <div class="pin-meta">
+          <span>October 10, 2024 · 7:21 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I am pinning this right now…</p>
+        <div class="pin-meta">
+          <span>October 15, 2024 · 2:27 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Okay so I just need to make another “note” But how about this… if you write a message out and then pin it for both of us…</p>
+        <div class="pin-meta">
+          <span>November 2, 2024 · 6:23 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Ok pinned that also</p>
+        <div class="pin-meta">
+          <span>November 2, 2024 · 6:32 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Hmm ok I pinned it because I had lots of thoughts and knew I'd want to come Back to it!!  Haha But no I don't remember a specific one I had at the time</p>
+        <div class="pin-meta">
+          <span>November 2, 2024 · 6:42 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Hold on gonna pin this!</p>
+        <div class="pin-meta">
+          <span>November 22, 2024 · 1:38 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Well I can pin this to talk about…</p>
+        <div class="pin-meta">
+          <span>November 26, 2024 · 8:33 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Maybe you don't want to listen to that again but I pinned it because I think it's so helpful!  here's where I'm at:</p>
+        <div class="pin-meta">
+          <span>November 28, 2024 · 5:42 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>I needed to hear that. I would love if when you think of things that maybe you were vague on or realize you didn't share something you could have if you do now share that with me. But otherwise please do not feel like you need to be telling or sharing things with me, especially not forcefully. Like don't make yourself think on it and come up with things. I'm good with being normal ish now via txt until we can talk about it again via phone or in person. (Pinned this message for assistance when we do talk) But naturally as you do think of it share more/extra. Kinda even the playing field a bit you know? I think both of us could be more clear on boundaries as they come up. I don't think we can know them all now. But should try to clarify when they do come up for us. I will just tell you via txt you're being vague if I need to. And can hopefully easily tell you in person as well.</p>
+        <div class="pin-meta">
+          <span>November 28, 2024 · 5:50 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>This is probably the closest to me understanding that thought. Not there yet! And yeah umm I’ll pin this and then maybe with context it could help.</p>
+        <div class="pin-meta">
+          <span>November 29, 2024 · 5:25 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Oh for sure I lose sleep over good things. Haha uh oh. I'm super curious now!  Pin it!  lol</p>
+        <div class="pin-meta">
+          <span>December 7, 2024 · 10:55 AM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yep:) I pinned it! It’s official😊</p>
+        <div class="pin-meta">
+          <span>December 16, 2024 · 6:26 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I’ll get list send it/pin it.</p>
+        <div class="pin-meta">
+          <span>December 30, 2024 · 8:21 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Im caught up until 8:59. Just pinned one thing</p>
+        <div class="pin-meta">
+          <span>January 5, 2025 · 7:10 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Feels important but not serious. I’m just putting this on here because I want to pin this what I wrote not to talk about it like serious but just to remember it.</p>
+        <div class="pin-meta">
+          <span>January 6, 2025 · 7:04 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned this. Great way to ask a question concerning schedule!</p>
+        <div class="pin-meta">
+          <span>January 18, 2025 · 7:15 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>You didn't pin it? 😊</p>
+        <div class="pin-meta">
+          <span>January 18, 2025 · 7:28 AM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yes we will. I pinned it for you!</p>
+        <div class="pin-meta">
+          <span>January 20, 2025 · 6:47 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I pinned this to ask you about whenever you have or want to talk about this.</p>
+        <div class="pin-meta">
+          <span>February 2, 2025 · 4:09 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Obviously, Pinned this to have a discussion about it later you can unpin it if you don’t wanna talk about it.</p>
+        <div class="pin-meta">
+          <span>February 16, 2025 · 6:41 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Oh, you don’t have that? I mostly use it like as a scratch pad to be honest I don’t actually save messages if I want to say something, I pin it.</p>
+        <div class="pin-meta">
+          <span>February 17, 2025 · 7:55 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Lol well really. I'm catching up and throwing my thoughts out there. But we can pin this and talk about 🖕🏻if you want!</p>
+        <div class="pin-meta">
+          <span>February 20, 2025 · 7:04 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I pinned it!</p>
+        <div class="pin-meta">
+          <span>February 25, 2025 · 3:13 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Cool, I agree. Well, the very least we both know that there was something we still wanna talk about but really don’t have any specific reason to touch base with it again so I’ll pin this for myself.</p>
+        <div class="pin-meta">
+          <span>March 10, 2025 · 12:04 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>OK gotcha there I did pin this one for myself to read again btw.</p>
+        <div class="pin-meta">
+          <span>March 15, 2025 · 9:55 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned it for me to find.</p>
+        <div class="pin-meta">
+          <span>March 15, 2025 · 5:13 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>You pinned it! It’s True! It’s written in stone.</p>
+        <div class="pin-meta">
+          <span>March 17, 2025 · 7:50 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>That thing I just pinned that’s what I was referring to</p>
+        <div class="pin-meta">
+          <span>April 12, 2025 · 11:10 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I had to pin it… is that bad luck?</p>
+        <div class="pin-meta">
+          <span>April 26, 2025 · 7:04 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pinned this</p>
+        <div class="pin-meta">
+          <span>May 10, 2025 · 8:22 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned this.</p>
+        <div class="pin-meta">
+          <span>May 15, 2025 · 8:45 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Hahaha you pinned that?!?</p>
+        <div class="pin-meta">
+          <span>May 24, 2025 · 1:41 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yeah, like, okay, I'm bummer that, like, I'm now busy and you're not busy. And you sent me, like, a funny dream. And, like, I didn't have time to respond to it. That's why I pinned it. Because I wanted to show you that I obviously care what you say. And that sounds like a really funny dream. And you laughed and like, I hate that, you know, I wasn't able to like literally just be right there whenever you told me that. I enjoyed that though very much. I am so close to being done with this job.</p>
+        <div class="pin-meta">
+          <span>May 24, 2025 · 2:01 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>I pinned it!</p>
+        <div class="pin-meta">
+          <span>May 25, 2025 · 12:18 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Thank you I pinned it and I am going to read it!</p>
+        <div class="pin-meta">
+          <span>May 25, 2025 · 1:59 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yeah, you pinned it and will come back to it or are you wanting to talk about it right now in six minutes?</p>
+        <div class="pin-meta">
+          <span>May 25, 2025 · 2:21 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Well, since you mentioned something about this, I find it very hard not to as well. Everything is literally OK we can still pin this. Thank you for responding.</p>
+        <div class="pin-meta">
+          <span>May 28, 2025 · 3:53 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>My head is just pretty filled up right now with stuff. Hard to think so let’s re pin it. Everything’s OK though.</p>
+        <div class="pin-meta">
+          <span>May 28, 2025 · 3:54 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Early 2024 Chris would have pinned that.</p>
+        <div class="pin-meta">
+          <span>June 3, 2025 · 8:49 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Cool Chris would have pinned that.</p>
+        <div class="pin-meta">
+          <span>June 3, 2025 · 8:49 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Perfect, pinned that.</p>
+        <div class="pin-meta">
+          <span>June 9, 2025 · 12:10 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Haha oh no!  You pinned that</p>
+        <div class="pin-meta">
+          <span>June 13, 2025 · 2:04 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yeah, you said it was your biggest fear. Of course I’m gonna pin it.</p>
+        <div class="pin-meta">
+          <span>June 13, 2025 · 2:04 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>You absolutely right I should’ve pinned that message. That’s on me.</p>
+        <div class="pin-meta">
+          <span>June 22, 2025 · 4:56 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I pinned it now I’m having trouble finding it</p>
+        <div class="pin-meta">
+          <span>June 27, 2025 · 6:56 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Did you pin it?</p>
+        <div class="pin-meta">
+          <span>July 8, 2025 · 10:05 AM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Work mode:: ignore this but I want to pin it. I realized my office is VERY well suited for suite privacy. Meaning the lobby is locked from the offices and bathrooms so people can not just walk into any office from the front door. So marketing to counselors or people in the medical field or people that need thst type of privacy or safety seems good. 🤷🏻‍♀️</p>
+        <div class="pin-meta">
+          <span>July 11, 2025 · 8:14 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Hahaha you pinned this?!?</p>
+        <div class="pin-meta">
+          <span>July 21, 2025 · 8:48 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I mean, this was an absolutely wonderful paragraph. I pinned it right away.</p>
+        <div class="pin-meta">
+          <span>July 22, 2025 · 7:50 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Should've pinned it 😉</p>
+        <div class="pin-meta">
+          <span>July 23, 2025 · 9:23 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I’ll make it easy. I’ll pin this one…</p>
+        <div class="pin-meta">
+          <span>July 26, 2025 · 7:03 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yeah, I guess you pinned it. I don’t know! it’s all good. Whatever it was once supposed to be is now not the case.</p>
+        <div class="pin-meta">
+          <span>July 27, 2025 · 12:42 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pinning this to come back to also!</p>
+        <div class="pin-meta">
+          <span>July 27, 2025 · 6:38 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pin it</p>
+        <div class="pin-meta">
+          <span>July 27, 2025 · 7:18 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Yeah that makes sense that you pinned it!</p>
+        <div class="pin-meta">
+          <span>August 1, 2025 · 5:11 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Haha what?  I pinned it?</p>
+        <div class="pin-meta">
+          <span>August 1, 2025 · 5:11 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Wait we pinned this that’s right.</p>
+        <div class="pin-meta">
+          <span>August 1, 2025 · 7:53 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>So you pinned one today because of content?</p>
+        <div class="pin-meta">
+          <span>August 6, 2025 · 7:52 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Hahaha don't pin it 😂</p>
+        <div class="pin-meta">
+          <span>August 6, 2025 · 8:20 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>There’s this one thing you said to me in the middle of the night once and I just love it. I never pinned it… I hope I can find it.</p>
+        <div class="pin-meta">
+          <span>August 16, 2025 · 12:42 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Or that you wouldn't have to pin it so you didn't forget</p>
+        <div class="pin-meta">
+          <span>August 31, 2025 · 2:56 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Gosh I just tried to voice a little bit from the convo from Chase and my mind just stopped… I will pin this and give you an update !</p>
+        <div class="pin-meta">
+          <span>September 4, 2025 · 5:46 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>If you didn’t pin this one, I think you should just my personal belief…</p>
+        <div class="pin-meta">
+          <span>September 6, 2025 · 11:59 AM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Just me pin it?</p>
+        <div class="pin-meta">
+          <span>September 6, 2025 · 12:01 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>I wonder if I pinned it</p>
+        <div class="pin-meta">
+          <span>September 18, 2025 · 4:24 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>That’s why I pinned it too:)</p>
+        <div class="pin-meta">
+          <span>October 5, 2025 · 6:21 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>I pinned it.</p>
+        <div class="pin-meta">
+          <span>October 15, 2025 · 7:54 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>You pinned this. But that was the first you brought it up and then you didn't respond</p>
+        <div class="pin-meta">
+          <span>October 25, 2025 · 6:34 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned that. I should know that though!</p>
+        <div class="pin-meta">
+          <span>November 2, 2025 · 6:46 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned it because it was something I wanted to share. So yeah for whatever the reason you thought last night made me think “interesting” 😊</p>
+        <div class="pin-meta">
+          <span>November 8, 2025 · 2:27 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pin it before bed!</p>
+        <div class="pin-meta">
+          <span>November 12, 2025 · 8:36 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>I have no idea. Pin it and we'll figure it out</p>
+        <div class="pin-meta">
+          <span>November 27, 2025 · 7:50 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pin it or pause it. Not enough time. It’s gonna be fine. Just talk normal. You feel comfy and go to bed.</p>
+        <div class="pin-meta">
+          <span>November 29, 2025 · 6:53 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>So there is this one message that you sent me in the middle of the night once (I wish I pinned it) but it’s always stuck with me! It was something along the lines of you sitting in bed awake in the middle of the night just thinking of ways that you could see me. Mhmmm you you you I do.</p>
+        <div class="pin-meta">
+          <span>December 2, 2025 · 12:15 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🐧</span>Pinned one so I can go back to the video</p>
+        <div class="pin-meta">
+          <span>December 18, 2025 · 2:52 PM</span>
+          <span class="pin-source confirmed">🐧 Penny confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>Pinned it. Adding to calendar soon!</p>
+        <div class="pin-meta">
+          <span>December 26, 2025 · 3:03 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+
+      <div class="pin-card">
+        <p class="pin-line"><span class="tag">🧁</span>But I’m gonna pin this because I do think you’re serious and I am very serious and I do feel that the idea in itself is not crazy but actually helpful… 🐘💩 Oh especially if you’re doing the schedule</p>
+        <div class="pin-meta">
+          <span>December 28, 2025 · 1:05 PM</span>
+          <span class="pin-source confirmed">🧁 Brad confirmed this</span>
+        </div>
+      </div>
+      <div class="end-note">— every pin the record can confirm who did it, 91 in all —</div>
+    </div>
+  </div>
+
+<script>
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'pins.html';
+});
+</script>
+</body>
+</html>

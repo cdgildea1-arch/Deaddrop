@@ -311,25 +311,27 @@ async function unlock() {
     document.getElementById('bookHeader').classList.add('show');
     currentPassphrase = passphrase;
 
+    const headingEls = document.querySelectorAll('#content .a-folder, #content .a-date, #content .a-part');
+    headingEls.forEach((h, i) => { h.dataset.hidx = i; });
+
     try {
       const raw = localStorage.getItem('archiveBookmark');
       const saved = JSON.parse(raw);
-      if (saved && typeof saved.scrollY === 'number') {
-        showPinToast('Found bookmark: y=' + saved.scrollY + ', jumping…');
-        const doScroll = () => {
-          try { window.scrollTo({ top: saved.scrollY, behavior: 'auto' }); } catch (e2) {
-            showPinToast('Scroll error: ' + e2.message);
+      if (saved && saved.hidx !== null && saved.hidx !== undefined) {
+        const jump = () => {
+          const target = document.querySelector('#content [data-hidx="' + saved.hidx + '"]');
+          if (target) {
+            target.scrollIntoView({ block: 'start' });
+            showPinToast('🔖 Back to "' + saved.label + '"');
+          } else {
+            showPinToast('Bookmark target not found');
           }
         };
-        requestAnimationFrame(() => requestAnimationFrame(doScroll));
-        setTimeout(doScroll, 400);
-        setTimeout(doScroll, 900);
-      } else {
-        showPinToast('No bookmark found (raw: ' + raw + ')');
+        requestAnimationFrame(() => requestAnimationFrame(jump));
+      } else if (saved) {
+        showPinToast('No bookmark position saved yet');
       }
-    } catch (e) {
-      showPinToast('Bookmark read error: ' + e.message);
-    }
+    } catch (e) {}
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }
@@ -396,16 +398,28 @@ function nearestHeadingLabel() {
   return best ? best.textContent.trim() : null;
 }
 
+function nearestHeadingIndex() {
+  const headings = Array.from(document.querySelectorAll('#content .a-folder, #content .a-date, #content .a-part'));
+  let best = null;
+  for (const h of headings) {
+    const rect = h.getBoundingClientRect();
+    if (rect.top <= 120) best = h;
+    else break;
+  }
+  return best ? best.dataset.hidx : null;
+}
+
 function saveBookmark() {
   const label = nearestHeadingLabel();
+  const hidx = nearestHeadingIndex();
   const bookmark = {
     label: label || 'the top',
-    scrollY: window.scrollY,
+    hidx: hidx,
     savedAt: new Date().toISOString()
   };
   try {
     localStorage.setItem('archiveBookmark', JSON.stringify(bookmark));
-    showPinToast('🔖 Saved: y=' + bookmark.scrollY + ' "' + bookmark.label + '"');
+    showPinToast('🔖 Saved: "' + bookmark.label + '"');
   } catch (e) {
     showPinToast('Couldn\'t save bookmark: ' + e.message);
   }

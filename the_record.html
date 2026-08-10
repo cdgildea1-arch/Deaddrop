@@ -371,7 +371,7 @@ function showPinToast(text) {
       await savePin(pinObj);
       showPinToast('📌 Pinned to the Memory Jar');
     } catch (e) {
-      showPinToast('Couldn\'t save the pin — try again');
+      showPinToast('Failed: ' + (e && e.message ? e.message : 'unknown error'));
     }
   });
 })();

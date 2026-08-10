@@ -314,7 +314,9 @@ async function unlock() {
     try {
       const saved = JSON.parse(localStorage.getItem('archiveBookmark'));
       if (saved && typeof saved.scrollY === 'number') {
-        setTimeout(() => window.scrollTo({ top: saved.scrollY, behavior: 'instant' }), 50);
+        setTimeout(() => {
+          try { window.scrollTo({ top: saved.scrollY, behavior: 'auto' }); } catch (e2) {}
+        }, 120);
       }
     } catch (e) {}
   } catch (e) {
@@ -342,10 +344,10 @@ function runSearch(term) {
   blocks.forEach(b => {
     if (!b.dataset.original) b.dataset.original = b.innerHTML;
     const original = b.dataset.original;
-    const replaced = original.replace(/>([^<]+)</g, (full, chunk) => {
+    const replaced = original.replace(/>([^<]+)(?=<|$)/g, (full, chunk) => {
       if (!re.test(chunk)) { re.lastIndex = 0; return full; }
       re.lastIndex = 0;
-      return '>' + chunk.replace(re, m => `<mark class="a-hit">${m}</mark>`) + '<';
+      return '>' + chunk.replace(re, m => `<mark class="a-hit">${m}</mark>`);
     });
     if (replaced !== original) b.innerHTML = replaced;
   });

@@ -61,18 +61,6 @@
   .book-header .bookmark-btn { font-size: 18px !important; background: none !important; border: none !important; padding: 4px 2px !important; flex-shrink: 0 !important; }
   mark.a-hit { background: #f2e2b8; color: inherit; padding: 0 2px; border-radius: 3px; }
   mark.a-hit.a-current { background: #a9714f; color: #fffdf8; }
-  .continue-banner {
-    display: none; align-items: center; justify-content: space-between;
-    background: #f2e6c8; border: 1px solid #d8c9a8; border-radius: 12px;
-    padding: 12px 16px; margin: 16px 24px 0; font-family: -apple-system, sans-serif;
-    font-size: 13px; color: #6b5535;
-  }
-  .continue-banner.show { display: flex; }
-  .continue-banner button {
-    background: #6b5535; color: #fdf9f2; border: none; border-radius: 999px;
-    padding: 7px 14px; font-size: 12px; font-family: -apple-system, sans-serif; white-space: nowrap; margin-left: 10px;
-  }
-  .continue-banner .dismiss { background: none; color: #a9835a; padding: 7px 8px; margin-left: 2px; }
   .pin-popup {
     position: fixed; z-index: 9997; background: #3a2f22; color: #f4ecdd;
     border: none; border-radius: 999px; padding: 9px 16px; font-size: 13px;
@@ -99,14 +87,6 @@
   <input type="search" id="searchInput" placeholder="Search the Archive…" autocapitalize="off" autocorrect="off" spellcheck="false">
   <span class="search-count" id="searchCount"></span>
   <button id="bookmarkBtn" class="bookmark-btn" type="button">🔖</button>
-</div>
-
-<div class="continue-banner" id="continueBanner">
-  <span id="continueBannerText"></span>
-  <span style="display:flex; align-items:center;">
-    <button id="continueBannerGo" type="button">Go</button>
-    <button id="continueBannerDismiss" class="dismiss" type="button">✕</button>
-  </span>
 </div>
 
 <div id="gate">
@@ -320,7 +300,6 @@ async function unlock() {
     document.getElementById('gate').style.display = 'none';
     document.getElementById('bookHeader').classList.add('show');
     currentPassphrase = passphrase;
-    checkContinueBanner();
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }
@@ -400,27 +379,6 @@ function saveBookmark() {
   } catch (e) {
     showPinToast('Couldn\'t save bookmark: ' + e.message);
   }
-}
-
-function checkContinueBanner() {
-  let bookmark;
-  try {
-    bookmark = JSON.parse(localStorage.getItem('archiveBookmark'));
-  } catch (e) { return; }
-  if (!bookmark || typeof bookmark.scrollY !== 'number') return;
-
-  const banner = document.getElementById('continueBanner');
-  const textEl = document.getElementById('continueBannerText');
-  textEl.textContent = `Continue from ${bookmark.label}`;
-  banner.classList.add('show');
-
-  document.getElementById('continueBannerGo').onclick = () => {
-    window.scrollTo({ top: bookmark.scrollY, behavior: 'smooth' });
-    banner.classList.remove('show');
-  };
-  document.getElementById('continueBannerDismiss').onclick = () => {
-    banner.classList.remove('show');
-  };
 }
 
 document.getElementById('bookmarkBtn').addEventListener('click', saveBookmark);

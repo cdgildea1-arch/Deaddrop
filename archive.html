@@ -312,13 +312,24 @@ async function unlock() {
     currentPassphrase = passphrase;
 
     try {
-      const saved = JSON.parse(localStorage.getItem('archiveBookmark'));
+      const raw = localStorage.getItem('archiveBookmark');
+      const saved = JSON.parse(raw);
       if (saved && typeof saved.scrollY === 'number') {
-        setTimeout(() => {
-          try { window.scrollTo({ top: saved.scrollY, behavior: 'auto' }); } catch (e2) {}
-        }, 120);
+        showPinToast('Found bookmark: y=' + saved.scrollY + ', jumping…');
+        const doScroll = () => {
+          try { window.scrollTo({ top: saved.scrollY, behavior: 'auto' }); } catch (e2) {
+            showPinToast('Scroll error: ' + e2.message);
+          }
+        };
+        requestAnimationFrame(() => requestAnimationFrame(doScroll));
+        setTimeout(doScroll, 400);
+        setTimeout(doScroll, 900);
+      } else {
+        showPinToast('No bookmark found (raw: ' + raw + ')');
       }
-    } catch (e) {}
+    } catch (e) {
+      showPinToast('Bookmark read error: ' + e.message);
+    }
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }
@@ -394,7 +405,7 @@ function saveBookmark() {
   };
   try {
     localStorage.setItem('archiveBookmark', JSON.stringify(bookmark));
-    showPinToast('🔖 Bookmark saved');
+    showPinToast('🔖 Saved: y=' + bookmark.scrollY + ' "' + bookmark.label + '"');
   } catch (e) {
     showPinToast('Couldn\'t save bookmark: ' + e.message);
   }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypt &amp; Upload — Archive</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #faf7f2; color: #2b2b2b; padding: 24px 16px 60px; }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: normal; margin-bottom: 4px; }
+  .sub { font-style: italic; color: #8a6d3b; margin-bottom: 28px; font-size: 14px; }
+  .field { margin-bottom: 20px; }
+  label { display: block; font-size: 13px; color: #6b5535; margin-bottom: 6px; font-family: -apple-system, sans-serif; }
+  input, textarea { width: 100%; padding: 12px; font-size: 15px; border: 1px solid #d8c9ae; border-radius: 8px; background: #fffdfa; font-family: -apple-system, sans-serif; }
+  textarea { min-height: 320px; resize: vertical; font-family: 'SF Mono', Menlo, monospace; font-size: 13px; }
+  input:focus, textarea:focus { outline: none; border-color: #b08d4f; }
+  button { width: 100%; padding: 14px; background: #8a6d3b; color: #fdf9f2; border: none; border-radius: 8px; font-size: 16px; font-family: Georgia, serif; margin-top: 4px; }
+  button:hover { background: #6f5730; }
+  button:disabled { opacity: 0.6; }
+  .status { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; font-family: -apple-system, sans-serif; display: none; }
+  .status.success { display: block; background: #e8f5e9; color: #2e7d32; }
+  .status.error { display: block; background: #fdecea; color: #a33; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Encrypt &amp; Upload</h1>
+  <p class="sub">The Archive — pushes to Supabase's <code>archive</code> table</p>
+
+  <div class="field">
+    <label for="passphrase">Passphrase</label>
+    <input type="password" id="passphrase" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label for="content">Content to encrypt (paste the full Archive HTML here)</label>
+    <textarea id="content" placeholder="Paste the archive content here..."></textarea>
+  </div>
+
+  <button id="uploadBtn" onclick="encryptAndUpload()">Encrypt &amp; Upload</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lecudeiafwhyhufceurv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+
+function toBase64(bytes) {
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+
+async function deriveKey(passphrase, saltBytes) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+}
+
+async function encryptAndUpload() {
+  const statusEl = document.getElementById('status');
+  const btn = document.getElementById('uploadBtn');
+  const passphrase = document.getElementById('passphrase').value;
+  const content = document.getElementById('content').value;
+
+  statusEl.className = 'status';
+  statusEl.textContent = '';
+
+  if (!passphrase) {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Enter a passphrase.';
+    return;
+  }
+  if (!content.trim()) {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Paste the content to encrypt.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Encrypting...';
+
+  try {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(passphrase, salt);
+    const enc = new TextEncoder();
+    const ciphertextBuf = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv }, key, enc.encode(content)
+    );
+
+    btn.textContent = 'Uploading...';
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/archive`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        salt: toBase64(salt),
+        iv: toBase64(iv),
+        ciphertext: toBase64(new Uint8Array(ciphertextBuf))
+      })
+    });
+
+    if (res.ok) {
+      statusEl.className = 'status success';
+      statusEl.textContent = '✓ Uploaded successfully. The Archive is now updated.';
+    } else {
+      const errText = await res.text();
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Upload failed: ' + errText;
+    }
+  } catch (e) {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Encrypt & Upload';
+}
+</script>
+</body>
+</html>

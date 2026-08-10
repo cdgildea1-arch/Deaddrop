@@ -310,6 +310,13 @@ async function unlock() {
     document.getElementById('gate').style.display = 'none';
     document.getElementById('bookHeader').classList.add('show');
     currentPassphrase = passphrase;
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('archiveBookmark'));
+      if (saved && typeof saved.scrollY === 'number') {
+        setTimeout(() => window.scrollTo({ top: saved.scrollY, behavior: 'instant' }), 50);
+      }
+    } catch (e) {}
   } catch (e) {
     errorDiv.textContent = 'Wrong passphrase, or content unavailable.';
   }

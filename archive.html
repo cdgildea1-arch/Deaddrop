@@ -40,17 +40,23 @@
   .book-header {
     display: none !important;
     position: sticky !important; top: 0 !important; z-index: 999 !important;
-    align-items: center !important; gap: 10px !important;
-    padding: 10px 14px !important; padding-top: max(10px, env(safe-area-inset-top)) !important;
     background: rgba(250,247,242,0.94) !important; backdrop-filter: blur(8px);
     border-bottom: 1px solid #d8c9a8 !important;
+    padding-top: max(8px, env(safe-area-inset-top)) !important;
     font-family: -apple-system, sans-serif !important;
     width: 100% !important; box-sizing: border-box !important;
   }
-  .book-header.show { display: flex !important; }
-  .book-header .back-btn { color: #a9835a !important; font-size: 13px !important; background: none !important; border: none !important; padding: 6px 2px !important; white-space: nowrap !important; flex-shrink: 0 !important; }
+  .book-header.show { display: block !important; }
+  .book-header .header-row1 {
+    display: flex !important; align-items: center !important; justify-content: space-between !important;
+    padding: 4px 14px 6px !important;
+  }
+  .book-header .back-btn { color: #a9835a !important; font-size: 13px !important; background: none !important; border: none !important; padding: 4px 2px !important; white-space: nowrap !important; flex-shrink: 0 !important; }
+  .book-header .header-title { font-size: 11px !important; letter-spacing: 2px !important; color: #8a7a63 !important; text-transform: uppercase !important; }
+  .book-header .bookmark-btn { font-size: 17px !important; background: none !important; border: none !important; padding: 4px 2px !important; flex-shrink: 0 !important; }
+  .book-header .header-row2 { padding: 0 14px 10px !important; display: flex !important; align-items: center !important; gap: 8px !important; }
   .book-header input#searchInput {
-    flex: 1 1 auto !important; min-width: 40px !important; width: auto !important; display: inline-block !important;
+    flex: 1 1 auto !important; min-width: 0 !important; width: 100% !important; display: block !important;
     border: 1px solid #d8c9a8 !important; border-radius: 999px !important;
     padding: 8px 14px !important; font-size: 15px !important; background: #fffdf8 !important; color: #2b2419 !important;
     font-family: -apple-system, sans-serif !important; margin: 0 !important; height: auto !important;
@@ -58,7 +64,6 @@
   }
   .book-header input#searchInput:focus { outline: none; border-color: #a9835a !important; }
   .book-header .search-count { font-size: 11px !important; color: #8a7a63 !important; white-space: nowrap !important; flex-shrink: 0 !important; }
-  .book-header .bookmark-btn { font-size: 18px !important; background: none !important; border: none !important; padding: 4px 2px !important; flex-shrink: 0 !important; }
   mark.a-hit { background: #f2e2b8; color: inherit; padding: 0 2px; border-radius: 3px; }
   mark.a-hit.a-current { background: #a9714f; color: #fffdf8; }
   .pin-popup {
@@ -83,10 +88,15 @@
 <div class="pin-toast" id="pinToast"></div>
 
 <div class="book-header" id="bookHeader">
-  <button id="backBtn" class="back-btn" type="button">← Back</button>
-  <input type="search" id="searchInput" placeholder="Search the Archive…" autocapitalize="off" autocorrect="off" spellcheck="false">
-  <span class="search-count" id="searchCount"></span>
-  <button id="bookmarkBtn" class="bookmark-btn" type="button">🔖</button>
+  <div class="header-row1">
+    <button id="backBtn" class="back-btn" type="button">← Back</button>
+    <span class="header-title">THE ARCHIVE</span>
+    <button id="bookmarkBtn" class="bookmark-btn" type="button">🔖</button>
+  </div>
+  <div class="header-row2">
+    <input type="search" id="searchInput" placeholder="Search the Archive…" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <span class="search-count" id="searchCount"></span>
+  </div>
 </div>
 
 <div id="gate">

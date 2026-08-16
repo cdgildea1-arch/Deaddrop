@@ -35,7 +35,40 @@
     .rev{opacity:1;transform:none;transition:none;}
     .pair,.ttl,.sub,.dates,.cue{animation:none;}
   }
+
+  /* ---- Lock screen (matches site convention) ---- */
+  .lock-screen{position:fixed;inset:0;z-index:9999;background:#f4ecdd;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:40px 26px;
+    background-image:radial-gradient(rgba(169,131,90,0.045) 1px,transparent 1px);background-size:22px 22px;}
+  .lock-icon{font-size:40px;margin-bottom:22px;letter-spacing:10px;}
+  .lock-title{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-size:1.9rem;
+    font-weight:400;color:#4a3c28;margin-bottom:12px;}
+  .lock-sub{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-style:italic;
+    font-size:14px;color:#8a7a63;margin-bottom:26px;max-width:280px;line-height:1.6;}
+  .lock-divider{width:40px;height:1px;background:#c9a876;margin-bottom:28px;}
+  .lock-input{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;
+    width:100%;max-width:240px;padding:12px 16px;border:1px solid #ded2b6;border-radius:10px;
+    background:#fffdf8;color:#2b2419;text-align:center;margin-bottom:14px;outline:none;}
+  .lock-input:focus{border-color:#c9843a;}
+  .lock-btn{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;
+    letter-spacing:1.5px;text-transform:uppercase;background:#4a3c28;color:#f4ecdd;border:none;
+    padding:12px 32px;border-radius:10px;cursor:pointer;}
+  .lock-btn:active{transform:scale(.97);}
+  .lock-error{color:#c9605f;font-size:12.5px;margin-top:14px;min-height:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+  #siteContent{display:none;}
 </style></head><body>
+
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-icon">🧁 🐧</div>
+  <div class="lock-title">For You</div>
+  <div class="lock-sub">This one's just between us.</div>
+  <div class="lock-divider"></div>
+  <input type="password" id="surpPass" class="lock-input" placeholder="Passphrase" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <button id="surpUnlock" class="lock-btn">Enter</button>
+  <div class="lock-error" id="surpError"></div>
+</div>
+
+<div id="siteContent">
 
 <div class="cover">
   <div class="pair">🧁🐧</div>
@@ -507,4 +540,29 @@ Out of 5,828. Sixteen had a caption. The rest were just a voice, sent and heard 
   for(var j=N;j<W*H;j++){var o=j*4;d[o]=244;d[o+1]=236;d[o+2]=221;d[o+3]=255;}
   ctx.putImageData(img,0,0);
 })();
-</script></body></html>
+</script></div>
+
+<script>
+(function(){
+  var PASS = "penguin";
+  var lockScreen = document.getElementById('lockScreen');
+  var content = document.getElementById('siteContent');
+  var input = document.getElementById('surpPass');
+  var btn = document.getElementById('surpUnlock');
+  var err = document.getElementById('surpError');
+  function tryUnlock(){
+    if(input.value.trim().toLowerCase() === PASS){
+      lockScreen.style.display = 'none';
+      content.style.display = 'block';
+    } else {
+      err.textContent = 'Incorrect passphrase.';
+      input.value = '';
+      input.focus();
+    }
+  }
+  btn.addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter') tryUnlock(); });
+  setTimeout(function(){ input.focus(); }, 100);
+})();
+</script>
+</body></html>

@@ -1,0 +1,735 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f3ea">
+<title>Penguin</title>
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f7f3ea;
+  color:#171717;
+}
+button{font:inherit}
+.app{
+  width:100%;
+  max-width:760px;
+  margin:auto;
+  padding:22px 16px 70px;
+}
+.top{
+  text-align:center;
+  padding:25px 8px 18px;
+}
+.penguin{
+  font-size:72px;
+  cursor:pointer;
+  user-select:none;
+  display:inline-block;
+  transition:.2s;
+}
+.penguin:active{transform:scale(.86) rotate(-7deg)}
+h1{
+  margin:5px 0 4px;
+  font-size:30px;
+}
+.sub{
+  color:#777;
+  font-size:14px;
+  line-height:1.45;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+}
+.card{
+  border:1px solid #ded9ce;
+  background:#fff;
+  border-radius:18px;
+  padding:17px 14px;
+  min-height:112px;
+  text-align:left;
+  cursor:pointer;
+  box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
+.card:active{transform:scale(.98)}
+.icon{font-size:25px}
+.card strong{
+  display:block;
+  margin-top:8px;
+  font-size:15px;
+}
+.card span{
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+  color:#888;
+}
+.wide{grid-column:1/-1}
+
+.machine{
+  margin-top:14px;
+  background:#171717;
+  color:#fff;
+  border-radius:23px;
+  padding:20px;
+}
+.machine small{
+  color:#aaa;
+  letter-spacing:1.5px;
+}
+.machine h2{
+  margin:5px 0 13px;
+  font-size:25px;
+}
+.filters{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding-bottom:4px;
+  scrollbar-width:none;
+}
+.filters::-webkit-scrollbar{display:none}
+.filter{
+  white-space:nowrap;
+  border:1px solid #444;
+  color:#eee;
+  background:#272727;
+  border-radius:999px;
+  padding:8px 11px;
+  font-size:12px;
+}
+.filter:active{background:#444}
+
+.memory{
+  margin-top:14px;
+  background:#fff;
+  color:#171717;
+  min-height:190px;
+  border-radius:18px;
+  padding:21px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.memoryText{
+  font-size:18px;
+  line-height:1.52;
+  white-space:pre-line;
+}
+.memoryMeta{
+  margin-top:17px;
+  color:#999;
+  font-size:11px;
+}
+.next{
+  width:100%;
+  border:0;
+  margin-top:10px;
+  padding:13px;
+  border-radius:13px;
+  background:#fff;
+  color:#111;
+  font-weight:700;
+}
+.drawer{
+  display:none;
+  margin-top:14px;
+}
+.drawer.open{display:block}
+.drawerItem{
+  background:#fff;
+  border:1px solid #e2ddd3;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:9px;
+  font-size:14px;
+  line-height:1.45;
+}
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  transform:translateX(-50%) translateY(120px);
+  background:#111;
+  color:white;
+  padding:11px 17px;
+  border-radius:999px;
+  font-size:13px;
+  transition:.25s;
+  z-index:50;
+  white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{
+  text-align:center;
+  color:#aaa;
+  font-size:11px;
+  padding-top:30px;
+}
+@media(max-width:420px){
+  .app{padding-left:12px;padding-right:12px}
+  .card{min-height:105px;padding:14px 12px}
+  .penguin{font-size:64px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="penguin" id="penguin">🐧</div>
+    <h1>The Penguin Archive</h1>
+    <div class="sub">
+      There is absolutely nothing important in here.<br>
+      Pick something.
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <button class="card" onclick="pick('funny')">
+      <div class="icon">😂</div>
+      <strong>MAKE ME SMILE</strong>
+      <span>Archive nonsense.</span>
+    </button>
+
+    <button class="card" onclick="pick('random')">
+      <div class="icon">🎲</div>
+      <strong>SURPRISE ME</strong>
+      <span>No quality control.</span>
+    </button>
+
+    <button class="card" onclick="pick('sweet')">
+      <div class="icon">🫶🏻</div>
+      <strong>TELL ME SOMETHING NICE</strong>
+      <span>Nothing complicated.</span>
+    </button>
+
+    <button class="card" onclick="pick('tiny')">
+      <div class="icon">⏱️</div>
+      <strong>I HAVE 10 SECONDS</strong>
+      <span>One tiny thing.</span>
+    </button>
+
+    <button class="card wide" onclick="toggleDrawer()">
+      <div class="icon">🗄️</div>
+      <strong>THE GOOD DRAWER</strong>
+      <span>A pile of good things with absolutely no organizational discipline.</span>
+    </button>
+
+  </div>
+
+  <section class="machine">
+    <small>🐧 THE MEMORY MACHINE</small>
+    <h2>There are way too many of these.</h2>
+
+    <div class="filters">
+      <button class="filter" onclick="pick('random')">Good one</button>
+      <button class="filter" onclick="pick('funny')">Funny</button>
+      <button class="filter" onclick="pick('sweet')">Sweet</button>
+      <button class="filter" onclick="pick('ordinary')">Ordinary</button>
+      <button class="filter" onclick="pick('tiny')">Tiny</button>
+      <button class="filter" onclick="pick('weird')">Zero context</button>
+    </div>
+
+    <div class="memory">
+      <div class="memoryText" id="memoryText">
+        Press a button.
+
+        The penguin refuses to make this more complicated than necessary.
+      </div>
+      <div class="memoryMeta" id="memoryMeta">waiting irresponsibly</div>
+    </div>
+
+    <button class="next" onclick="pick(currentType)">ANOTHER →</button>
+  </section>
+
+  <div class="drawer" id="drawer"></div>
+
+  <div class="footer">
+    recovered from the archive • no speeches required
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const memories = [
+
+{t:"funny",x:`🐧: Did you work out today?
+🧁: I did not. Turns out I ate lunch and dinner instead!`},
+
+{t:"funny",x:`🐧: You haven't seen me in my onsie yet?!? Right? lol
+🧁: I did yes. It’s okay!
+🧁: Hahahaha
+🐧: Lol yep told you. Onsie. Just slip it on right over my clothes.`},
+
+{t:"ordinary",x:`🧁: Wait how did you sleep?!
+🐧: I slept pretty good actually.`},
+
+{t:"funny",x:`🐧: Haha you can complain!
+🧁: lol that’s right! I can.`},
+
+{t:"sweet",x:`🐧: You make me smile 😊🥰😃
+🧁: Thank you for that last biggest smile for the night!`},
+
+{t:"tiny",x:`🐧: Morning 😊
+🧁: Goodmorning.`},
+
+{t:"funny",x:`🧁: Apparently I don’t need voice. Very good.
+🐧: Haha oh I repeated that after your voice. Quick summary
+🧁: Haha yeah you did what I couldn’t do!`},
+
+{t:"weird",x:`🧁: Video
+lol my wheel fell off.
+🐧: What?!?`},
+
+{t:"funny",x:`🧁: Currently, I’m looking for my wheel off of I 20.
+🐧: SO weird!`},
+
+{t:"ordinary",x:`🐧: Isn't it cold?!?
+🧁: It’s actually feeling good. Like the last 10 minutes. With the sun out has changed it. IMO!`},
+
+{t:"funny",x:`🐧: Fun! During your sabbatical?
+🧁: Haha no clue… great question
+🐧: Do something like disc golf? Cleaning?`},
+
+{t:"tiny",x:`🐧: Haha
+🧁: Hahaha`},
+
+{t:"sweet",x:`🐧: Awe yeah I know what you mean. You're cute 🥰`},
+
+{t:"funny",x:`🧁: Yep, I’m a big pushover. Cannot even pull off a joke!
+🐧: Lol I'd have wondered for a minute!!`},
+
+{t:"funny",x:`🧁: You are like a hallmark card sometimes.
+🐧: Hahaha I'm not sure if you're serious or not.`},
+
+{t:"sweet",x:`🧁: Whichever one made you happier :)
+🐧: One is happy. One is need.`},
+
+{t:"tiny",x:`🧁: Yeah😊
+🐧: Yeah`},
+
+{t:"funny",x:`🧁: lol if I need to rephrase or something lol. Maybe you delete it and I send again.
+Concerning the shower surround!
+🐧: I think it's fine.`},
+
+{t:"funny",x:`🐧: I almost said pretty instead of not ugly but in general that's a risky thing to say when you're talking to men about home projects so I went with "not ugly" haha.`},
+
+{t:"sweet",x:`🐧: You’re cute. You make me smile!`},
+
+{t:"funny",x:`Coffee apparently means Monster now.`},
+
+{t:"ordinary",x:`🧁: Umm yeah I was just about to step out and throw some disc!
+🧁: Crazy timing then.`},
+
+{t:"tiny",x:`🐧: Got it
+🧁: Correct.`},
+
+{t:"funny",x:`🐧: Guest room?
+🧁: lol some might call it that yeah!
+🐧: Oh I liked it!!`},
+
+{t:"sweet",x:`🐧: Oh that's sweet!!
+🧁: Good!`},
+
+{t:"tiny",x:`🐧: Haha yes
+🧁: Hahaha`},
+
+{t:"ordinary",x:`🐧: Well what's up today?
+🧁: Wait how did you sleep?!`},
+
+{t:"funny",x:`🧁: I think it was throwing more disc golf stuff yesterday or the day before. Or I lifted something oddly that I cannot remember quite yet!`},
+
+{t:"weird",x:`🧁: I did a little assessment and that’s what my back told me!`},
+
+{t:"funny",x:`🐧: Lol what?!
+🧁: lol… I have the answer!
+🐧: Haha oh!!!!`},
+
+{t:"ordinary",x:`🐧: Sorry give me a few
+🧁: No worries. You are good.`},
+
+{t:"tiny",x:`🐧: Oh!!
+🧁: Understood!`},
+
+{t:"funny",x:`🧁: I didn’t know what direction to go! Serious or a joke. So went in the middle!
+🐧: I can see that.`},
+
+{t:"weird",x:`🐧: Your new spacing is throwing me off a bit
+🧁: It’s what the kids are doing these days.`},
+
+{t:"funny",x:`🧁: Just changing all my question reply’s to positive ones:)
+🐧: Haha yes.`},
+
+{t:"sweet",x:`🐧: Just some happy thought.`},
+
+{t:"funny",x:`🧁: Hmm mind control much?
+🐧: Haha what?!`},
+
+{t:"tiny",x:`🧁: This sounds fun?
+🐧: Haha yes this!`},
+
+{t:"funny",x:`🐧: And? You don't like it?
+🧁: I don’t dislike it!`},
+
+{t:"tiny",x:`🧁: You did a perfect job:)
+🐧: lol`},
+
+{t:"funny",x:`🧁: No no no no no stop.
+🐧: Oh Chris`},
+
+{t:"ordinary",x:`🧁: Let’s go to bed?
+🐧: lol no I thought maybe you did.`},
+
+{t:"sweet",x:`🧁: I hope you’re happy. I make you happy.`},
+
+{t:"ordinary",x:`🐧: But I am tired so maybe just confused
+🧁: Ahh just tired!`},
+
+{t:"tiny",x:`🧁: I know you need to go to bed!
+🐧: No no it's fine.`},
+
+{t:"sweet",x:`🧁: Good night 😚
+🐧: Goodnight 😘`},
+
+{t:"weird",x:`🧁: U up?`},
+
+{t:"ordinary",x:`🧁: Goodmorning. Wanna go to QT in a few?
+🐧: Aww I wish I could!`},
+
+{t:"tiny",x:`🧁: I will:) goodmorning.
+🐧: Morning 😊`},
+
+{t:"funny",x:`🐧: Haha oh yeah. I forgot that!!
+🐧: Lol
+🧁: Ohhh !!! Well you got me!`},
+
+{t:"sweet",x:`🧁: Well… I’m blushing. That’s a really fun response.
+🐧: I like this response too!! ☺️`},
+
+{t:"funny",x:`🧁: Well I’m gonna be shy tomorrow morning I know that
+🐧: More shy than usual?!`},
+
+{t:"ordinary",x:`🧁: I think that sounds so lovely and want you to go to bed early
+🐧: Youre sweet.`},
+
+{t:"funny",x:`🐧: Hahaha whatever.`},
+
+{t:"tiny",x:`🐧: I wish!!
+🧁: I know right… !!`},
+
+{t:"weird",x:`🐧: I want!!
+🧁: What exactly?!`},
+
+{t:"funny",x:`🧁: Yeah you clearly showed your opinion up front!
+🐧: Haha how?`},
+
+{t:"funny",x:`🐧: Yeah I couldn't even figure out what I meant for a min
+🧁: lol yeah I had to try!`},
+
+{t:"weird",x:`🧁: Not a typo. Just the whole thing!`},
+
+{t:"tiny",x:`🐧: Haha
+🧁: Hey looking out for you…`},
+
+{t:"sweet",x:`🧁: Thank you for that last biggest smile for the night!
+🐧: You make me smile 😊🥰😃`},
+
+{t:"ordinary",x:`🐧: Morning!! It's Saturday. Hope you slept well
+🧁: Morning! Hope you slept well!`},
+
+{t:"tiny",x:`🐧: Oh yeah?! 😊
+🧁: Yeah😊`},
+
+{t:"funny",x:`🧁: Yeah… back at it again!
+🐧: Shelves cabinets and bookshelves.`},
+
+{t:"weird",x:`🧁: No doctor. Just give me 2 hours a day for a week!
+🐧: Yeah!! That's what I was thinking and picturing.`},
+
+{t:"funny",x:`🐧: Haha no way
+🧁: Well nothing planned!`},
+
+{t:"tiny",x:`🐧: lol
+🧁: Your thought? lol
+🐧: Yeah`},
+
+{t:"ordinary",x:`🐧: You ok?
+🧁: 100 percent I’m okay.`},
+
+{t:"funny",x:`🧁: Oh no! What did I do?!
+🐧: Haha what does that mean?`},
+
+{t:"weird",x:`🧁: Edited
+🐧: Haha`},
+
+{t:"tiny",x:`🐧: Huh?
+🧁: Edited`},
+
+{t:"funny",x:`🐧: Haha yeah talk talk soon!
+🧁: Ehh it would be neat!`},
+
+{t:"ordinary",x:`🐧: I might have some openings today.
+🧁: Okay that sounds good!`},
+
+{t:"funny",x:`🧁: Totally understand. Yeah I haven’t started disc golf yet… even. Still small work stuff. Still in my car!`},
+
+{t:"tiny",x:`🐧: Yeah I meant talking to you
+🧁: Ohhhh I love it!`},
+
+{t:"funny",x:`🐧: Hmm it's not as good.
+🧁: It’s actually not that bad! Just feet noise.`},
+
+{t:"ordinary",x:`🧁: Can I call real quick to test?
+🐧: Haha yes.`},
+
+{t:"funny",x:`🐧: Lol I mean I have no idea what your txts to other rental owners are but seems normal to me 🤷🏻‍♀️`},
+
+{t:"tiny",x:`🐧: Hahaha
+🧁: lol very good!`},
+
+{t:"ordinary",x:`🧁: Okay leaving cat.
+Umm hope you are loving your hair.`},
+
+{t:"sweet",x:`🧁: Hahaha you do look goood!`},
+
+{t:"sweet",x:`🧁: Love everything about this!!`},
+
+{t:"funny",x:`🐧: Lol if you're quoting me. Just being exact! Haha`},
+
+{t:"sweet",x:`🐧: Oh that's sweet!!`},
+
+{t:"tiny",x:`🧁: Good!
+… It is normal:)`},
+
+{t:"funny",x:`🧁: You are like a hallmark card sometimes.`},
+
+{t:"ordinary",x:`🐧: Youre sweet.`},
+
+{t:"tiny",x:`🧁: Just curious!`},
+
+{t:"weird",x:`🧁: Crazy timing then.`},
+
+{t:"funny",x:`🧁: lol true about the eyes! Aww`},
+
+{t:"sweet",x:`🧁: I’m glad I made you do another video.`},
+
+{t:"funny",x:`🐧: Hahaha no! You are also not close in personality
+🧁: lol very good!`},
+
+{t:"tiny",x:`🐧: Haha yes`},
+
+{t:"ordinary",x:`🧁: No worries. You are good.`},
+
+{t:"sweet",x:`🐧: You make me smile 😊`},
+
+{t:"funny",x:`🧁: Turns out I ate lunch and dinner instead!`},
+
+{t:"weird",x:`🐧: Bunk beds?
+🧁: Yeah… back at it again!`},
+
+{t:"tiny",x:`🐧: Got it.`},
+
+{t:"ordinary",x:`🐧: Well what's up today?`},
+
+{t:"sweet",x:`🐧: Awe yeah I know what you mean.`},
+
+{t:"funny",x:`🧁: Serious or a joke. So went in the middle!`},
+
+{t:"weird",x:`🐧: Huh?
+🧁: Yeah.`},
+
+{t:"tiny",x:`🧁: Okay good!`},
+
+{t:"ordinary",x:`🐧: Hope you slept well.`},
+
+{t:"sweet",x:`🧁: That makes me smile.`},
+
+{t:"funny",x:`🐧: Haha what?!`},
+
+{t:"tiny",x:`🧁: Hahaha`},
+
+{t:"weird",x:`🧁: Great question.`},
+
+{t:"ordinary",x:`🐧: Oh yeah that makes sense!`},
+
+{t:"funny",x:`🧁: Apparently I don’t need voice.`},
+
+{t:"sweet",x:`🐧: You're cute 🥰`},
+
+{t:"tiny",x:`🐧: Morning!!`},
+
+{t:"ordinary",x:`🧁: Yeah sound seems pretty good!`},
+
+{t:"funny",x:`🐧: Lol what?!`},
+
+{t:"weird",x:`🧁: I have the answer!`},
+
+{t:"sweet",x:`🧁: Whichever one made you happier :)`},
+
+{t:"tiny",x:`🐧: Haha`},
+
+{t:"ordinary",x:`🧁: Understood!`},
+
+{t:"funny",x:`🐧: More shy than usual?!`},
+
+{t:"weird",x:`🧁: It’s what the kids are doing these days.`},
+
+{t:"sweet",x:`🐧: Just some happy thought.`},
+
+{t:"tiny",x:`🧁: Yeah😊`},
+
+{t:"ordinary",x:`🐧: I think it's fine.`},
+
+{t:"funny",x:`🧁: No quality control.`},
+
+{t:"weird",x:`🐧: SO weird!`},
+
+{t:"sweet",x:`🧁: Love everything about this!!`},
+
+{t:"tiny",x:`🐧: Oh!!`},
+
+{t:"ordinary",x:`🧁: Okay that sounds good!`},
+
+{t:"funny",x:`🐧: Haha oh!!!!`},
+
+{t:"weird",x:`🧁: Just the whole thing!`},
+
+{t:"sweet",x:`🐧: You make me smile.`},
+
+{t:"tiny",x:`🧁: Goodmorning.`}
+
+];
+
+let currentType="random";
+let last=-1;
+
+function eligible(type){
+  if(type==="random") return memories;
+  return memories.filter(m=>m.t===type);
+}
+
+function pick(type="random"){
+  currentType=type;
+  const pool=eligible(type);
+  if(!pool.length)return;
+
+  let item;
+  let index;
+
+  do{
+    index=Math.floor(Math.random()*pool.length);
+    item=pool[index];
+  }while(pool.length>1 && memories.indexOf(item)===last);
+
+  last=memories.indexOf(item);
+
+  const text=document.getElementById("memoryText");
+  text.style.opacity="0";
+
+  setTimeout(()=>{
+    text.textContent=item.x;
+    document.getElementById("memoryMeta").textContent=
+      label(item.t)+" • recovered from the archive";
+    text.style.opacity="1";
+  },120);
+}
+
+function label(t){
+  return {
+    funny:"FUNNY",
+    sweet:"SWEET",
+    ordinary:"ORDINARY",
+    tiny:"TINY",
+    weird:"ZERO CONTEXT"
+  }[t]||"RANDOM";
+}
+
+function toggleDrawer(){
+  const d=document.getElementById("drawer");
+
+  if(d.classList.contains("open")){
+    d.classList.remove("open");
+    return;
+  }
+
+  const shuffled=[...memories]
+    .sort(()=>Math.random()-.5)
+    .slice(0,35);
+
+  d.innerHTML=`
+    <div style="padding:12px 4px 10px">
+      <strong>THE GOOD DRAWER</strong>
+      <div style="font-size:12px;color:#888;margin-top:3px">
+        35 things grabbed without asking permission.
+      </div>
+    </div>
+  `+shuffled.map(m=>`
+    <div class="drawerItem">
+      ${escapeHTML(m.x).replace(/\n/g,"<br>")}
+      <div style="font-size:10px;color:#aaa;margin-top:8px">
+        ${label(m.t)}
+      </div>
+    </div>
+  `).join("");
+
+  d.classList.add("open");
+  d.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function escapeHTML(s){
+  return s.replace(/[&<>"']/g,c=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[c]));
+}
+
+const penguin=document.getElementById("penguin");
+let taps=0;
+
+penguin.addEventListener("click",()=>{
+  taps++;
+
+  const messages=[
+    "The penguin has been notified.",
+    "Please stop poking the archive.",
+    "🐧",
+    "Official Penguin Finding: suspicious amount of tapping.",
+    "Achievement unlocked: bothered a penguin.",
+    "The penguin refuses to elaborate.",
+    "Fine. Have a memory."
+  ];
+
+  showToast(messages[(taps-1)%messages.length]);
+
+  if(taps%7===0) pick("random");
+});
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(window.toastTimer);
+  window.toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+document.getElementById("memoryText").style.transition="opacity .12s";
+
+setTimeout(()=>pick("random"),450);
+</script>
+</body>
+</html>

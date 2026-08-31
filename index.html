@@ -121,8 +121,8 @@
 <script>
 (function() {
   const TP_KEY = 'tiny_penguin_state';
-  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","Normal Brad, reporting for duty.","...","🫶🏻","Purposeful hang up?"];
-  const TP_ARTIFACTS = ["Blue Dress","The Bag","Good Morning","Sleepyhead","Normal Brad","The Hotel Key","Forever","The Magnolia House","Vulnerable Jimmy","Tommy"];
+  const TP_LINES_IDLE = ["Good morning.","Sleepyhead...","I wonder where Cupcake is.","The bag won't fail you.","Forever, twice.","I like the blue.","...","🫶🏻","Purposeful hang up?"];
+  const TP_ARTIFACTS = ["Blue Dress","The Bag","Good Morning","Sleepyhead","The Hotel Key","Forever","The Magnolia House","Vulnerable Jimmy","Tommy"];
   function tpNow() { return Date.now(); }
   function tpLoad() {
     try { const raw = localStorage.getItem(TP_KEY); if (raw) return JSON.parse(raw); } catch (e) {}

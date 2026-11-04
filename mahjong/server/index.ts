@@ -2,6 +2,7 @@ import {Engine,HandEngine,reduceOnline} from './engine.js';
 // Room links are invitations; the independent device secret authorizes each saved seat.
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store'};
 const token=(x:unknown)=>typeof x==='string'&&/^[a-f0-9]{24}$/.test(x);
+const roomCode=(x:unknown)=>typeof x==='string'&&/^(?:[0-9]{8}|[a-f0-9]{24})$/.test(x);
 const hash=async(s:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),n=>n.toString(16).padStart(2,'0')).join('');
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json'}});
 async function db(path:string,method='GET',body?:unknown){const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;const r=await fetch(Deno.env.get('SUPABASE_URL')+'/rest/v1/mahjong_rooms_v2'+path,{method,headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json',Prefer:'return=representation'},body:body===undefined?undefined:JSON.stringify(body)});if(!r.ok)throw new Error('Storage unavailable');return await r.json()}
@@ -13,7 +14,7 @@ Deno.serve(async(req:Request)=>{
  try{
   if(Number(req.headers.get('content-length')||0)>10000)return reply({error:'Request too large.'},413);
   const raw=await req.text();if(raw.length>10000)return reply({error:'Request too large.'},413);
-  const b=JSON.parse(raw);if(!token(b.code)||!token(b.secret))return reply({error:'Use the full room code and your saved player seat.'},400);
+  const b=JSON.parse(raw);if(!roomCode(b.code)||!token(b.secret))return reply({error:'Use the full room code and your saved player seat.'},400);
   const secretHash=await hash(b.secret),path='?code=eq.'+b.code;
   let row=(await db(path))[0];
   const name=typeof b.name==='string'?b.name.trim().slice(0,18)||'Player 2':'Player 2';
@@ -23,6 +24,12 @@ Deno.serve(async(req:Request)=>{
    row=(await db('','POST',{code:b.code,host_hash:secretHash,game:makeGame(level,rules,name)}))[0];return reply(view(row,0));
   }
   if(!row)return reply({error:'This saved room was not found. Ask for a new invite.'},404);
+  // Reserved rooms have no player keys until the first person joins.
+  if(b.op==='join'&&row.host_hash==='unclaimed'){
+   const level=['easy','medium','large'].includes(b.level)?b.level:'easy',rules=['pairs','mini','full'].includes(b.rules)?b.rules:'pairs';
+   const rows=await db(path+'&rev=eq.'+row.rev+'&host_hash=eq.unclaimed','PATCH',{host_hash:secretHash,game:makeGame(level,rules,name),rev:row.rev+1,updated_at:new Date().toISOString()});
+   if(!rows.length)return reply({error:'The room changed while joining. Please try again.'},409);row=rows[0];
+  }
   let seat=row.host_hash===secretHash?0:row.guest_hash===secretHash?1:-1;
   if(b.op==='join'&&seat<0){
    if(row.guest_hash)return reply({error:'This room already has two players. Reopen it on the device you used before, or ask for a new room.'},403);

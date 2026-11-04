@@ -1,6 +1,6 @@
 -- Applied as migration mahjong_saved_rooms on 2026-11-04.
 create table public.mahjong_rooms_v2 (
- code text primary key check(code ~ '^[a-f0-9]{24}$'),
+ code text primary key check(code ~ '^(?:[0-9]{8}|[a-f0-9]{24})$'),
  host_hash text not null,
  guest_hash text,
  game jsonb not null,

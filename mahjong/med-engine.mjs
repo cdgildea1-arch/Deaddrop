@@ -10,7 +10,34 @@ export function discardIndex(hand){let bestScore=99,choice=0;hand.forEach((_,i)=
 export function hash(s){let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0}
 export function rng(seed){let n=seed>>>0;return()=>{n+=0x6d2b79f5;let t=Math.imul(n^n>>>15,1|n);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
 export function shuffle(a,r){for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-export function createGame(seed,kind='online'){const r=rng(hash(seed)),wall=shuffle(types.flatMap(t=>Array(4).fill(t)),r),hands=[[],[],[],[]];for(const seat of [0,2]){const target=plans()[Math.floor(r()*9)],pool=target.parts.flat();shuffle(pool,r);for(let i=0;i<8;i++){const t=pool.pop(),idx=wall.indexOf(t);if(idx>=0)hands[seat].push(...wall.splice(idx,1))}}for(let p=0;p<4;p++)while(hands[p].length<13)hands[p].push(wall.pop());return{seed,kind,wall,hands,discards:[[],[],[],[]],turn:0,drawn:false,drawnIndex:-1,ended:false,winner:-1,moves:0,log:'Draw a tile to begin. Pick a printed goal as you play.',names:['Player 1','Ivy','Player 2','Lily']}}
+export function createGame(seed,kind='online'){
+ const r=rng(hash(seed)),wall=shuffle(types.flatMap(t=>Array(4).fill(t)),r),hands=[[],[],[],[]],all=plans();
+ const first=all[Math.floor(r()*all.length)];
+ const fits=(a,b)=>Object.entries(counts([...a.parts.flat(),...b.parts.flat()])).every(([,n])=>n<=4);
+ const choices=all.filter(p=>fits(first,p));
+ const second=choices[Math.floor(r()*choices.length)];
+ const hostStart=kind==='practice'||r()<.5?11:10;
+ const starts=[hostStart,kind==='practice'?10:21-hostStart];
+ const missing=[[],[]];
+ for(const [i,plan] of [first,second].entries()){
+  const target=shuffle([...plan.parts.flat()],r);
+  for(let j=0;j<target.length;j++){
+   const at=wall.indexOf(target[j]);const tile=wall.splice(at,1)[0];
+   if(j<starts[i])hands[i*2].push(tile);else missing[i].push(tile);
+  }
+ }
+ for(const [i,plan] of [first,second].entries()){
+  const needed=new Set(plan.parts.flat());
+  while(hands[i*2].length<13){const candidates=wall.map((t,j)=>needed.has(t)?-1:j).filter(j=>j>=0);hands[i*2].push(...wall.splice(candidates[Math.floor(r()*candidates.length)],1))}
+ }
+ for(const seat of [1,3])while(hands[seat].length<13)hands[seat].push(wall.pop());
+ // Each real player has a complete path through the next few draws.
+ // Computer turns still draw from the wall, so the sequence respects tile counts.
+ const next=[];
+ for(let i=0;i<4;i++)next.push(missing[0][i]??wall.pop(),wall.pop(),missing[1][i]??wall.pop(),wall.pop());
+ wall.push(...next.reverse());
+ return{seed,kind,wall,hands,discards:[[],[],[],[]],turn:0,drawn:false,drawnIndex:-1,ended:false,winner:-1,moves:0,log:'Draw a tile to begin. Pick a printed goal as you play.',names:['Player 1','Ivy','Player 2','Lily']}
+}
 export function valid(g){if(!g||!Array.isArray(g.wall)||!Array.isArray(g.hands)||g.hands.length!==4||!Array.isArray(g.discards)||g.discards.length!==4)return false;const all=[...g.wall,...g.hands.flat(),...g.discards.flat()];const c=counts(all);return all.length===types.length*4&&types.every(t=>c[t]===4)&&[0,2].includes(g.turn)&&typeof g.drawn==='boolean'}
-export function apply(g,action,seat){if(!valid(g)||g.ended||seat!==g.turn||![0,2].includes(seat))return null;const next=structuredClone(g),h=next.hands[seat];if(action.kind==='draw'){if(next.drawn)return null;if(!next.wall.length){next.ended=true;next.winner=-1;next.log='The wall is empty. This hand is a draw.';return next}h.push(next.wall.pop());next.drawn=true;next.moves++;next.log=`${next.names[seat]} drew a tile.`;return next}if(action.kind==='win'){if(!next.drawn||!winner(h))return null;next.ended=true;next.winner=seat;next.result=winner(h);next.log=`${next.names[seat]} made Mahjong with ${next.result.name}.`;return next}if(action.kind==='discard'){if(!next.drawn||!Number.isInteger(action.index)||action.index<0||action.index>=14)return null;const t=h.splice(action.index,1)[0];next.discards[seat].push(t);next.drawn=false;const bot=seat===0?1:3;if(!next.wall.length){next.ended=true;next.winner=-1;next.log='The wall is empty. This hand is a draw.';return next}next.hands[bot].push(next.wall.pop());const w=winner(next.hands[bot]);if(w){next.ended=true;next.winner=bot;next.result=w;next.log=`${next.names[bot]} made Mahjong with ${w.name}.`;return next}next.discards[bot].push(next.hands[bot].splice(discardIndex(next.hands[bot]),1)[0]);next.turn=seat===0?2:0;next.log=`${next.names[seat]} discarded ${t}. ${next.names[bot]} played. Waiting for ${next.names[next.turn]}.`;return next}return null}
+export function apply(g,action,seat){if(!valid(g)||g.ended||seat!==g.turn||![0,2].includes(seat))return null;const next=structuredClone(g),h=next.hands[seat];if(action.kind==='draw'){if(next.drawn)return null;if(!next.wall.length){next.ended=true;next.winner=-1;next.log='The wall is empty. This hand is a draw.';return next}h.push(next.wall.pop());next.drawn=true;next.moves++;next.log=`${next.names[seat]} drew a tile.`;return next}if(action.kind==='win'){if(!next.drawn||!winner(h))return null;next.ended=true;next.winner=seat;next.result=winner(h);next.log=`${next.names[seat]} made Mahjong with ${next.result.name}.`;return next}if(action.kind==='discard'){if(!next.drawn||!Number.isInteger(action.index)||action.index<0||action.index>=14)return null;const t=h.splice(action.index,1)[0];next.discards[seat].push(t);next.drawn=false;const bot=seat===0?1:3;if(!next.wall.length){next.ended=true;next.winner=-1;next.log='The wall is empty. This hand is a draw.';return next}next.hands[bot].push(next.wall.pop());const w=winner(next.hands[bot]);if(w&&next.moves>8){next.ended=true;next.winner=bot;next.result=w;next.log=`${next.names[bot]} made Mahjong with ${w.name}.`;return next}next.discards[bot].push(next.hands[bot].splice(discardIndex(next.hands[bot]),1)[0]);next.turn=seat===0?2:0;next.log=`${next.names[seat]} discarded ${t}. ${next.names[bot]} played. Waiting for ${next.names[next.turn]}.`;return next}return null}
 export function viewGame(g,seat){const x=structuredClone(g);x.hands=x.hands.map((h,i)=>i===seat?h:Array(h.length).fill('?'));x.wall=Array(x.wall.length).fill('?');return x}

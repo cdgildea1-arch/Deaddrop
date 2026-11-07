@@ -43,6 +43,16 @@ Deno.serve(async (req: Request) => {
     }
     if (!row) return reply({ error: 'No room with that code. Double-check it with your friend.' }, 404);
 
+    // Start over: empties both seats and the messages and issues a new live key, which cuts off both phones.
+    // A seated phone can reset any room. Anyone can reset a reserved 8-digit room, so a lost phone can't lock it.
+    if (b.op === 'reset') {
+      const seated = row.host_hash === secretHash || row.guest_hash === secretHash;
+      if (!seated && !/^[0-9]{8}$/.test(b.code)) return reply({ error: 'This phone is not part of that room.' }, 403);
+      const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { host_hash: /^[0-9]{8}$/.test(b.code) ? 'unclaimed' : secretHash, guest_hash: null,
+        names: ['', ''], messages: [], live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
+      if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
+      return reply({ reset: true });
+    }
     // Reserved rooms (8-digit codes) start with host_hash 'unclaimed'; the first join takes the first seat.
     if (b.op === 'join' && row.host_hash === 'unclaimed') {
       const names = [cleanName(b.name, 'Player 1'), row.names[1] || ''];

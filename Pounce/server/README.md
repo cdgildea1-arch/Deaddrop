@@ -9,3 +9,7 @@ Room `25800852` is reserved and is the default in the app. It was created with `
 ## Live games
 
 The room view also returns `live`, a random key that only the two seated phones receive. Both phones join the Supabase Realtime broadcast channel `pounce-live-<live>`. The room's first seat is the host: it deals, keeps the authoritative board, and resolves races for the same center pile. The second seat plays immediately on its own phone, sends each move to the host, and replaces its board with the host's whenever the host's copy arrives, then replays any moves the host hasn't confirmed yet. Presence tracks who is in the lobby or in a game and whether they are ready. The host saves the match in localStorage, so a reloaded phone picks up where it left off.
+
+## Resetting a room
+
+`op: 'reset'` empties both seats and the messages and issues a new `live` key, which cuts off both phones. A seated phone can reset its room. Anyone can reset a reserved 8-digit room (it goes back to `unclaimed`), so a lost or stale phone can't lock it. The app offers this as "Cancel game and reset room" in the lobby and the live pause menu, and as "Reset room 25800852" when a join finds the room full.

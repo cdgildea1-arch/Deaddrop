@@ -159,6 +159,38 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
 #banner small{display:block;font-size:22px;margin-top:10px;text-shadow:0 2px 6px #000c}
 @keyframes boom{from{transform:scale(.2) rotate(-10deg);opacity:0}}
 #confetti{position:fixed;inset:0;z-index:120;pointer-events:none}
+/* ---------- chat ---------- */
+.chatbtn{position:relative}
+.chatbtn .badge{position:absolute;right:-5px;top:-5px;background:var(--you);color:#fff}
+#chat{position:fixed;inset:0;z-index:110;display:flex;justify-content:center;background:#10002bcc;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.chatbox{width:100%;max-width:520px;height:var(--vvh,100%);display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),10px) 12px max(env(safe-area-inset-bottom),10px);background:linear-gradient(180deg,#3c096c,#240046)}
+.chathead{display:flex;align-items:center;gap:10px;flex:none;padding-bottom:10px;border-bottom:1px solid #ffffff1a}
+.chathead h2{margin:0;font-size:24px;flex:1}
+.chathead small{display:block;font-size:13px;color:#c8b6e2;font-weight:500}
+.codepill{background:#ffffff18;border-radius:12px;padding:6px 10px;font-size:18px;letter-spacing:3px;font-weight:700;color:var(--gold)}
+.msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 2px;display:flex;flex-direction:column;gap:6px;-webkit-user-select:text;user-select:text}
+.msg{max-width:80%;padding:8px 12px;border-radius:18px 18px 18px 5px;background:#ffffff1f;align-self:flex-start;font-size:16px;line-height:1.35;overflow-wrap:anywhere;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:linear-gradient(180deg,#ff7aa5,#ff5d8f);border-radius:18px 18px 5px 18px}
+.msg.emo{font-size:38px;background:none!important;padding:0 4px}
+.msg time{display:block;font-size:10px;opacity:.6;margin-top:2px}
+.msg.pending{opacity:.55}
+.sysmsg{align-self:center;font-size:13px;color:#c8b6e2;text-align:center;padding:4px 10px}
+.quick{display:flex;gap:6px;overflow-x:auto;flex:none;padding:6px 0;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick button{flex:none;background:#ffffff18;border-radius:16px;padding:7px 12px;font-size:15px;font-weight:600}
+.sendrow{display:flex;gap:8px;flex:none}
+.sendrow input,.field{flex:1;min-width:0;font:inherit;font-size:16px;color:#fff;background:#10002b99;border:1px solid #ffffff33;border-radius:16px;padding:12px 14px;outline:none;-webkit-user-select:text;user-select:text}
+.field{flex:none;width:100%;display:block;text-align:center;margin:8px 0}
+.field.code{font-size:26px;letter-spacing:6px;text-transform:uppercase;font-weight:700}
+.sendrow button{width:52px;border-radius:16px;background:var(--gold);color:#5a2d00;font-size:22px;font-weight:700}
+.setup{flex:1;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:10px 4px}
+.setup p{color:#e0c3fc;margin:4px 0;line-height:1.45}
+.setup .or{margin:14px 0 4px;color:#c8b6e2;font-size:13px;letter-spacing:2px}
+.err{color:#ff8fa3;min-height:20px;font-size:14px}
+#toast{position:fixed;left:50%;top:max(env(safe-area-inset-top),10px);transform:translateX(-50%);z-index:95;pointer-events:none;max-width:min(92vw,460px)}
+#toast div{background:#fff;color:#240046;border-radius:18px;padding:9px 14px;font-size:15px;font-weight:600;box-shadow:0 10px 30px #0008;animation:rise .25s ease-out;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toast b{color:#c9346a}
 @media (max-height:700px){ .logo{font-size:52px} .fan{height:80px} .panel{padding:10px 12px 0} .opt{margin-bottom:9px} .seg button{padding:7px 4px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
@@ -183,6 +215,7 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
     </div>
     <button class="big alt hidden" id="continueBtn">Continue match</button>
     <button class="big" id="playBtn">Deal me in!</button>
+    <button class="big alt chatOpen" id="menuChat">💬 Chat with a friend</button>
     <div><button class="link" id="howBtn">How to play</button></div>
     <div class="record" id="record"></div>
   </section>
@@ -192,6 +225,7 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
       <button class="iconbtn" id="pauseBtn" aria-label="Pause">❚❚</button>
       <div class="chips" id="chips"></div>
       <button class="iconbtn hidden" id="stuckBtn">Stuck?</button>
+      <button class="iconbtn chatbtn chatOpen" aria-label="Chat">💬<span class="badge hidden" id="chatBadge"></span></button>
       <div class="rnd" id="rnd"></div>
     </div>
     <div class="opps" id="opps"></div>
@@ -203,6 +237,8 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
   </section>
 </div>
 <div id="banner"></div>
+<div id="toast"></div>
+<div id="chat" class="hidden"><div class="chatbox" id="chatbox"></div></div>
 <div id="overlay" class="overlay hidden"></div>
 <canvas id="confetti" class="hidden"></canvas>
 
@@ -448,7 +484,7 @@ function onTap(key){
 
 document.addEventListener('pointerdown', e => {
   const el = e.target.closest('[data-tap]');
-  if(!el || !$('#overlay').classList.contains('hidden')) return;
+  if(!el || !$('#overlay').classList.contains('hidden') || !$('#chat').classList.contains('hidden')) return;
   e.preventDefault();
   onTap(el.dataset.tap);
 }, {passive:false});
@@ -642,12 +678,12 @@ function showScores(){
     youWon ? stats.w++ : stats.l++;
     store.set('stats', stats); store.del('match');
     head = youWon ? `<h2>🏆 You win!</h2><p>First to ${match.target}. Absolute menace.</p>` : `<h2>${leaders[0].name} wins</h2><p>Shake it off. Run it back?</p>`;
-    btns = `<button class="big" id="againBtn">Rematch</button><button class="big alt" id="menuBtn2">Menu</button>`;
+    btns = `<button class="big" id="againBtn">Rematch</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">Menu</button>`;
     if(youWon) confetti();
   } else {
     store.set('match', match);
     head = `<h2>Round ${match.round}</h2><p>Playing to ${match.target}${over?' — tied at the top, keep going!':''}</p>`;
-    btns = `<button class="big" id="nextBtn">Next round</button><button class="big alt" id="menuBtn2">Menu</button>`;
+    btns = `<button class="big" id="nextBtn">Next round</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">Menu</button>`;
   }
   overlay(`${head}<table class="sc"><tr><th></th><th>Center</th><th>Pounce</th><th>Round</th><th>Total</th></tr>${rows}</table>${btns}`);
   const nb = $('#nextBtn'); if(nb) nb.onclick = () => { closeOverlay(); newRound(); };
@@ -665,6 +701,7 @@ function pause(){
     <button class="big" id="resumeBtn">Resume</button>
     <button class="big alt" id="shakeBtn">Reshuffle everyone's stock</button>
     <button class="big alt" id="endBtn">End round (no Pounce)</button>
+    <button class="big alt chatOpen">💬 Chat</button>
     <button class="big alt" id="rulesBtn2">How to play</button>
     <button class="big alt" id="quitBtn">Quit to menu</button>`);
   $('#resumeBtn').onclick = resume;
@@ -756,6 +793,197 @@ function confetti(){
     if(now()-t0 < 4500) requestAnimationFrame(frame); else { cx.clearRect(0,0,innerWidth,innerHeight); cv.classList.add('hidden'); }
   })();
 }
+
+
+/* ---------- chat with a friend ---------- */
+const CHAT_URL = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
+const CHAT_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+const QUICK = ['👋 Hey!', 'POUNCE! 😼', 'GG', '😂', '🔥', '😤', 'Rematch?', 'You ready?', '🐢 slow down', '❤️'];
+const hex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2,'0')).join('');
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CH = {
+  room: store.get('room', null),        // {code, secret, name}
+  msgs: [], names: ['',''], seat: 0, joined: false,
+  lastTs: 0, seen: store.get('seen', 0), open: false, err: '', busy: false, pending: [], timer: null, setupMode: 'start'
+};
+async function chatCall(op, extra={}){
+  const ctl = new AbortController(); const to = setTimeout(()=>ctl.abort(), 10000);
+  try{
+    const r = await fetch(CHAT_URL, {method:'POST', signal:ctl.signal, headers:{'Content-Type':'application/json', apikey:CHAT_KEY},
+      body: JSON.stringify({op, ...extra})});
+    const j = await r.json().catch(()=>({error:'Chat is unavailable right now.'}));
+    if(!r.ok || j.error) throw new Error(j.error || 'Chat is unavailable right now.');
+    return j;
+  } catch(e){ throw new Error(e.name==='AbortError' ? 'Chat timed out. Check your connection.' : e.message); }
+  finally{ clearTimeout(to); }
+}
+function absorb(v, full){
+  CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined;
+  if(full) CH.msgs = [];
+  const have = new Set(CH.msgs.map(m=>m.id));
+  const fresh = v.messages.filter(m=>!have.has(m.id));
+  CH.msgs.push(...fresh);
+  CH.msgs.sort((a,b)=>a.ts-b.ts);
+  CH.pending = CH.pending.filter(p=>!CH.msgs.some(m=>m.id===p.id));
+  if(CH.msgs.length) CH.lastTs = top(CH.msgs).ts;
+  const theirs = fresh.filter(m=>m.seat!==CH.seat && m.ts>CH.seen);
+  if(CH.open){ markSeen(); }
+  else if(theirs.length && !full){ const m = top(theirs); toast(friendName(), m.text); snd('sel'); }
+  else if(theirs.length && full){ /* backlog: badge only */ }
+  updateBadge();
+}
+const friendName = () => CH.names[1-CH.seat] || 'Your friend';
+function markSeen(){ if(CH.msgs.length){ CH.seen = top(CH.msgs).ts; store.set('seen', CH.seen); } updateBadge(); }
+function unread(){ return CH.msgs.filter(m=>m.seat!==CH.seat && m.ts>CH.seen).length; }
+function updateBadge(){ const n = unread(), b = $('#chatBadge'); b.textContent = n>9?'9+':n; b.classList.toggle('hidden', !n); }
+let toastTimer = null;
+function toast(name, text){
+  $('#toast').innerHTML = `<div>💬 <b>${esc(name)}:</b> ${esc(text)}</div>`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ $('#toast').innerHTML=''; }, 3500);
+}
+async function poll(full){
+  if(!CH.room || CH.busy) return;
+  CH.busy = true;
+  try{ absorb(await chatCall('get', {code:CH.room.code, secret:CH.room.secret, after: full?0:CH.lastTs}), full); CH.err=''; }
+  catch(e){ CH.err = e.message; if(/not part|No room/.test(e.message)){ leaveRoom(true); CH.err = e.message; } }
+  finally{ CH.busy = false; }
+  if(CH.open) renderChat();
+}
+function schedulePoll(){
+  clearTimeout(CH.timer);
+  if(!CH.room) return;
+  const ms = document.hidden ? 30000 : CH.open ? 2000 : 5000;
+  CH.timer = setTimeout(async()=>{ if(!document.hidden) await poll(false); schedulePoll(); }, ms);
+}
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && CH.room){ poll(false); schedulePoll(); } });
+
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => CODE_CHARS[b % CODE_CHARS.length]).join('');
+async function startRoom(name){
+  for(let i=0;i<4;i++){
+    const room = {code:newCode(), secret:hex(12), name};
+    try{ const v = await chatCall('create', {code:room.code, secret:room.secret, name}); setRoom(room); absorb(v, true); return; }
+    catch(e){ if(!/taken/.test(e.message)) throw e; }
+  }
+  throw new Error('Could not make a room. Try again.');
+}
+async function joinRoom(code, name){
+  const room = {code, secret:hex(12), name};
+  const v = await chatCall('join', {code, secret:room.secret, name});
+  setRoom(room); absorb(v, true);
+}
+function setRoom(room){
+  CH.room = room; store.set('room', room); store.set('name', room.name);
+  CH.seen = 0; store.set('seen', 0); CH.msgs = []; CH.lastTs = 0; CH.pending = [];
+  schedulePoll();
+}
+function leaveRoom(silent){
+  CH.room = null; store.del('room'); CH.msgs=[]; CH.pending=[]; CH.lastTs=0; clearTimeout(CH.timer); updateBadge();
+  if(!silent) renderChat();
+}
+async function sendMsg(text){
+  text = text.trim().slice(0,500);
+  if(!text || !CH.room) return;
+  const m = {id:hex(12), seat:CH.seat, text, ts:Date.now()};
+  CH.pending.push(m); renderChat(true);
+  try{ absorb(await chatCall('message', {code:CH.room.code, secret:CH.room.secret, id:m.id, text, after:CH.lastTs}), false); CH.err=''; snd('place'); }
+  catch(e){ CH.pending = CH.pending.filter(p=>p.id!==m.id); CH.err = e.message; snd('bad'); const inp=$('#chatInput'); if(inp && !inp.value) inp.value = text; }
+  renderChat(true);
+}
+const isBigEmoji = t => /^\p{Extended_Pictographic}{1,3}$/u.test(t.replace(/\s|️/g,''));
+const hhmm = ts => new Date(ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+
+function renderChat(scroll){
+  const box = $('#chatbox');
+  const close = `<button class="iconbtn" id="chatClose" aria-label="Close">✕</button>`;
+  if(!CH.room){
+    const nm = esc(store.get('name',''));
+    const joinFirst = CH.setupMode === 'join';
+    box.innerHTML = `<div class="chathead"><h2>Chat<small>with a real person</small></h2>${close}</div>
+      <div class="setup">
+        <p>Start a room and send your friend the code. They open Pounce, tap 💬 and join. Then you can talk trash while you play.</p>
+        <input class="field" id="chatName" maxlength="18" placeholder="Your name" value="${nm}" autocomplete="nickname">
+        ${joinFirst?'':`<button class="big" id="startRoom">Start a room</button><div class="or">— OR JOIN ONE —</div>`}
+        <input class="field code" id="joinCode" maxlength="6" placeholder="CODE" value="${esc(CH.prefill||'')}" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <button class="big alt" id="joinRoomBtn">Join room</button>
+        ${joinFirst?`<button class="link" id="showStart">Start my own room instead</button>`:''}
+        <div class="err">${esc(CH.err)}</div>
+      </div>`;
+    const go = async (fn) => {
+      const name = $('#chatName').value.trim();
+      if(!name){ CH.err = 'Put your name in first.'; renderChat(); return; }
+      CH.err = 'Connecting…'; $('.err').textContent = CH.err;
+      try{ await fn(name); CH.err = ''; CH.prefill=''; } catch(e){ CH.err = e.message; }
+      renderChat(true);
+    };
+    const sb = $('#startRoom'); if(sb) sb.onclick = () => go(startRoom);
+    const ss = $('#showStart'); if(ss) ss.onclick = () => { CH.setupMode='start'; renderChat(); };
+    $('#joinRoomBtn').onclick = () => {
+      const code = $('#joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code)){ CH.err = 'Room codes are 6 letters/numbers.'; renderChat(); return; }
+      go(name => joinRoom(code, name));
+    };
+  } else {
+    const me = CH.seat, fname = friendName();
+    const all = CH.msgs.concat(CH.pending.map(p=>({...p, pend:true})));
+    const list = all.length ? all.map(m=>{
+      const mine = m.seat===me, big = isBigEmoji(m.text);
+      return `<div class="msg ${mine?'me':''} ${big?'emo':''} ${m.pend?'pending':''}">${esc(m.text)}<time>${m.pend?'sending…':hhmm(m.ts)}</time></div>`;
+    }).join('') : '';
+    const sys = CH.joined ? (all.length?'':`<div class="sysmsg">${esc(fname)} is here. Say hi 👋</div>`)
+      : `<div class="sysmsg">Waiting for your friend to join.<br>Send them code <b style="color:var(--gold);letter-spacing:2px">${CH.room.code}</b></div>`;
+    box.innerHTML = `<div class="chathead"><h2>${esc(CH.joined?fname:'Your room')}<small>${CH.joined?'Room '+CH.room.code:'Not joined yet'}</small></h2>
+        <button class="codepill" id="shareRoom">${CH.room.code} ↗</button>${close}</div>
+      <div class="msgs" id="msgs">${sys}${list}</div>
+      <div class="err" style="flex:none;min-height:0">${esc(CH.err)}</div>
+      <div class="quick">${QUICK.map(q=>`<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+      <form class="sendrow" id="sendForm"><input id="chatInput" maxlength="500" placeholder="Message ${esc(CH.joined?fname:'')}" autocomplete="off" enterkeyhint="send"><button type="submit" aria-label="Send">↑</button></form>
+      <div style="text-align:center;flex:none"><button class="link" id="leaveRoom" style="font-size:13px">Leave room</button></div>`;
+    const keep = renderChat.draft || '';
+    const inp = $('#chatInput'); inp.value = keep;
+    inp.oninput = () => { renderChat.draft = inp.value; };
+    $('#sendForm').onsubmit = e => { e.preventDefault(); const t = inp.value; inp.value=''; renderChat.draft=''; sendMsg(t); inp.focus(); };
+    box.querySelectorAll('[data-q]').forEach(b => b.onclick = () => sendMsg(b.dataset.q));
+    $('#leaveRoom').onclick = () => { if(confirm('Leave this room? You’ll need a new code to chat again.')) leaveRoom(); };
+    $('#shareRoom').onclick = shareRoom;
+    const ml = $('#msgs');
+    if(scroll !== false) ml.scrollTop = ml.scrollHeight;
+  }
+  $('#chatClose').onclick = closeChat;
+}
+renderChat.draft = '';
+async function shareRoom(){
+  const url = location.origin + '/Pounce/?room=' + CH.room.code;
+  const text = `Come chat with me on Pounce! Room code: ${CH.room.code}`;
+  try{ if(navigator.share){ await navigator.share({title:'Pounce', text, url}); return; } }catch(e){ return; }
+  try{ await navigator.clipboard.writeText(text + '\n' + url); toast('Copied', 'Invite link copied'); }catch(e){ toast('Room code', CH.room.code); }
+}
+function fitChat(){ const vv = window.visualViewport; document.documentElement.style.setProperty('--vvh', vv ? vv.height+'px' : '100%'); if(vv) $('#chat').style.top = vv.offsetTop+'px'; }
+if(window.visualViewport){ visualViewport.addEventListener('resize', fitChat); visualViewport.addEventListener('scroll', fitChat); }
+function openChat(){
+  CH.open = true; fitChat();
+  if(G && !G.over && !G.paused){ G.paused = true; G.pauseAt = now(); G.chatHold = true; }
+  $('#chat').classList.remove('hidden');
+  markSeen(); renderChat(true);
+  if(CH.room){ poll(false); schedulePoll(); }
+}
+function closeChat(){
+  CH.open = false; CH.err = (CH.err==='Connecting…')?'':CH.err;
+  $('#chat').classList.add('hidden');
+  if(G && G.chatHold){ G.chatHold = false; if($('#overlay').classList.contains('hidden')) resume(); else { const d = now()-G.pauseAt; G.ps.forEach(p=>p.nextAt+=d); G.lastProgress+=d; G.pauseAt=now(); } }
+  schedulePoll();
+}
+document.addEventListener('click', e => { if(e.target.closest('.chatOpen')) openChat(); });
+(() => {
+  const q = new URLSearchParams(location.search).get('room');
+  if(q){
+    history.replaceState(null, '', location.pathname);
+    const code = q.toUpperCase();
+    if(CH.room && CH.room.code === code){ openChat(); }
+    else if(/^[A-HJ-NP-Z2-9]{6}$/.test(code)){ if(CH.room) leaveRoom(true); CH.prefill = code; CH.setupMode = 'join'; setTimeout(openChat, 300); }
+  }
+  if(CH.room){ poll(true).then(schedulePoll); }
+})();
 
 showScreen('menu');
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('/Pounce/sw.js').catch(()=>{});

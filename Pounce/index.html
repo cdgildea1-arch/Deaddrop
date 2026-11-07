@@ -239,11 +239,12 @@ const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['','A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const COLORS = ['#d4876a','#6fa89e','#c2a65a','#8c9fc9'];
 const BOT_NAMES = ['Pickles','Bandit','Ziggy','Noodle','Biscuit','Waffles','Moxie','Taco','Pepper','Sprocket'];
+// How the computer plays: ms = average time per move, miss = chance it overlooks a play.
 const DIFF = {
-  chill:  {ms:2600, miss:.35},
-  normal: {ms:1550, miss:.12},
-  spicy:  {ms:1000, miss:.04},
-  wicked: {ms:620,  miss:0}
+  chill:  {ms:4800, miss:.45},
+  normal: {ms:3400, miss:.3},
+  spicy:  {ms:2200, miss:.15},
+  wicked: {ms:1400, miss:.05}
 };
 const top = a => a[a.length-1];
 const isRed = c => c.s===1 || c.s===2;
@@ -454,7 +455,7 @@ function cpuAct(pi){
 }
 function botDelay(kind){
   const D = DIFF[match.diff] || DIFF.normal;
-  const base = kind==='flip' ? D.ms*.55 : D.ms;
+  const base = kind==='flip' ? D.ms*.8 : D.ms;
   return base * (.65 + Math.random()*.7);
 }
 setInterval(() => {
@@ -471,7 +472,7 @@ setInterval(() => {
     changed = true;
   }
   if(changed && !G.over){ render(); if(playKind) snd('cpu', rank); }
-  const stuck = t - G.lastProgress > 25000 && !G.over;
+  const stuck = t - G.lastProgress > 12000 && !G.over;
   if(stuck !== !!$('#stuckBtn')) render();
 }, 80);
 
@@ -623,7 +624,7 @@ function render(){
   const stock = me.stock.length
     ? `<div class="stock" data-tap="stock">${backHTML(P[ME].color, cw)}</div>`
     : `<div class="stock" data-tap="stock"><div class="recycle">${me.waste.length?'↻':''}</div></div>`;
-  const stuck = now() - G.lastProgress > 25000 && !G.over;
+  const stuck = now() - G.lastProgress > 12000 && !G.over;
   $('#hand').innerHTML = stock + waste + (stuck ? `<button id="stuckBtn">Stuck? Shuffle</button>` : '');
   const sb = $('#stuckBtn'); if(sb) sb.onclick = () => { reshuffleStocks(); banner('Shuffled', '', 'Everyone’s deck got mixed', 900); };
 

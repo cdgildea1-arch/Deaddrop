@@ -57,66 +57,63 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;str
 .record{font-size:13px;color:var(--muted)}
 
 /* ---------- game ---------- */
-#game{gap:8px}
+#game{gap:0}
 .topbar{display:flex;align-items:center;gap:8px;height:40px;flex:none}
 .iconbtn{position:relative;width:40px;height:40px;border-radius:12px;background:var(--surface);display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;color:var(--text)}
-.chips{display:flex;gap:6px;flex:1;overflow:hidden}
-.chip{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:20px;padding:5px 10px 5px 7px;font-size:13px;font-weight:600;white-space:nowrap;min-width:0}
-.chip i{width:10px;height:10px;border-radius:50%;background:var(--pc);flex:none}
-.chip span{overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
-.chip b{color:var(--text)}
-.rnd{font-size:12px;color:var(--muted);white-space:nowrap}
-#stuckBtn{width:auto;padding:0 12px;font-size:13px;color:var(--accent)}
+.iconbtn.plain{background:none;color:var(--muted)}
+.scoreline{flex:1;text-align:center;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scoreline b{color:var(--text);font-weight:600}
+.scoreline i{font-style:normal;opacity:.5;margin:0 6px}
 
-.opps{display:flex;flex-direction:column;gap:6px;flex:none}
-.opp{display:flex;align-items:center;gap:5px;background:var(--surface);border-radius:14px;padding:6px;border-left:3px solid var(--pc)}
-.who{width:58px;flex:none;display:flex;flex-direction:column;align-items:center;line-height:1.1}
-.ava{width:26px;height:26px;border-radius:50%;background:var(--pc);display:grid;place-items:center;font-size:13px;font-weight:700;color:#141a18}
-.who small{font-size:11px;margin-top:3px;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.opps{display:flex;flex-direction:column;gap:10px;flex:none;margin-top:12px}
+.opp{display:flex;align-items:center;justify-content:center;gap:6px}
+.opp .nm{font-size:12px;color:var(--muted);width:54px;text-align:right;margin-right:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opp.solo{flex-direction:column;gap:6px}
+.opp.solo .nm{width:auto;text-align:center;margin:0}
+.opp .cards{display:flex;gap:6px;padding-top:15px}
+.opp.away{opacity:.45}
 .mini{position:relative;flex:none}
-.mini .badge{position:absolute;right:-5px;top:-6px}
+.cnt{position:absolute;left:0;right:0;top:-16px;text-align:center;font-size:12px;color:var(--muted);font-weight:600;line-height:14px}
 .badge{background:#2a3330;color:var(--text);font-weight:600;font-size:11px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;display:grid;place-items:center;z-index:3;border:1px solid var(--line)}
-.badge.hot{background:var(--pc,var(--you));color:#141a18;border:0}
 .gap{flex:1}
-.ghost{width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.12);border:1.5px solid var(--line);background:#ffffff05}
+.ghost{width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.1);border:1.5px solid var(--line);background:#ffffff05}
 
-.center{flex:none;background:#00000026;border-radius:16px;padding:8px}
-.found{display:grid;gap:6px;justify-content:center}
-.slot{position:relative;width:var(--fw);height:calc(var(--fw)*1.4);border-radius:calc(var(--fw)*.12);border:1.5px solid var(--line);background:#ffffff05;transition:box-shadow .15s,border-color .15s}
-.slot .card{position:absolute;left:-1.5px;top:-1.5px}
-.slot.done .card:last-child{filter:brightness(.8)}
+.center{flex:none;margin:18px auto 0;padding:10px;border-radius:16px;background:radial-gradient(120% 120% at 50% 40%,#2b3a34,#1f2a26);box-shadow:inset 0 0 0 1px #ffffff14}
+.found{display:grid;grid-template-columns:repeat(4,var(--fw));gap:8px;justify-content:center}
+.slot{position:relative;width:var(--fw);height:calc(var(--fw)*1.4);border-radius:calc(var(--fw)*.1);background:#ffffff12;box-shadow:inset 0 0 0 1px #ffffff1f;
+  display:grid;place-items:center;font-size:calc(var(--fw)*.5);color:#ffffff73;transition:box-shadow .15s}
+.slot.rd{color:#ec7d72b0}
+.slot .card{position:absolute;left:0;top:0}
+.slot.done .card:last-child{filter:brightness(.82)}
 
-.you{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
-.work{flex:1;min-height:0;display:flex;justify-content:space-between;gap:8px}
-.col{position:relative;width:var(--cw);height:100%;border-radius:calc(var(--cw)*.12);transition:box-shadow .15s}
+.work{flex:1;min-height:0;display:flex;justify-content:space-between;margin-top:34px}
+.col{position:relative;width:var(--cw);height:100%;border-radius:calc(var(--cw)*.1);transition:box-shadow .15s}
 .col .card{position:absolute;left:0}
 .col .ghost{position:absolute;left:0;top:0}
-.hand{flex:none;display:flex;align-items:flex-end;gap:10px}
-.stackwrap{display:flex;flex-direction:column;align-items:center;gap:5px}
-.stackwrap .lbl{font-size:11px;letter-spacing:.5px;color:var(--muted)}
-.pp{position:relative}
-.pp.thick{box-shadow:2px 2px 0 #ffffff26,4px 4px 0 #ffffff14;border-radius:calc(var(--cw)*.12)}
-.pp .badge{position:absolute;right:-7px;top:-8px;height:24px;min-width:24px;font-size:13px;border-radius:12px}
-.waste{position:relative;height:calc(var(--cw)*1.4);width:calc(var(--cw)*1.5)}
+.col.pounce .card{box-shadow:0 0 0 2px var(--accent),0 1px 3px #0007}
+.col.pounce.thick::before{content:'';position:absolute;left:3px;top:3px;width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.1);background:#ffffff1c}
+.col .cnt{top:-17px}
+.hand{flex:none;display:flex;align-items:flex-end;gap:12px;margin-top:8px}
+.waste{position:relative;height:calc(var(--cw)*1.4);width:calc(var(--cw)*1.6)}
 .waste .card{position:absolute;top:0}
 .stock{position:relative}
-.stock .badge{position:absolute;right:-7px;top:-8px}
-.recycle{width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.12);border:1.5px solid var(--line);display:grid;place-items:center;font-size:calc(var(--cw)*.4);color:var(--muted)}
+.recycle{width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.1);border:1.5px solid var(--line);display:grid;place-items:center;font-size:calc(var(--cw)*.4);color:var(--muted)}
+#stuckBtn{margin-left:auto;align-self:center;background:var(--surface2);color:var(--accent);border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600}
 
-.ok{box-shadow:0 0 0 2px var(--accent)!important;border-color:var(--accent)!important}
+.ok{box-shadow:0 0 0 2.5px var(--accent)!important}
 .nope{animation:nope .3s}
 @keyframes nope{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
 
-/* ---------- cards ---------- */
-.card{position:relative;width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.12);background:var(--paper);
+
+.card{position:relative;width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.1);background:var(--paper);
   color:var(--ink);font-weight:700;box-shadow:0 1px 3px #0006}
 .card.red{color:var(--red)}
-.card .cr{position:absolute;left:calc(var(--w)*.08);top:calc(var(--w)*.04);font-size:calc(var(--w)*.34);line-height:1;letter-spacing:-.05em}
-.card .cs{position:absolute;left:calc(var(--w)*.09);top:calc(var(--w)*.42);font-size:calc(var(--w)*.28);line-height:1}
-.card .cb{position:absolute;right:calc(var(--w)*.07);bottom:calc(var(--w)*.04);font-size:calc(var(--w)*.56);line-height:1}
+.card .cr{position:absolute;left:calc(var(--w)*.08);top:calc(var(--w)*.05);font-size:calc(var(--w)*.3);line-height:1;letter-spacing:-.04em;white-space:nowrap}
+.card .cs{font-size:.85em;margin-left:.05em}
+.card .cb{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:calc(var(--w)*.56);line-height:1}
 .card.owned::after{content:'';position:absolute;right:calc(var(--w)*.09);top:calc(var(--w)*.09);width:calc(var(--w)*.13);height:calc(var(--w)*.13);border-radius:50%;background:var(--own)}
 .card.sel{transform:translateY(-6px);box-shadow:0 0 0 2.5px var(--accent),0 8px 16px #0008}
-.back{width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.12);border:2px solid #e9e4d8;
+.back{width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.1);border:2px solid #e9e4d8;
   background:repeating-linear-gradient(45deg,#ffffff1a 0 3px,transparent 3px 7px),var(--pc);box-shadow:0 1px 3px #0006}
 .pop{animation:pop .2s ease-out}
 @keyframes pop{from{transform:scale(.8);opacity:0}}
@@ -218,18 +215,14 @@ table.sc .tot{font-weight:700;font-size:18px}
 
   <section id="game" class="screen hidden">
     <div class="topbar">
-      <button class="iconbtn" id="pauseBtn" aria-label="Pause">❚❚</button>
-      <div class="chips" id="chips"></div>
-      <button class="iconbtn hidden" id="stuckBtn">Stuck?</button>
-      <button class="iconbtn chatOpen" aria-label="Messages"><span class="bubble"></span><span class="badge chatBadge hidden"></span></button>
-      <div class="rnd" id="rnd"></div>
+      <button class="iconbtn plain" id="pauseBtn" aria-label="Menu"><span class="backic"></span></button>
+      <div class="scoreline" id="chips"></div>
+      <button class="iconbtn plain chatOpen" aria-label="Messages"><span class="bubble"></span><span class="badge chatBadge hidden"></span></button>
     </div>
     <div class="opps" id="opps"></div>
     <div class="center" id="center" data-tap="found:-1"><div class="found" id="found"></div></div>
-    <div class="you">
-      <div class="work" id="work"></div>
-      <div class="hand" id="hand"></div>
-    </div>
+    <div class="work" id="work"></div>
+    <div class="hand" id="hand"></div>
   </section>
 </div>
 <div id="banner"></div>
@@ -269,6 +262,7 @@ const ICON = {
   bubble: '<svg class="ic" viewBox="0 0 24 24"><path d="M20 12.5c0 4-3.6 7-8 7-1.1 0-2.2-.2-3.1-.5L4 20.5l1.3-3.7C4.5 15.6 4 14.1 4 12.5c0-4 3.6-7 8-7s8 3 8 7z"/></svg>',
   sound:  '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
   mute:   '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
+  back:   '<svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
   send:   '<svg class="ic" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>'
 };
 const msgBtn = () => `<button class="iconbtn chatOpen corner" aria-label="Messages">${ICON.bubble}<span class="badge chatBadge hidden"></span></button>`;
@@ -340,11 +334,14 @@ function newRound(){
 }
 
 /* ---------- rules ---------- */
-const canFound = (c, f) => f.length ? (top(f).s===c.s && c.r===top(f).r+1) : c.r===1;
+// Center columns are fixed by suit (♣ ♥ ♠ ♦), one row per player, so every Ace has an obvious home.
+const SLOT_SUIT = [3,1,0,2];
+const slotSuit = k => SLOT_SUIT[k%4];
+const canFound = (c, f, k) => f.length ? (top(f).s===c.s && c.r===top(f).r+1) : (c.r===1 && slotSuit(k)===c.s);
 const canWork  = (c, w) => w.length ? (top(w).r===c.r+1 && isRed(top(w))!==isRed(c)) : true;
 function findFound(c, prefer){
-  if(prefer!=null && prefer>=0 && canFound(c, G.found[prefer])) return prefer;
-  for(let k=0;k<G.found.length;k++) if(canFound(c, G.found[k])) return k;
+  if(prefer!=null && prefer>=0 && canFound(c, G.found[prefer], prefer)) return prefer;
+  for(let k=0;k<G.found.length;k++) if(canFound(c, G.found[k], k)) return k;
   return -1;
 }
 function srcCards(pi, src){
@@ -363,7 +360,7 @@ function takeSrc(pi, src){
 function moveToFound(pi, src, k){
   if(G.over) return false;
   const cs = srcCards(pi, src);
-  if(cs.length!==1 || k<0 || !canFound(cs[0], G.found[k])) return false;
+  if(cs.length!==1 || k<0 || !canFound(cs[0], G.found[k], k)) return false;
   G.found[k].push(takeSrc(pi, src)[0]);
   G.lastProgress = now();
   after(pi);
@@ -474,8 +471,8 @@ setInterval(() => {
     changed = true;
   }
   if(changed && !G.over){ render(); if(playKind) snd('cpu', rank); }
-  const stuck = t - G.lastProgress > 25000;
-  $('#stuckBtn').classList.toggle('hidden', !stuck || G.over);
+  const stuck = t - G.lastProgress > 25000 && !G.over;
+  if(stuck !== !!$('#stuckBtn')) render();
 }, 80);
 
 /* ---------- you ---------- */
@@ -530,21 +527,25 @@ document.addEventListener('pointerdown', e => {
 }, {passive:false});
 
 /* ---------- layout ---------- */
-let S = {cw:76, fw:56, mw:32, fcols:4};
+let S = {cw:66, fw:56, mw:36, rows:2};
 function fit(){
   const g = $('#game');
   const cs = getComputedStyle(g);
   const H = g.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const W = Math.min(innerWidth, 520) - 24;
-  const n = match ? match.players.length : 2;
-  const fcols = 2*n;
-  const fw = Math.floor(Math.min(64, (W - 16 - (fcols-1)*6) / fcols));
-  const mw = Math.floor(Math.min(34, (W - 12 - 60 - 7*5) / 6.8));
-  const oppH = (n-1) * (mw*1.4 + 18 + 6);
-  const centerH = 2*fw*1.4 + 6 + 18;
-  const avail = H - 40 - oppH - centerH - 3*8 - 10 - 22;
-  const cw = Math.floor(Math.max(44, Math.min(92, (W - 3*8)/4, avail / (1.4*2.6))));
-  S = {cw, fw, mw, fcols};
+  const n = match ? match.players.length : 2, rows = n;
+  const mw = Math.floor(Math.min(n>2 ? 32 : 40, (W - 70 - 4*6)/5));
+  const oppH = 12 + (n===2 ? mw*1.4 + 15 + 20 : (n-1)*(mw*1.4 + 15 + 10));
+  // shrink your cards until the center piles get a sensible size, so bigger games still fit
+  let cw = Math.floor(Math.min(80, (W - 4*8)/5)), fw;
+  for(;;){
+    const fixed = 40 + oppH + 18 + 20 + 34 + (cw*1.4 + 3*cw*.3) + 8 + cw*1.4;
+    fw = Math.floor(Math.min(cw, (W - 20 - 3*8)/4, ((H - fixed) - (rows-1)*8) / (rows*1.4)));
+    if(fw >= Math.min(cw*.8, 56) || cw <= 44) break;
+    cw -= 3;
+  }
+  fw = Math.max(30, fw);
+  S = {cw, fw, mw, rows};
   const r = document.documentElement.style;
   r.setProperty('--cw', cw+'px'); r.setProperty('--fw', fw+'px'); r.setProperty('--mw', mw+'px');
 }
@@ -556,7 +557,7 @@ function cardHTML(c, w, o={}){
   const cls = (isRed(c)?'red':'') + face + (o.cls?' '+o.cls:'') + (o.own?' owned':'');
   const st = `--w:${w}px;${o.own?`--own:${o.own};`:''}${o.style||''}`;
   return `<div class="card ${cls}" data-cid="${c.id}"${o.tap?` data-tap="${o.tap}"`:''} style="${st}">`+
-    `<span class="cr">${RANKS[c.r]}</span><span class="cs">${SUITS[c.s]}</span><span class="cb">${SUITS[c.s]}</span></div>`;
+    `<span class="cr">${RANKS[c.r]}<span class="cs">${SUITS[c.s]}</span></span><span class="cb">${SUITS[c.s]}</span></div>`;
 }
 const backHTML = (color, w, extra='') => `<div class="back" style="--w:${w}px;--pc:${color}" ${extra}></div>`;
 const ghostHTML = w => `<div class="ghost" style="--w:${w}px"></div>`;
@@ -566,7 +567,7 @@ function validTargets(){
   if(!G.sel) return out;
   const cs = validSrc(ME, G.sel) ? srcCards(ME, G.sel) : [];
   if(!cs.length) { G.sel = null; return out; }
-  if(cs.length===1) G.found.forEach((f,k)=>{ if(canFound(cs[0],f)) out.found.add(k); });
+  if(cs.length===1) G.found.forEach((f,k)=>{ if(canFound(cs[0],f,k)) out.found.add(k); });
   G.ps[ME].work.forEach((w,i)=>{ if(!(G.sel.t==='work' && G.sel.i===i) && canWork(cs[0],w)) out.work.add(i); });
   // only show one empty ace slot as a target
   const empties = [...out.found].filter(k=>!G.found[k].length);
@@ -581,61 +582,50 @@ function render(){
   const P = match.players, me = G.ps[ME];
   const vt = validTargets();
 
-  // top bar
-  $('#chips').innerHTML = P.map((p,i)=>`<div class="chip" style="--pc:${p.color}"><i></i>${P.length<=2||i===ME?`<span>${i===ME&&LV.inGame?'You':p.name}</span>`:''}<b>${p.total}</b></div>`).join('');
-  $('#rnd').textContent = 'R' + match.round;
+  // top bar: just the score
+  $('#chips').innerHTML = P.map((p,i)=>`${i===ME?`<b>You ${p.total}</b>`:`${esc(P.length>2?p.name.slice(0,6):p.name)} ${p.total}`}`).join('<i>·</i>');
 
-  // opponents
-  const mw = S.mw;
+  // opponents: their Pounce card (with count) and the tops of their 4 piles
+  const mw = S.mw, solo = P.length===2;
   $('#opps').innerHTML = G.ps.map((p,pi)=>{
     if(pi===ME) return '';
     const mp = P[pi], away = LV.inGame && !LV.peer;
-    const pounce = p.pounce.length ? cardHTML(top(p.pounce), mw) : ghostHTML(mw);
-    const works = p.work.map(w => `<div class="mini">${w.length ? cardHTML(top(w), mw) + (w.length>1?`<span class="badge">${w.length}</span>`:'') : ghostHTML(mw)}</div>`).join('');
-    const waste = p.waste.length ? cardHTML(top(p.waste), mw) : ghostHTML(mw);
-    const stock = p.stock.length ? backHTML(mp.color, mw) : ghostHTML(mw);
-    return `<div class="opp${away?' away':''}" style="--pc:${mp.color}">
-      <div class="who"><div class="ava">${esc(mp.name[0]||'?')}</div><small>${away?'📵 away':esc(mp.name)}</small></div>
-      <div class="mini">${pounce}<span class="badge hot">${p.pounce.length}</span></div>
-      <div class="gap"></div>${works}<div class="gap"></div>
-      <div class="mini">${waste}</div><div class="mini">${stock}</div></div>`;
+    const pounce = `<div class="mini">${p.pounce.length ? cardHTML(top(p.pounce), mw) : ghostHTML(mw)}<span class="cnt">${p.pounce.length}</span></div>`;
+    const works = p.work.map(w => `<div class="mini">${w.length ? cardHTML(top(w), mw) : ghostHTML(mw)}</div>`).join('');
+    const name = `<div class="nm">${esc(mp.name)}${away?' · away':''}</div>`;
+    return `<div class="opp${solo?' solo':''}${away?' away':''}">${solo?'':name}<div class="cards">${pounce}${works}</div>${solo?name:''}</div>`;
   }).join('');
 
-  // center
-  const found = $('#found');
-  found.style.gridTemplateColumns = `repeat(${S.fcols}, var(--fw))`;
-  found.innerHTML = G.found.map((f,k)=>{
-    const cards = f.slice(-2).map(c => cardHTML(c, S.fw, {own: P[c.o].color})).join('');
+  // center: 4 suit columns, one row per player
+  $('#found').innerHTML = G.found.map((f,k)=>{
+    const su = slotSuit(k), cards = f.slice(-2).map(c => cardHTML(c, S.fw, {own: P[c.o].color})).join('');
     const done = f.length && top(f).r===13 ? ' done' : '';
-    return `<div class="slot${vt.found.has(k)?' ok':''}${done}" data-tap="found:${k}">${cards}</div>`;
+    return `<div class="slot${su===1||su===2?' rd':''}${vt.found.has(k)?' ok':''}${done}" data-tap="found:${k}">${SUITS[su]}${cards}</div>`;
   }).join('');
 
-  // your work piles
+  // your row: Pounce pile, then your 4 piles
   const cw = S.cw, ch = cw*1.4;
   const workEl = $('#work');
   const Hw = Math.max(workEl.clientHeight, ch);
-  workEl.innerHTML = me.work.map((w,i)=>{
+  const pSel = G.sel && G.sel.t==='pounce' ? 'sel' : '';
+  const pounceCol = `<div class="col pounce${me.pounce.length>1?' thick':''}" data-tap="pounce">${me.pounce.length ? cardHTML(top(me.pounce), cw, {cls:pSel, style:'top:0'}) : ghostHTML(cw)}<span class="cnt">${me.pounce.length}</span></div>`;
+  workEl.innerHTML = pounceCol + me.work.map((w,i)=>{
     const off = w.length>1 ? Math.max(10, Math.min(ch*.3, (Hw - ch) / (w.length-1))) : 0;
     const selJ = G.sel && G.sel.t==='work' && G.sel.i===i ? G.sel.j : 99;
     const cards = w.map((c,j)=>cardHTML(c, cw, {tap:`work:${i}:${j}`, cls: j>=selJ?'sel':'', style:`top:${j*off}px;`})).join('');
     return `<div class="col${vt.work.has(i)?' ok':''}" data-tap="work:${i}:-1">${w.length?'':ghostHTML(cw)}${cards}</div>`;
   }).join('');
 
-  // pounce / waste / stock
-  const pSel = G.sel && G.sel.t==='pounce' ? 'sel' : '';
+  // deck + flipped cards
   const wSel = G.sel && G.sel.t==='waste' ? 'sel' : '';
-  const pounce = me.pounce.length
-    ? `<div class="pp ${me.pounce.length>1?'thick':''}" data-tap="pounce">${cardHTML(top(me.pounce), cw, {cls:pSel})}<span class="badge hot">${me.pounce.length}</span></div>`
-    : `<div class="pp">${ghostHTML(cw)}</div>`;
   const wv = me.waste.slice(-3);
-  const waste = `<div class="waste" data-tap="waste">${wv.map((c,j)=>cardHTML(c, cw, {cls: j===wv.length-1?wSel:'', style:`left:${j*cw*.24}px;`})).join('')}</div>`;
+  const waste = `<div class="waste" data-tap="waste">${wv.map((c,j)=>cardHTML(c, cw, {cls: j===wv.length-1?wSel:'', style:`left:${j*cw*.28}px;`})).join('')}</div>`;
   const stock = me.stock.length
-    ? `<div class="stock" data-tap="stock">${backHTML(P[ME].color, cw)}<span class="badge">${me.stock.length}</span></div>`
+    ? `<div class="stock" data-tap="stock">${backHTML(P[ME].color, cw)}</div>`
     : `<div class="stock" data-tap="stock"><div class="recycle">${me.waste.length?'↻':''}</div></div>`;
-  $('#hand').innerHTML =
-    `<div class="stackwrap">${pounce}<div class="lbl">Pounce</div></div><div class="gap"></div>` +
-    `<div class="stackwrap">${waste}<div class="lbl">&nbsp;</div></div>` +
-    `<div class="stackwrap">${stock}<div class="lbl">Flip 3</div></div>`;
+  const stuck = now() - G.lastProgress > 25000 && !G.over;
+  $('#hand').innerHTML = stock + waste + (stuck ? `<button id="stuckBtn">Stuck? Shuffle</button>` : '');
+  const sb = $('#stuckBtn'); if(sb) sb.onclick = () => { reshuffleStocks(); banner('Shuffled', '', 'Everyone’s deck got mixed', 900); };
 
   // FLIP animation: slide cards from where they were
   document.querySelectorAll('#game [data-cid]').forEach(el=>{
@@ -787,7 +777,6 @@ function resume(){
 }
 function reshuffleStocks(){ act({a:'shuffle'}); snd('flip'); render(); }
 $('#pauseBtn').onclick = pause;
-$('#stuckBtn').onclick = () => { reshuffleStocks(); banner('Shuffled!', '#ffbe0b', 'Everyone’s stock got mixed', 900); };
 document.addEventListener('visibilitychange', () => { if(document.hidden && !LV.inGame) pause(); });
 
 function rules(back){
@@ -813,6 +802,7 @@ function showScreen(id){
 function refreshMenu(){
   $('#soundBtn').innerHTML = +settings.sound ? ICON.sound : ICON.mute;
   document.querySelectorAll('.bubble').forEach(e=>e.innerHTML = ICON.bubble);
+  document.querySelectorAll('.backic').forEach(e=>e.innerHTML = ICON.back);
   const saved = store.get('match', null);
   const cb = $('#continueBtn');
   cb.classList.toggle('hidden', !saved);

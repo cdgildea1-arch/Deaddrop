@@ -747,7 +747,9 @@ function pause(){
       <button class="big" id="resumeBtn">Back to the game</button>
       
       <button class="big alt" id="rulesBtn2">How to play</button>
-      <button class="big alt" id="quitBtn">Leave live game</button>`);
+      <button class="big alt" id="quitBtn">Leave live game</button>
+      <button class="link" id="cancelRoomBtn">Cancel game and reset room</button>`);
+    $('#cancelRoomBtn').onclick = cancelRoom;
     $('#resumeBtn').onclick = () => { closeOverlay(); render(); };
     $('#rulesBtn2').onclick = () => rules(pause);
     $('#quitBtn').onclick = () => { closeOverlay(); leaveLive(); };
@@ -890,6 +892,7 @@ async function connectLive(){
     .on('broadcast', {event:'ctl'},   ({payload}) => onLiveCtl(payload))
     .on('broadcast', {event:'hello'}, () => { if(LV.seat===0 && LV.inGame) sendState(); })
     .on('broadcast', {event:'ping'},  () => { poll(false); })
+    .on('broadcast', {event:'reset'}, () => { const who = CH.names[1-CH.seat] || 'Your friend'; afterReset(); toast(who, 'reset the room. Join again to play.'); })
     .on('presence',  {event:'sync'},  onPresence);
   ch.subscribe(status => {
     if(LV.ch !== ch) return;
@@ -1031,6 +1034,24 @@ function leaveLive(){
   LV.inGame = false; LV.ready = false; LV.pending = []; ME = 0; G = null; cdTok++;
   track(); closeOverlay(); showScreen('menu');
 }
+// Cancel the game in this room for both phones and empty its seats, so you can both join fresh.
+async function cancelRoom(){
+  if(!CH.room) return;
+  if(!confirm('Cancel this game and reset the room? You and your friend will both join again.')) return;
+  const room = CH.room;
+  liveSend('reset', {});
+  try{ await chatCall('reset', {code:room.code, secret:room.secret}); }
+  catch(e){ toast('Reset failed', e.message); return; }
+  afterReset();
+  toast('Room ' + room.code, 'is reset. Join again to play.');
+}
+function afterReset(){
+  store.del('live'); LV.fresh = false;
+  const inLobby = LV.lobby;
+  leaveRoom(true);
+  closeOverlay(); G = null; showScreen('menu');
+  if(inLobby){ LV.lobby = true; renderLobby(); }
+}
 function openLobby(){
   if(LV.offer && LV.seat===1){ const st = LV.offer; LV.offer = null; G = null; onLiveState(st); if(LV.inGame) return; }
   LV.lobby = true;
@@ -1043,15 +1064,32 @@ function renderLobby(){
   const back = `<button class="link" id="lobbyBack">Back</button>`;
   if(!CH.room){
     overlay(`<h2>Play a friend</h2><p>You and your friend both join room <b style="color:var(--gold);letter-spacing:2px">${HOME_ROOM}</b> on your own phones.</p>
-      <input class="field" id="lobbyName" maxlength="18" placeholder="Your name" value="${esc(store.get('name',''))}" autocomplete="nickname">
+      <input class="field" id="lobbyName" maxlength="18" placeholder="Your name, like Casey" value="${esc(store.get('name',''))}" autocomplete="nickname">
       <button class="big" id="lobbyJoin">Join room ${HOME_ROOM}</button>
-      <button class="link chatOpen">Use a different room code</button>
-      <div class="err" id="lobbyErr"></div>${back}`);
-    $('#lobbyJoin').onclick = async () => {
+      <div class="err" id="lobbyErr"></div>
+      <button class="big alt hidden" id="lobbyReset">Reset room ${HOME_ROOM}</button>
+      <button class="link chatOpen">Use a different room code</button>${back}`);
+    const nameOk = () => {
       const name = $('#lobbyName').value.trim();
-      if(!name){ $('#lobbyErr').textContent = 'Put your name in first.'; return; }
+      if(!name){ $('#lobbyErr').textContent = 'Put your name in first.'; return null; }
+      if(/^[0-9 ]+$/.test(name)){ $('#lobbyErr').textContent = 'Type your name there, not the room number.'; return null; }
+      return name;
+    };
+    $('#lobbyJoin').onclick = async () => {
+      const name = nameOk(); if(!name) return;
       $('#lobbyErr').textContent = 'Connecting…';
-      try{ await joinRoom(HOME_ROOM, name); renderLobby(); }catch(e){ $('#lobbyErr').textContent = e.message; }
+      try{ await joinRoom(HOME_ROOM, name); renderLobby(); }
+      catch(e){
+        $('#lobbyErr').textContent = /two people/.test(e.message) ? `Room ${HOME_ROOM} is full from an earlier game. Reset it to start over.` : e.message;
+        if(/two people/.test(e.message)) $('#lobbyReset').classList.remove('hidden');
+      }
+    };
+    $('#lobbyReset').onclick = async () => {
+      const name = nameOk(); if(!name) return;
+      if(!confirm(`Reset room ${HOME_ROOM}? This ends any game in it and anyone in it has to join again.`)) return;
+      $('#lobbyErr').textContent = 'Resetting…';
+      try{ await chatCall('reset', {code:HOME_ROOM, secret:hex(12)}); await joinRoom(HOME_ROOM, name); renderLobby(); }
+      catch(e){ $('#lobbyErr').textContent = e.message; }
     };
   } else {
     const host = CH.seat===0, myName = CH.room.name, fname = CH.names[1-CH.seat];
@@ -1072,11 +1110,11 @@ function renderLobby(){
       ${canResume ? `<p style="font-size:13px">Picks up your saved match (round ${saved.st.round}).</p>` : ''}
       <button class="big" id="readyBtn" ${LV.status!=='on'?'disabled':''}>${LV.ready ? 'Waiting for '+esc(fname||'friend')+'…' : 'I’m ready!'}</button>
       
-      ${canResume ? `<button class="link" id="freshBtn">Start a fresh match instead</button>` : ''}
+      <button class="link" id="cancelRoomBtn">Cancel game and reset room</button>
       ${back}`);
     $('#readyBtn').onclick = () => { LV.ready = !LV.ready; snd('sel'); track(); renderLobby(); maybeDeal(); };
     const tg = $('#lobbyTarget'); if(tg) tg.onclick = e => { const b = e.target.closest('button'); if(!b) return; settings.target = +b.dataset.v; store.set('settings', settings); track(); renderLobby(); };
-    const fb = $('#freshBtn'); if(fb) fb.onclick = () => { LV.fresh = true; store.del('live'); renderLobby(); };
+    $('#cancelRoomBtn').onclick = cancelRoom;
   }
   $('#lobbyBack').onclick = () => { LV.lobby = false; LV.ready = false; track(); closeOverlay(); };
 }

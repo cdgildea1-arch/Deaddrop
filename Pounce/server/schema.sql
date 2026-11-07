@@ -20,3 +20,5 @@ insert into public.pounce_rooms_v1 (code, host_hash) values ('25800852', 'unclai
 
 -- Applied as migration pounce_live_channel_key on 2026-11-07.
 alter table public.pounce_rooms_v1 add column live text not null default replace(gen_random_uuid()::text, '-', '');
+
+-- 2026-11-07: room 25800852 reset to unclaimed (migration pounce_reset_room_25800852).

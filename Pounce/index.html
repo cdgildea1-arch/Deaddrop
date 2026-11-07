@@ -159,6 +159,20 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
 #banner small{display:block;font-size:22px;margin-top:10px;text-shadow:0 2px 6px #000c}
 @keyframes boom{from{transform:scale(.2) rotate(-10deg);opacity:0}}
 #confetti{position:fixed;inset:0;z-index:120;pointer-events:none}
+/* ---------- live ---------- */
+.big.live{background:linear-gradient(180deg,#ff8fb3,#ff5d8f);color:#fff;box-shadow:0 5px 0 #c9346a,0 12px 26px #0006;font-size:20px;padding:13px}
+.big.live:active{box-shadow:0 2px 0 #c9346a}
+.big:disabled{opacity:.6}
+.opp.away{opacity:.55}
+.seats{display:flex;flex-direction:column;gap:8px;margin:14px 0 6px}
+.seatrow{display:flex;align-items:center;gap:10px;background:#ffffff12;border-radius:16px;padding:10px 12px;text-align:left}
+.seatrow .ava{width:34px;height:34px;font-size:17px}
+.seatrow b{flex:1;font-size:17px}
+.seatrow span{font-size:13px;color:#c8b6e2;white-space:nowrap}
+.seatrow span.go{color:var(--mint)}
+.seatrow span.off{color:#ff8fa3}
+.sheet .seg{margin:6px 0 4px}
+.sheet .link{display:block;margin:10px auto 0}
 /* ---------- chat ---------- */
 .chatbtn{position:relative}
 .chatbtn .badge{position:absolute;right:-5px;top:-5px;background:var(--you);color:#fff}
@@ -215,6 +229,7 @@ table.sc .tot{color:var(--gold);font-weight:700;font-size:18px}
     </div>
     <button class="big alt hidden" id="continueBtn">Continue match</button>
     <button class="big" id="playBtn">Deal me in!</button>
+    <button class="big live" id="liveBtn">🌐 Play a live person</button>
     <button class="big alt chatOpen" id="menuChat">💬 Chat with a friend</button>
     <div><button class="link" id="howBtn">How to play</button></div>
     <div class="record" id="record"></div>
@@ -302,6 +317,9 @@ function snd(kind, r=1){
 /* ---------- match / round state ---------- */
 let match = null;   // {players:[{name,color,cpu,total}], round, target, diff}
 let G = null;       // current round
+let ME = 0;         // which seat is "you" (1 when you're the guest in a live game)
+let goAt = 0, cdTok = 0;
+const counting = () => now() < goAt;
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function makeDeck(o){ const d=[]; for(let s=0;s<4;s++) for(let r=1;r<=13;r++) d.push({id:o+'-'+s+'-'+r, s, r, o}); return shuffle(d); }
@@ -317,7 +335,7 @@ function newMatch(){
 function newRound(){
   match.round++;
   const n = match.players.length;
-  G = { found: Array.from({length:4*n}, ()=>[]), sel:null, over:false, paused:false, countdown:true, lastProgress: now(),
+  G = { found: Array.from({length:4*n}, ()=>[]), sel:null, over:false, paused:false, lastProgress: now(), deal: hex(4),
     ps: match.players.map((mp,i)=>{
       const d = makeDeck(i);
       const pounce = d.splice(0,13);
@@ -328,6 +346,7 @@ function newRound(){
   fit();
   render();
   countdown();
+  if(LV.inGame) sendState();
 }
 
 /* ---------- rules ---------- */
@@ -381,7 +400,38 @@ function flipStock(pi){
     p.passPlays = 0;
   }
 }
-function after(pi){ if(G.ps[pi].pounce.length===0) endRound(pi); }
+function after(pi){ if(G.ps[pi].pounce.length===0 && !isGuest()) endRound(pi); }
+function shuffleAll(){ G.ps.forEach(p=>{ p.stock = shuffle(p.stock.concat(p.waste)); p.waste=[]; p.passPlays=0; }); G.lastProgress = now(); G.sel = null; }
+function validSrc(pi, src){
+  if(!src || typeof src!=='object') return false;
+  if(src.t==='pounce' || src.t==='waste') return true;
+  const w = G.ps[pi].work[src.i];
+  return src.t==='work' && Number.isInteger(src.i) && Number.isInteger(src.j) && !!w && src.j>=0 && src.j<w.length;
+}
+// One move, as data, so the same thing can run here or be sent to the other phone.
+function applyIntent(pi, it){
+  if(!G || G.over || !it || typeof it!=='object') return false;
+  if(it.a==='flip'){ flipStock(pi); return true; }
+  if(it.a==='shuffle'){ shuffleAll(); return true; }
+  if(!validSrc(pi, it.src)) return false;
+  if(it.a==='found'){
+    const cs = srcCards(pi, it.src); if(cs.length!==1) return false;
+    const k = findFound(cs[0], Number.isInteger(it.k) ? it.k : null);
+    return k>=0 && moveToFound(pi, it.src, k);
+  }
+  if(it.a==='work'){ if(!Number.isInteger(it.i) || it.i<0 || it.i>3) return false; return moveToWork(pi, it.src, it.i); }
+  return false;
+}
+// Your move: apply it here, then tell the other phone (host sends the new board, guest sends the move).
+function act(it){
+  if(isGuest() && it.a==='shuffle'){ liveSend('ctl', {a:'shuffle'}); return true; }
+  const ok = applyIntent(ME, it);
+  if(ok && LV.inGame){
+    if(ME===0) scheduleState();
+    else { const seq = ++LV.seq; LV.pending.push({seq, it}); liveSend('act', {sid:LV.sid, seq, it}); }
+  }
+  return ok;
+}
 
 /* ---------- computer brain ---------- */
 function cpuAct(pi){
@@ -421,10 +471,10 @@ function botDelay(kind){
   return base * (.65 + Math.random()*.7);
 }
 setInterval(() => {
-  if(!G || G.over || G.paused || G.countdown) return;
+  if(!G || G.over || G.paused || counting()) return;
   const t = now();
   let changed = false, playKind = null, rank = 1;
-  for(let pi=1; pi<G.ps.length && !G.over; pi++){
+  for(let pi=1; pi<G.ps.length && !G.over && !LV.inGame; pi++){
     const p = G.ps[pi];
     if(t < p.nextAt) continue;
     const before = G.found.reduce((a,f)=>a+f.length,0);
@@ -440,7 +490,7 @@ setInterval(() => {
 
 /* ---------- you ---------- */
 function toSrc(t, a, b){
-  const p = G.ps[0];
+  const p = G.ps[ME];
   if(t==='pounce') return p.pounce.length ? {t:'pounce'} : null;
   if(t==='waste')  return p.waste.length  ? {t:'waste'}  : null;
   if(t==='work' && b>=0 && b < p.work[a].length) return {t:'work', i:a, j:b};
@@ -450,21 +500,21 @@ const same = (x,y) => x && y && x.t===y.t && x.i===y.i && x.j===y.j;
 function bad(key){ snd('bad'); render(); const el = document.querySelector(`[data-tap="${key}"]`); if(el){ el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); } }
 
 function sendToCenter(src, prefer){
-  const cs = srcCards(0, src);
+  const cs = srcCards(ME, src);
   if(cs.length!==1) return false;
   const k = findFound(cs[0], prefer);
   if(k<0) return false;
   G.sel = null;
-  moveToFound(0, src, k);
+  act({a:'found', src, k});
   snd('play', cs[0].r);
   render();
   return true;
 }
 
 function onTap(key){
-  if(!G || G.over || G.paused || G.countdown) return;
+  if(!G || G.over || G.paused || counting()) return;
   const [t, as, bs] = key.split(':'); const a = +as, b = +bs;
-  if(t==='stock'){ flipStock(0); G.sel=null; snd('flip'); render(); return; }
+  if(t==='stock'){ act({a:'flip'}); G.sel=null; snd('flip'); render(); return; }
   const src = toSrc(t, a, b);
   const sel = G.sel;
   if(!sel){ if(src){ G.sel = src; snd('sel'); render(); } return; }
@@ -474,8 +524,8 @@ function onTap(key){
   }
   if(t==='found'){ if(!sendToCenter(sel, a)) bad(key); return; }
   if(t==='work'){
-    const cs = srcCards(0, sel);
-    if(moveToWork(0, sel, a)){ G.sel = null; snd('place', cs[0].r); render(); return; }
+    const cs = srcCards(ME, sel);
+    if(act({a:'work', src:sel, i:a})){ G.sel = null; snd('place', cs[0].r); render(); return; }
     if(src){ G.sel = src; snd('sel'); render(); return; }
     bad(key); return;
   }
@@ -524,10 +574,10 @@ const ghostHTML = w => `<div class="ghost" style="--w:${w}px"></div>`;
 function validTargets(){
   const out = {found:new Set(), work:new Set()};
   if(!G.sel) return out;
-  const cs = srcCards(0, G.sel);
+  const cs = validSrc(ME, G.sel) ? srcCards(ME, G.sel) : [];
   if(!cs.length) { G.sel = null; return out; }
   if(cs.length===1) G.found.forEach((f,k)=>{ if(canFound(cs[0],f)) out.found.add(k); });
-  G.ps[0].work.forEach((w,i)=>{ if(!(G.sel.t==='work' && G.sel.i===i) && canWork(cs[0],w)) out.work.add(i); });
+  G.ps[ME].work.forEach((w,i)=>{ if(!(G.sel.t==='work' && G.sel.i===i) && canWork(cs[0],w)) out.work.add(i); });
   // only show one empty ace slot as a target
   const empties = [...out.found].filter(k=>!G.found[k].length);
   if(empties.length>1) empties.slice(1).forEach(k=>out.found.delete(k));
@@ -538,23 +588,24 @@ function render(){
   if(!G) return;
   const prev = new Map();
   document.querySelectorAll('#game [data-cid]').forEach(el => prev.set(el.dataset.cid, el.getBoundingClientRect()));
-  const P = match.players, me = G.ps[0];
+  const P = match.players, me = G.ps[ME];
   const vt = validTargets();
 
   // top bar
-  $('#chips').innerHTML = P.map((p,i)=>`<div class="chip" style="--pc:${p.color}"><i></i>${P.length<=2||i===0?`<span>${p.name}</span>`:''}<b>${p.total}</b></div>`).join('');
+  $('#chips').innerHTML = P.map((p,i)=>`<div class="chip" style="--pc:${p.color}"><i></i>${P.length<=2||i===ME?`<span>${i===ME&&LV.inGame?'You':p.name}</span>`:''}<b>${p.total}</b></div>`).join('');
   $('#rnd').textContent = 'R' + match.round;
 
   // opponents
   const mw = S.mw;
-  $('#opps').innerHTML = G.ps.slice(1).map((p,k)=>{
-    const mp = P[k+1];
+  $('#opps').innerHTML = G.ps.map((p,pi)=>{
+    if(pi===ME) return '';
+    const mp = P[pi], away = LV.inGame && !LV.peer;
     const pounce = p.pounce.length ? cardHTML(top(p.pounce), mw) : ghostHTML(mw);
     const works = p.work.map(w => `<div class="mini">${w.length ? cardHTML(top(w), mw) + (w.length>1?`<span class="badge">${w.length}</span>`:'') : ghostHTML(mw)}</div>`).join('');
     const waste = p.waste.length ? cardHTML(top(p.waste), mw) : ghostHTML(mw);
     const stock = p.stock.length ? backHTML(mp.color, mw) : ghostHTML(mw);
-    return `<div class="opp" style="--pc:${mp.color}">
-      <div class="who"><div class="ava">${mp.name[0]}</div><small>${mp.name}</small></div>
+    return `<div class="opp${away?' away':''}" style="--pc:${mp.color}">
+      <div class="who"><div class="ava">${esc(mp.name[0]||'?')}</div><small>${away?'📵 away':esc(mp.name)}</small></div>
       <div class="mini">${pounce}<span class="badge hot">${p.pounce.length}</span></div>
       <div class="gap"></div>${works}<div class="gap"></div>
       <div class="mini">${waste}</div><div class="mini">${stock}</div></div>`;
@@ -589,7 +640,7 @@ function render(){
   const wv = me.waste.slice(-3);
   const waste = `<div class="waste" data-tap="waste">${wv.map((c,j)=>cardHTML(c, cw, {cls: j===wv.length-1?wSel:'', style:`left:${j*cw*.24}px;`})).join('')}</div>`;
   const stock = me.stock.length
-    ? `<div class="stock" data-tap="stock">${backHTML(P[0].color, cw)}<span class="badge">${me.stock.length}</span></div>`
+    ? `<div class="stock" data-tap="stock">${backHTML(P[ME].color, cw)}<span class="badge">${me.stock.length}</span></div>`
     : `<div class="stock" data-tap="stock"><div class="recycle">${me.waste.length?'↻':''}</div></div>`;
   $('#hand').innerHTML =
     `<div class="stackwrap">${pounce}<div class="lbl">Pounce</div></div><div class="gap"></div>` +
@@ -625,15 +676,14 @@ function banner(text, color, sub='', ms=900){
   if(ms) bannerTimer = setTimeout(()=>{ b.innerHTML=''; }, ms);
 }
 function countdown(){
-  G.countdown = true;
+  const tok = ++cdTok;
+  goAt = now() + 1800;
   const steps = ['3','2','1'];
   let i = 0;
-  const g = G;
   const step = () => {
-    if(G !== g) return;
+    if(tok !== cdTok || !G) return;
     if(i < steps.length){ banner(steps[i], COLORS[i+1], '', 600); snd('tick'); i++; setTimeout(step, 600); return; }
     banner('GO!', '#ff5d8f', '', 600); snd('go');
-    G.countdown = false;
     G.lastProgress = now();
     G.ps.forEach((p,pi)=>{ if(pi) p.nextAt = now() + botDelay('play') * .8; });
   };
@@ -651,13 +701,18 @@ function endRound(pi){
     p.total += score;
     return {center, left, score};
   });
-  G.result = res;
+  G.result = res; G.winner = pi;
+  if(LV.inGame) sendState();
+  presentEnd(pi);
+}
+function presentEnd(pi){
+  const P = match.players, deal = G.deal;
   render();
   if(pi>=0){
-    banner(pi===0 ? 'POUNCE!' : `${P[pi].name}<br>POUNCED!`, P[pi].color, pi===0?'You went out first!':'', 1700);
-    snd(pi===0 ? 'pounce' : 'sad');
+    banner(pi===ME ? 'POUNCE!' : `${esc(P[pi].name)}<br>POUNCED!`, P[pi].color, pi===ME?'You went out first!':'', 1700);
+    snd(pi===ME ? 'pounce' : 'sad');
   } else banner('Round over', '#9d4edd', '', 1200);
-  setTimeout(showScores, pi>=0 ? 1800 : 1300);
+  setTimeout(()=>{ if(G && G.deal===deal && G.over) showScores(); }, pi>=0 ? 1800 : 1300);
 }
 
 function showScores(){
@@ -667,28 +722,38 @@ function showScores(){
   const leaders = P.filter(p=>p.total===best);
   const finished = over && leaders.length===1;   // tie at the top → keep playing
   const rows = P.map((p,i)=>`<tr style="--pc:${p.color}">
-      <td><i></i>${p.name}</td><td class="pos">+${res[i].center}</td>
+      <td><i></i>${i===ME&&LV.inGame?'You':esc(p.name)}</td><td class="pos">+${res[i].center}</td>
       <td class="${res[i].left?'neg':''}">${res[i].left?'−'+res[i].left*2:'0'}</td>
       <td class="${res[i].score>=0?'pos':'neg'}">${res[i].score>=0?'+':''}${res[i].score}</td>
       <td class="tot">${p.total}<div class="bar"><div style="width:${Math.max(0,Math.min(100,p.total/match.target*100))}%"></div></div></td></tr>`).join('');
   let head, btns;
   if(finished){
-    const youWon = leaders[0] === P[0];
-    const stats = store.get('stats', {w:0,l:0});
-    youWon ? stats.w++ : stats.l++;
-    store.set('stats', stats); store.del('match');
-    head = youWon ? `<h2>🏆 You win!</h2><p>First to ${match.target}. Absolute menace.</p>` : `<h2>${leaders[0].name} wins</h2><p>Shake it off. Run it back?</p>`;
-    btns = `<button class="big" id="againBtn">Rematch</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">Menu</button>`;
-    if(youWon) confetti();
+    const youWon = leaders[0] === P[ME];
+    if(!G.counted){ G.counted = true;
+      const key = LV.inGame ? 'liveStats' : 'stats';
+      const stats = store.get(key, {w:0,l:0});
+      youWon ? stats.w++ : stats.l++;
+      store.set(key, stats);
+      if(!LV.inGame) store.del('match');
+      if(youWon) confetti();
+    }
+    head = youWon ? `<h2>🏆 You win!</h2><p>First to ${match.target}. Absolute menace.</p>` : `<h2>${esc(leaders[0].name)} wins</h2><p>Shake it off. Run it back?</p>`;
+    btns = `<button class="big" id="againBtn">Rematch</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">${LV.inGame?'Leave live game':'Menu'}</button>`;
   } else {
-    store.set('match', match);
+    if(!LV.inGame) store.set('match', match);
     head = `<h2>Round ${match.round}</h2><p>Playing to ${match.target}${over?' — tied at the top, keep going!':''}</p>`;
-    btns = `<button class="big" id="nextBtn">Next round</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">Menu</button>`;
+    btns = `<button class="big" id="nextBtn">Next round</button><button class="big alt chatOpen">💬 Chat</button><button class="big alt" id="menuBtn2">${LV.inGame?'Leave live game':'Menu'}</button>`;
   }
   overlay(`${head}<table class="sc"><tr><th></th><th>Center</th><th>Pounce</th><th>Round</th><th>Total</th></tr>${rows}</table>${btns}`);
-  const nb = $('#nextBtn'); if(nb) nb.onclick = () => { closeOverlay(); newRound(); };
-  const ab = $('#againBtn'); if(ab) ab.onclick = () => { closeOverlay(); match.players.forEach(p=>p.total=0); match.round=0; newRound(); };
-  $('#menuBtn2').onclick = () => { closeOverlay(); G = null; showScreen('menu'); };
+  const nb = $('#nextBtn'); if(nb) nb.onclick = () => nextRound('next', nb);
+  const ab = $('#againBtn'); if(ab) ab.onclick = () => nextRound('rematch', ab);
+  $('#menuBtn2').onclick = () => { closeOverlay(); if(LV.inGame) leaveLive(); else { G = null; showScreen('menu'); } };
+}
+function nextRound(kind, btn){
+  if(isGuest()){ liveSend('ctl', {a:kind}); if(btn){ btn.textContent = `Waiting for ${match.players[0].name}…`; btn.disabled = true; } return; }
+  closeOverlay();
+  if(kind==='rematch'){ match.players.forEach(p=>p.total=0); match.round=0; }
+  newRound();
 }
 
 function overlay(html){ const o = $('#overlay'); o.innerHTML = `<div class="sheet">${html}</div>`; o.classList.remove('hidden'); }
@@ -696,6 +761,17 @@ function closeOverlay(){ $('#overlay').classList.add('hidden'); $('#overlay').in
 
 function pause(){
   if(!G || G.over || G.paused) return;
+  if(LV.inGame){
+    overlay(`<h2>Live game</h2><p>The game keeps going while this is open.</p>
+      <button class="big" id="resumeBtn">Back to the game</button>
+      <button class="big alt chatOpen">💬 Chat</button>
+      <button class="big alt" id="rulesBtn2">How to play</button>
+      <button class="big alt" id="quitBtn">Leave live game</button>`);
+    $('#resumeBtn').onclick = () => { closeOverlay(); render(); };
+    $('#rulesBtn2').onclick = () => rules(pause);
+    $('#quitBtn').onclick = () => { closeOverlay(); leaveLive(); };
+    return;
+  }
   G.paused = true; G.pauseAt = now();
   overlay(`<h2>Paused</h2><p>Round ${match.round} · playing to ${match.target}</p>
     <button class="big" id="resumeBtn">Resume</button>
@@ -719,18 +795,14 @@ function resume(){
   G.paused = false;
   render();
 }
-function reshuffleStocks(){
-  G.ps.forEach(p=>{ p.stock = shuffle(p.stock.concat(p.waste)); p.waste=[]; p.passPlays=0; });
-  G.lastProgress = now(); G.sel = null;
-  snd('flip'); render();
-}
+function reshuffleStocks(){ act({a:'shuffle'}); snd('flip'); render(); }
 $('#pauseBtn').onclick = pause;
 $('#stuckBtn').onclick = () => { reshuffleStocks(); banner('Shuffled!', '#ffbe0b', 'Everyone’s stock got mixed', 900); };
-document.addEventListener('visibilitychange', () => { if(document.hidden) pause(); });
+document.addEventListener('visibilitychange', () => { if(document.hidden && !LV.inGame) pause(); });
 
 function rules(back){
   overlay(`<h2>How to play</h2><ol class="rules">
-    <li><b>Goal:</b> empty your <b>Pounce pile</b> (13 cards, bottom left) before the computer empties theirs.</li>
+    <li><b>Goal:</b> empty your <b>Pounce pile</b> (13 cards, bottom left) before your opponent empties theirs.</li>
     <li><b>Center piles</b> are shared. Start one with an <b>Ace</b>, then build up in the <b>same suit</b> to King. Every card you put there is <b>+1</b>.</li>
     <li><b>Your 4 work piles</b> build <b>down</b> in <b>alternating colors</b> (red 7 on black 8). Tap a card in the middle of a pile to move it with everything on top. An empty spot takes any card.</li>
     <li><b>Tap your card, then tap where it goes.</b> Tap anywhere in the center and it finds the right pile. <b>Tap a card twice</b> to fire it straight to the center.</li>
@@ -774,6 +846,7 @@ document.querySelectorAll('.seg').forEach(seg=>{
 $('#playBtn').onclick = () => { snd('sel'); store.del('match'); newMatch(); };
 $('#continueBtn').onclick = () => { const m = store.get('match', null); if(!m) return; match = m; snd('sel'); newRound(); };
 $('#howBtn').onclick = () => rules();
+$('#liveBtn').onclick = () => { snd('sel'); openLobby(); };
 
 /* ---------- confetti ---------- */
 function confetti(){
@@ -794,6 +867,229 @@ function confetti(){
   })();
 }
 
+
+/* ---------- live play with a real person ----------
+   Both phones join a private Supabase Realtime channel named by the room's secret `live` key.
+   Seat 0 (whoever joined the room first) is the host: it deals, owns the true board, and settles races
+   for the same center pile. Seat 1 plays instantly on its own phone, sends each move to the host,
+   and snaps to the host's board whenever it arrives (replaying any moves the host hasn't seen yet). */
+const LV = { client:null, ch:null, key:null, status:'off', seat:0, peer:null, ready:false, inGame:false, lobby:false,
+  seq:0, ack:0, pending:[], sid: Math.random().toString(36).slice(2,10), peerSid:null, stTimer:null };
+const isGuest = () => LV.inGame && ME===1;
+let sbLoad = null;
+function loadSupabase(){
+  if(window.supabase) return Promise.resolve();
+  return sbLoad || (sbLoad = new Promise((res, rej)=>{
+    const sc = document.createElement('script'); sc.src = '/Pounce/supabase.min.js';
+    sc.onload = res; sc.onerror = () => { sbLoad = null; rej(new Error('load')); };
+    document.head.appendChild(sc);
+  }));
+}
+async function connectLive(){
+  if(!CH.room || !CH.live || LV.key===CH.live) return;
+  const key = CH.live;
+  try{ await loadSupabase(); }catch(e){ LV.status = 'failed'; refreshLobby(); return; }
+  if(!CH.room || CH.live!==key || LV.key===key) return;
+  disconnectLive();
+  LV.key = key; LV.seat = CH.seat; LV.status = 'connecting';
+  LV.client = LV.client || window.supabase.createClient(CHAT_URL.replace(/\/functions.*$/,''), CHAT_KEY,
+    {auth:{persistSession:false, autoRefreshToken:false, detectSessionInUrl:false}, realtime:{params:{eventsPerSecond:40}}});
+  const ch = LV.client.channel('pounce-live-'+key, {config:{broadcast:{self:false}, presence:{key:'s'+LV.seat}}});
+  ch.on('broadcast', {event:'st'},    ({payload}) => onLiveState(payload))
+    .on('broadcast', {event:'act'},   ({payload}) => onLiveAct(payload))
+    .on('broadcast', {event:'ctl'},   ({payload}) => onLiveCtl(payload))
+    .on('broadcast', {event:'hello'}, () => { if(LV.seat===0 && LV.inGame) sendState(); })
+    .on('broadcast', {event:'ping'},  () => { poll(false); })
+    .on('presence',  {event:'sync'},  onPresence);
+  ch.subscribe(status => {
+    if(LV.ch !== ch) return;
+    LV.status = status==='SUBSCRIBED' ? 'on' : (status==='CLOSED' ? 'off' : 'connecting');
+    if(status==='SUBSCRIBED'){ track(); if(LV.seat===1) liveSend('hello', {}); }
+    refreshLobby();
+  });
+  LV.ch = ch;
+}
+function disconnectLive(){
+  if(LV.ch && LV.client){ try{ LV.client.removeChannel(LV.ch); }catch(e){} }
+  LV.ch = null; LV.key = null; LV.status = 'off'; LV.peer = null;
+}
+function liveSend(event, payload){
+  if(LV.ch && LV.status==='on') LV.ch.send({type:'broadcast', event, payload}).catch(()=>{});
+}
+function track(){
+  if(LV.ch && LV.status==='on' && CH.room)
+    LV.ch.track({name: CH.room.name, ready: LV.ready || LV.inGame, game: LV.inGame, target: +settings.target}).catch(()=>{});
+}
+function onPresence(){
+  const st = LV.ch ? LV.ch.presenceState() : {};
+  const list = st['s'+(1-LV.seat)];
+  const was = !!LV.peer, wasGame = LV.peer && LV.peer.game;
+  LV.peer = list && list.length ? list[list.length-1] : null;
+  if(LV.peer && LV.peer.name){ CH.names[1-LV.seat] = LV.peer.name; CH.joined = true;
+    if(LV.inGame && match && match.players[1-ME]) match.players[1-ME].name = LV.peer.name; }
+  if(LV.inGame && wasGame && LV.peer && !LV.peer.game) toast(match.players[1-ME].name, 'left the live game');
+  refreshLobby();
+  if(LV.inGame){
+    if(was !== !!LV.peer) toast(match.players[1-ME].name, LV.peer ? 'is back 👋' : 'dropped off… waiting for them');
+    render();
+    if(LV.seat===0 && LV.peer) sendState();
+  }
+  maybeDeal();
+}
+
+/* board <-> wire format: every card is a number 0..103 */
+const CARD = [];
+const encC = c => c.o*52 + c.s*13 + c.r - 1;
+const decC = n => CARD[n] || (CARD[n] = {id: (n/52|0)+'-'+((n%52)/13|0)+'-'+(n%13+1), o: n/52|0, s: (n%52)/13|0, r: n%13+1});
+function encodeState(){
+  return { v:1, deal:G.deal, round:match.round, target:match.target,
+    names: match.players.map(p=>p.name), totals: match.players.map(p=>p.total),
+    f: G.found.map(f=>f.map(encC)),
+    p: G.ps.map(p=>[p.pounce.map(encC), p.work.map(w=>w.map(encC)), p.stock.map(encC), p.waste.map(encC), p.passPlays]),
+    over: G.over, win: G.over ? G.winner : null, res: G.over ? G.result : null,
+    lp: Math.round(now() - G.lastProgress), ack: LV.ack, sid: LV.peerSid };
+}
+function decodeInto(st){
+  return { deal: st.deal, sel:null, paused:false, over: !!st.over, winner: st.win, result: st.res,
+    lastProgress: now() - (st.lp||0),
+    found: st.f.map(f=>f.map(decC)),
+    ps: st.p.map(p=>({ pounce:p[0].map(decC), work:p[1].map(w=>w.map(decC)), stock:p[2].map(decC), waste:p[3].map(decC), passPlays:p[4]|0, nextAt:0 })) };
+}
+function sendState(){
+  clearTimeout(LV.stTimer); LV.stTimer = null;
+  if(!LV.inGame || LV.seat!==0 || !G) return;
+  const st = encodeState();
+  liveSend('st', st);
+  store.set('live', {code: CH.room && CH.room.code, st});
+}
+function scheduleState(){ if(!LV.stTimer) LV.stTimer = setTimeout(sendState, 25); }
+const centerCount = o => G.found.reduce((a,f)=>a + f.filter(c=>c.o===o).length, 0);
+
+/* host side */
+function onLiveAct(m){
+  if(LV.seat!==0 || !LV.inGame || !G || !m || !Number.isInteger(m.seq)) return;
+  if(m.sid !== LV.peerSid){ LV.peerSid = m.sid; LV.ack = 0; }
+  if(m.seq <= LV.ack) return;
+  LV.ack = m.seq;
+  if(!G.over){
+    const before = centerCount(1);
+    if(applyIntent(1, m.it) && centerCount(1) > before) snd('cpu', 5);
+    render();
+  }
+  scheduleState();
+}
+function onLiveCtl(m){
+  if(LV.seat!==0 || !LV.inGame || !G || !m) return;
+  if(m.a==='shuffle' && !G.over){ shuffleAll(); snd('flip'); render(); banner('Shuffled!', '#ffbe0b', `${esc(match.players[1].name)} hit Stuck?`, 900); sendState(); }
+  if((m.a==='next' || m.a==='rematch') && G.over) nextRound(m.a);
+}
+
+/* guest side */
+function onLiveState(st){
+  if(LV.seat!==1 || !st || st.v!==1) return;
+  if(!LV.inGame){
+    const busy = G && !$('#game').classList.contains('hidden');   // in the middle of a computer game
+    if(busy){ toast(st.names[0], 'started a live game. Tap 🌐 Play a live person to jump in.'); LV.offer = st; return; }
+    LV.inGame = true; LV.lobby = false; ME = 1; track();
+  }
+  const fresh = !G || G.deal !== st.deal;
+  const wasOver = G && G.over;
+  const keepSel = !fresh && G ? G.sel : null, counted = !fresh && G && G.counted;
+  const theirsBefore = G && !fresh ? centerCount(0) : 0;
+  match = { round: st.round, target: st.target, diff:'normal',
+    players: st.names.map((n,i)=>({ name:n, color: i===1 ? COLORS[0] : COLORS[1], cpu:false, total: st.totals[i] })) };
+  G = decodeInto(st);
+  if(fresh) LV.pending = [];
+  if(st.sid === LV.sid) LV.pending = LV.pending.filter(x => x.seq > st.ack);
+  if(!G.over) for(const x of LV.pending) applyIntent(1, x.it);
+  G.sel = keepSel; G.counted = counted;
+  if(fresh){
+    closeOverlay(); showScreen('game'); fit(); render();
+    if(!G.over) countdown(); else presentEnd(G.winner);
+    return;
+  }
+  if(!G.over && centerCount(0) > theirsBefore) snd('cpu', 5);
+  render();
+  if(G.over && !wasOver) presentEnd(G.winner);
+}
+
+/* lobby */
+function maybeDeal(){
+  if(LV.seat===0 && LV.lobby && LV.ready && LV.peer && LV.peer.ready && !LV.inGame && LV.status==='on') startLive();
+}
+function startLive(){
+  LV.inGame = true; LV.lobby = false; ME = 0; LV.ack = 0; LV.peerSid = null;
+  closeOverlay(); track();
+  const saved = store.get('live', null), st = saved && saved.code===CH.room.code ? saved.st : null;
+  const finished = st && st.over && (() => { const b = Math.max(...st.totals); return b >= st.target && st.totals.filter(t=>t===b).length===1; })();
+  if(st && !finished && !LV.fresh){
+    match = { round: st.round, target: st.target, diff:'normal',
+      players: st.names.map((n,i)=>({ name: CH.names[i] || n, color: COLORS[i], cpu:false, total: st.totals[i] })) };
+    G = decodeInto(st);
+    if(G.over){ newRound(); return; }
+    G.deal = hex(4);   // fresh deal id so the other phone redraws and counts down with you
+    showScreen('game'); fit(); render(); countdown(); sendState();
+    return;
+  }
+  LV.fresh = false;
+  match = { round:0, target:+settings.target, diff:'normal',
+    players: [0,1].map(i=>({ name: CH.names[i] || (i?'Friend':'Host'), color: COLORS[i], cpu:false, total:0 })) };
+  newRound();
+}
+function leaveLive(){
+  if(LV.seat===0 && G && LV.inGame) sendState();
+  LV.inGame = false; LV.ready = false; LV.pending = []; ME = 0; G = null; cdTok++;
+  track(); closeOverlay(); showScreen('menu');
+}
+function openLobby(){
+  if(LV.offer && LV.seat===1){ const st = LV.offer; LV.offer = null; G = null; onLiveState(st); if(LV.inGame) return; }
+  LV.lobby = true;
+  if(CH.room && !CH.live) poll(true);
+  connectLive();
+  renderLobby();
+}
+function refreshLobby(){ if(LV.lobby && !$('#overlay').classList.contains('hidden')) renderLobby(); }
+function renderLobby(){
+  const back = `<button class="link" id="lobbyBack">Back</button>`;
+  if(!CH.room){
+    overlay(`<h2>Play live</h2><p>You and your friend both join room <b style="color:var(--gold);letter-spacing:2px">${HOME_ROOM}</b> on your own phones.</p>
+      <input class="field" id="lobbyName" maxlength="18" placeholder="Your name" value="${esc(store.get('name',''))}" autocomplete="nickname">
+      <button class="big" id="lobbyJoin">Join room ${HOME_ROOM}</button>
+      <button class="link chatOpen">Use a different room</button>
+      <div class="err" id="lobbyErr"></div>${back}`);
+    $('#lobbyJoin').onclick = async () => {
+      const name = $('#lobbyName').value.trim();
+      if(!name){ $('#lobbyErr').textContent = 'Put your name in first.'; return; }
+      $('#lobbyErr').textContent = 'Connecting…';
+      try{ await joinRoom(HOME_ROOM, name); renderLobby(); }catch(e){ $('#lobbyErr').textContent = e.message; }
+    };
+  } else {
+    const host = CH.seat===0, myName = CH.room.name, fname = CH.names[1-CH.seat];
+    const conn = LV.status==='on' ? '' : LV.status==='failed' ? 'Live play couldn’t load. Check your connection.' : 'Connecting…';
+    const peer = LV.peer;
+    const fStatus = !CH.joined && host ? `<span class="off">hasn’t joined the room yet</span>`
+      : !peer ? `<span class="off">not here right now</span>` : peer.ready ? `<span class="go">ready ✓</span>` : `<span>here, not ready</span>`;
+    const saved = store.get('live', null);
+    const canResume = host && saved && saved.code===CH.room.code && saved.st && !LV.fresh;
+    const target = host ? settings.target : (peer && peer.target) || '…';
+    overlay(`<h2>Play live</h2><p>Room ${CH.room.code}${conn?` · ${conn}`:''}</p>
+      <div class="seats">
+        <div class="seatrow" style="--pc:${COLORS[0]}"><div class="ava">${esc(myName[0]||'?')}</div><b>${esc(myName)} (you)</b>${LV.ready?'<span class="go">ready ✓</span>':'<span>not ready</span>'}</div>
+        <div class="seatrow" style="--pc:${COLORS[1]}"><div class="ava">${esc((fname||'?')[0])}</div><b>${esc(fname||'Your friend')}</b>${fStatus}</div>
+      </div>
+      ${host ? `<p style="margin-top:10px">Play to</p><div class="seg" id="lobbyTarget">${[50,100,150].map(v=>`<button data-v="${v}" class="${+settings.target===v?'on':''}">${v}</button>`).join('')}</div>`
+             : `<p>Playing to ${target} · ${esc(fname||'your friend')} deals</p>`}
+      ${canResume ? `<p style="font-size:13px">Picks up your saved match (round ${saved.st.round}).</p>` : ''}
+      <button class="big" id="readyBtn" ${LV.status!=='on'?'disabled':''}>${LV.ready ? 'Waiting for '+esc(fname||'friend')+'…' : 'I’m ready!'}</button>
+      <button class="big alt chatOpen">💬 Chat</button>
+      ${canResume ? `<button class="link" id="freshBtn">Start a fresh match instead</button>` : ''}
+      ${back}`);
+    $('#readyBtn').onclick = () => { LV.ready = !LV.ready; snd('sel'); track(); renderLobby(); maybeDeal(); };
+    const tg = $('#lobbyTarget'); if(tg) tg.onclick = e => { const b = e.target.closest('button'); if(!b) return; settings.target = +b.dataset.v; store.set('settings', settings); track(); renderLobby(); };
+    const fb = $('#freshBtn'); if(fb) fb.onclick = () => { LV.fresh = true; store.del('live'); renderLobby(); };
+  }
+  $('#lobbyBack').onclick = () => { LV.lobby = false; LV.ready = false; track(); closeOverlay(); };
+}
 
 /* ---------- chat with a friend ---------- */
 const CHAT_URL = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
@@ -820,7 +1116,8 @@ async function chatCall(op, extra={}){
   finally{ clearTimeout(to); }
 }
 function absorb(v, full){
-  CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined;
+  CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined; CH.live = v.live || null;
+  connectLive(); refreshLobby();
   if(full) CH.msgs = [];
   const have = new Set(CH.msgs.map(m=>m.id));
   const fresh = v.messages.filter(m=>!have.has(m.id));
@@ -880,6 +1177,8 @@ function setRoom(room){
   schedulePoll();
 }
 function leaveRoom(silent){
+  if(LV.inGame) leaveLive();
+  disconnectLive(); CH.live = null;
   CH.room = null; store.del('room'); CH.msgs=[]; CH.pending=[]; CH.lastTs=0; clearTimeout(CH.timer); updateBadge();
   if(!silent) renderChat();
 }
@@ -888,7 +1187,7 @@ async function sendMsg(text){
   if(!text || !CH.room) return;
   const m = {id:hex(12), seat:CH.seat, text, ts:Date.now()};
   CH.pending.push(m); renderChat(true);
-  try{ absorb(await chatCall('message', {code:CH.room.code, secret:CH.room.secret, id:m.id, text, after:CH.lastTs}), false); CH.err=''; snd('place'); }
+  try{ absorb(await chatCall('message', {code:CH.room.code, secret:CH.room.secret, id:m.id, text, after:CH.lastTs}), false); CH.err=''; snd('place'); liveSend('ping', {}); }
   catch(e){ CH.pending = CH.pending.filter(p=>p.id!==m.id); CH.err = e.message; snd('bad'); const inp=$('#chatInput'); if(inp && !inp.value) inp.value = text; }
   renderChat(true);
 }
@@ -968,7 +1267,7 @@ function fitChat(){ const vv = window.visualViewport; document.documentElement.s
 if(window.visualViewport){ visualViewport.addEventListener('resize', fitChat); visualViewport.addEventListener('scroll', fitChat); }
 function openChat(){
   CH.open = true; fitChat();
-  if(G && !G.over && !G.paused){ G.paused = true; G.pauseAt = now(); G.chatHold = true; }
+  if(G && !G.over && !G.paused && !LV.inGame){ G.paused = true; G.pauseAt = now(); G.chatHold = true; }
   $('#chat').classList.remove('hidden');
   markSeen(); renderChat(true);
   if(CH.room){ poll(false); schedulePoll(); }
@@ -994,7 +1293,7 @@ document.addEventListener('click', e => { if(e.target.closest('.chatOpen')) open
 showScreen('menu');
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('/Pounce/sw.js').catch(()=>{});
 // expose for testing
-window.__pounce = { get G(){return G;}, get match(){return match;}, onTap, endRound };
+window.__pounce = { get G(){return G;}, get match(){return match;}, get ME(){return ME;}, get LV(){return LV;}, onTap, endRound, encodeState: () => encodeState() };
 })();
 </script>
 </body>

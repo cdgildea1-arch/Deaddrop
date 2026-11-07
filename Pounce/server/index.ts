@@ -20,7 +20,8 @@ async function db(path: string, method = 'GET', body?: unknown) {
 }
 
 function view(row: any, seat: number, after = 0) {
-  return { code: row.code, rev: row.rev, seat, joined: !!row.guest_hash, names: row.names, messages: row.messages.filter((m: any) => m.ts > after) };
+  // `live` is the secret realtime channel key for live games; only seated players ever see it.
+  return { code: row.code, rev: row.rev, seat, joined: !!row.guest_hash, names: row.names, live: row.live, messages: row.messages.filter((m: any) => m.ts > after) };
 }
 
 Deno.serve(async (req: Request) => {

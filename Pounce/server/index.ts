@@ -61,8 +61,19 @@ Deno.serve(async (req: Request) => {
       row = rows[0];
     }
     let seat = row.host_hash === secretHash ? 0 : row.guest_hash === secretHash ? 1 : -1;
+    // Rejoin: a phone that lost its saved seat (Safari vs. the Home Screen app keep separate storage, private tabs
+    // forget) gets its old seat back by joining with the same name, instead of taking the other seat or being refused.
+    if (b.op === 'join' && seat < 0 && typeof b.name === 'string') {
+      const want = cleanName(b.name, '').toLowerCase();
+      const mine = want ? [0, 1].find(i => (row.names[i] || '').toLowerCase() === want && (i === 0 || row.guest_hash)) : undefined;
+      if (mine !== undefined) {
+        const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { [mine === 0 ? 'host_hash' : 'guest_hash']: secretHash, rev: row.rev + 1, updated_at: new Date().toISOString() });
+        if (!rows.length) return reply({ error: 'The room changed while joining. Try again.' }, 409);
+        row = rows[0]; seat = mine;
+      }
+    }
     if (b.op === 'join' && seat < 0) {
-      if (row.guest_hash) return reply({ error: 'That room already has two people. Start a new room.' }, 403);
+      if (row.guest_hash) return reply({ error: `That room already has two people (${row.names[0]} and ${row.names[1]}). If one of them is you, join with that exact name.` }, 403);
       const names = [row.names[0], cleanName(b.name, 'Player 2')];
       const rows = await db(path + '&rev=eq.' + row.rev + '&guest_hash=is.null', 'PATCH', { guest_hash: secretHash, names, rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed while joining. Try again.' }, 409);

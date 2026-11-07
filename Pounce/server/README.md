@@ -13,3 +13,7 @@ The room view also returns `live`, a random key that only the two seated phones 
 ## Resetting a room
 
 `op: 'reset'` empties both seats and the messages and issues a new `live` key, which cuts off both phones. A seated phone can reset its room. Anyone can reset a reserved 8-digit room (it goes back to `unclaimed`), so a lost or stale phone can't lock it. The app offers this as "Cancel game and reset room" in the lobby and the live pause menu, and as "Reset room 25800852" when a join finds the room full.
+
+## Rejoining
+
+A phone that lost its saved seat (Safari and the Home Screen app keep separate storage, and private tabs forget) gets its old seat back by joining with the same name, case-insensitive. Before this, it would take the other seat or be told the room was full. Two players therefore need different names.

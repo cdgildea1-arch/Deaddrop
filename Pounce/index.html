@@ -1080,7 +1080,7 @@ function renderLobby(){
       $('#lobbyErr').textContent = 'Connecting…';
       try{ await joinRoom(HOME_ROOM, name); renderLobby(); }
       catch(e){
-        $('#lobbyErr').textContent = /two people/.test(e.message) ? `Room ${HOME_ROOM} is full from an earlier game. Reset it to start over.` : e.message;
+        $('#lobbyErr').textContent = /two people/.test(e.message) ? e.message + ' Or reset the room to start over.' : e.message;
         if(/two people/.test(e.message)) $('#lobbyReset').classList.remove('hidden');
       }
     };

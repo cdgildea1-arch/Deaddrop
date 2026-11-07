@@ -798,13 +798,15 @@ function confetti(){
 /* ---------- chat with a friend ---------- */
 const CHAT_URL = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const CHAT_KEY = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+const HOME_ROOM = '25800852';
+const CODE_RE = /^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/;
 const QUICK = ['👋 Hey!', 'POUNCE! 😼', 'GG', '😂', '🔥', '😤', 'Rematch?', 'You ready?', '🐢 slow down', '❤️'];
 const hex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2,'0')).join('');
 const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CH = {
   room: store.get('room', null),        // {code, secret, name}
   msgs: [], names: ['',''], seat: 0, joined: false,
-  lastTs: 0, seen: store.get('seen', 0), open: false, err: '', busy: false, pending: [], timer: null, setupMode: 'start'
+  lastTs: 0, seen: store.get('seen', 0), open: false, err: '', busy: false, pending: [], timer: null, setupMode: 'home'
 };
 async function chatCall(op, extra={}){
   const ctl = new AbortController(); const to = setTimeout(()=>ctl.abort(), 10000);
@@ -898,15 +900,17 @@ function renderChat(scroll){
   const close = `<button class="iconbtn" id="chatClose" aria-label="Close">✕</button>`;
   if(!CH.room){
     const nm = esc(store.get('name',''));
-    const joinFirst = CH.setupMode === 'join';
+    const other = CH.setupMode === 'other';
     box.innerHTML = `<div class="chathead"><h2>Chat<small>with a real person</small></h2>${close}</div>
       <div class="setup">
-        <p>Start a room and send your friend the code. They open Pounce, tap 💬 and join. Then you can talk trash while you play.</p>
+        <p>${other?'Start a new room and send your friend the code, or type in theirs.':`You and your friend both join room <b style="color:var(--gold);letter-spacing:2px">${HOME_ROOM}</b>. Then talk trash while you play.`}</p>
         <input class="field" id="chatName" maxlength="18" placeholder="Your name" value="${nm}" autocomplete="nickname">
-        ${joinFirst?'':`<button class="big" id="startRoom">Start a room</button><div class="or">— OR JOIN ONE —</div>`}
-        <input class="field code" id="joinCode" maxlength="6" placeholder="CODE" value="${esc(CH.prefill||'')}" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        ${other?`<button class="big" id="startRoom">Start a new room</button><div class="or">— OR JOIN ONE —</div>
+        <input class="field code" id="joinCode" maxlength="8" placeholder="CODE" value="${esc(CH.prefill||'')}" autocapitalize="characters" autocomplete="off" spellcheck="false">
         <button class="big alt" id="joinRoomBtn">Join room</button>
-        ${joinFirst?`<button class="link" id="showStart">Start my own room instead</button>`:''}
+        <button class="link" id="showHome">Back to room ${HOME_ROOM}</button>`
+        :`<button class="big" id="joinHome">Join room ${HOME_ROOM}</button>
+        <button class="link" id="showOther">Use a different room</button>`}
         <div class="err">${esc(CH.err)}</div>
       </div>`;
     const go = async (fn) => {
@@ -917,10 +921,12 @@ function renderChat(scroll){
       renderChat(true);
     };
     const sb = $('#startRoom'); if(sb) sb.onclick = () => go(startRoom);
-    const ss = $('#showStart'); if(ss) ss.onclick = () => { CH.setupMode='start'; renderChat(); };
-    $('#joinRoomBtn').onclick = () => {
+    const so = $('#showOther'); if(so) so.onclick = () => { CH.setupMode='other'; CH.err=''; renderChat(); };
+    const sh = $('#showHome'); if(sh) sh.onclick = () => { CH.setupMode='home'; CH.err=''; renderChat(); };
+    const jh = $('#joinHome'); if(jh) jh.onclick = () => go(name => joinRoom(HOME_ROOM, name));
+    const jb = $('#joinRoomBtn'); if(jb) jb.onclick = () => {
       const code = $('#joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-      if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code)){ CH.err = 'Room codes are 6 letters/numbers.'; renderChat(); return; }
+      if(!CODE_RE.test(code)){ CH.err = 'That doesn\u2019t look like a room code.'; renderChat(); return; }
       go(name => joinRoom(code, name));
     };
   } else {
@@ -954,7 +960,7 @@ function renderChat(scroll){
 renderChat.draft = '';
 async function shareRoom(){
   const url = location.origin + '/Pounce/?room=' + CH.room.code;
-  const text = `Come chat with me on Pounce! Room code: ${CH.room.code}`;
+  const text = `Come play Pounce with me! Chat room: ${CH.room.code}`;
   try{ if(navigator.share){ await navigator.share({title:'Pounce', text, url}); return; } }catch(e){ return; }
   try{ await navigator.clipboard.writeText(text + '\n' + url); toast('Copied', 'Invite link copied'); }catch(e){ toast('Room code', CH.room.code); }
 }
@@ -980,7 +986,7 @@ document.addEventListener('click', e => { if(e.target.closest('.chatOpen')) open
     history.replaceState(null, '', location.pathname);
     const code = q.toUpperCase();
     if(CH.room && CH.room.code === code){ openChat(); }
-    else if(/^[A-HJ-NP-Z2-9]{6}$/.test(code)){ if(CH.room) leaveRoom(true); CH.prefill = code; CH.setupMode = 'join'; setTimeout(openChat, 300); }
+    else if(CODE_RE.test(code)){ if(CH.room) leaveRoom(true); CH.prefill = code; CH.setupMode = code===HOME_ROOM ? 'home' : 'other'; setTimeout(openChat, 300); }
   }
   if(CH.room){ poll(true).then(schedulePoll); }
 })();

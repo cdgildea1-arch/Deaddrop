@@ -85,6 +85,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;str
 .slot.rd{color:#ec7d72b0}
 .slot .card{position:absolute;left:0;top:0}
 .slot.done .card:last-child{filter:brightness(.82)}
+.slot.flash{box-shadow:0 0 0 2.5px var(--fc),0 0 16px var(--fc)}
 
 .work{flex:1;min-height:0;display:flex;justify-content:space-between;margin-top:34px}
 .col{position:relative;width:var(--cw);height:100%;border-radius:calc(var(--cw)*.1);transition:box-shadow .15s}
@@ -241,10 +242,10 @@ const COLORS = ['#d4876a','#6fa89e','#c2a65a','#8c9fc9'];
 const BOT_NAMES = ['Pickles','Bandit','Ziggy','Noodle','Biscuit','Waffles','Moxie','Taco','Pepper','Sprocket'];
 // How the computer plays: ms = average time per move, miss = chance it overlooks a play.
 const DIFF = {
-  chill:  {ms:4800, miss:.45},
-  normal: {ms:3400, miss:.3},
-  spicy:  {ms:2200, miss:.15},
-  wicked: {ms:1400, miss:.05}
+  chill:  {ms:4000, miss:.33},
+  normal: {ms:3100, miss:.27},
+  spicy:  {ms:1800, miss:.12},
+  wicked: {ms:1150, miss:.04}
 };
 const top = a => a[a.length-1];
 const isRed = c => c.s===1 || c.s===2;
@@ -455,7 +456,7 @@ function cpuAct(pi){
 }
 function botDelay(kind){
   const D = DIFF[match.diff] || DIFF.normal;
-  const base = kind==='flip' ? D.ms*.8 : D.ms;
+  const base = kind==='flip' ? D.ms*.7 : D.ms;
   return base * (.65 + Math.random()*.7);
 }
 setInterval(() => {
@@ -576,6 +577,7 @@ function validTargets(){
   return out;
 }
 
+const FLASH = {deal:null, lens:[], until:{}, timer:null};
 function render(){
   if(!G) return;
   const prev = new Map();
@@ -597,11 +599,19 @@ function render(){
     return `<div class="opp${solo?' solo':''}${away?' away':''}">${solo?'':name}<div class="cards">${pounce}${works}</div>${solo?name:''}</div>`;
   }).join('');
 
-  // center: 4 suit columns, one row per player
+  // center: 4 suit columns, one row per player.
+  // A pile glows briefly in the opponent's color when they play on it, so you can see them playing.
+  const lens = G.found.map(f=>f.length), t = now();
+  if(FLASH.deal !== G.deal){ FLASH.deal = G.deal; FLASH.lens = lens; FLASH.until = {}; }
+  let flashed = false;
+  lens.forEach((n,k)=>{ if(n > (FLASH.lens[k]||0) && top(G.found[k]).o !== ME){ FLASH.until[k] = t + 900; flashed = true; } });
+  FLASH.lens = lens;
+  if(flashed){ clearTimeout(FLASH.timer); FLASH.timer = setTimeout(()=>{ if(G) render(); }, 950); }
   $('#found').innerHTML = G.found.map((f,k)=>{
     const su = slotSuit(k), cards = f.slice(-2).map(c => cardHTML(c, S.fw, {own: P[c.o].color})).join('');
     const done = f.length && top(f).r===13 ? ' done' : '';
-    return `<div class="slot${su===1||su===2?' rd':''}${vt.found.has(k)?' ok':''}${done}" data-tap="found:${k}">${SUITS[su]}${cards}</div>`;
+    const fl = FLASH.until[k] > t ? ` flash" style="--fc:${P[top(f).o].color}` : '';
+    return `<div class="slot${su===1||su===2?' rd':''}${vt.found.has(k)?' ok':''}${done}${fl}" data-tap="found:${k}">${SUITS[su]}${cards}</div>`;
   }).join('');
 
   // your row: Pounce pile, then your 4 piles

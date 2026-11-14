@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Private Archive · Sign in</title>
+<style>body{margin:0;background:#f6f4ef;color:#292724;font:16px system-ui,-apple-system,sans-serif}main{max-width:640px;margin:9vh auto;padding:24px}section{background:white;padding:25px;border:1px solid #ddd8cf;border-radius:16px;margin-bottom:16px}h1{font-size:27px}input,button{font:inherit;padding:12px;border-radius:9px;border:1px solid #aaa}input{max-width:100%;box-sizing:border-box}button{background:#383b36;color:white;cursor:pointer}button:disabled{opacity:.5}#status{white-space:pre-wrap;color:#5a554c}li{margin:12px 0;overflow-wrap:anywhere}li button{margin-left:10px;font-size:13px;padding:7px}small{color:#68645d}</style></head>
+<body><main><h1>Private Archive</h1><p>Only approved accounts can access private files.</p>
+<section id="login"><h2>Sign in</h2><form id="form"><label>Email address<br><input id="email" type="email" autocomplete="email" required placeholder="you@example.com" style="width:100%;margin:8px 0 14px"></label><br><button type="submit">Email me a sign-in link</button></form><p><small>Open the email link on this device. Access requires separate approval.</small></p></section>
+<section id="vault" hidden><p id="identity"></p><button id="signout">Sign out</button><h2>Private files</h2><p id="pending">Checking access…</p><div id="authorized" hidden><input id="upload" type="file" multiple><button id="uploadBtn">Upload selected files</button><ul id="files"></ul></div></section>
+<p id="status" role="status"></p></main>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/+esm';
+const client=createClient('https://lecudeiafwhyhufceurv.supabase.co','sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD',{auth:{persistSession:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id),say=s=>$('status').textContent=s;
+async function render(){
+ const {data:{user},error}=await client.auth.getUser();if(error&&!user) say(error.message);
+ $('login').hidden=!!user;$('vault').hidden=!user;if(!user)return;
+ $('identity').textContent='Signed in: '+user.email;
+ const {data, error:e}=await client.from('archive_authorized_users').select('user_id').eq('user_id',user.id).maybeSingle();
+ const ok=!!data&&!e;$('pending').textContent=ok?'':'This account is not yet approved. Ask the archive owner to authorize this email.';
+ $('authorized').hidden=!ok;if(ok)await listFiles();
+}
+async function listFiles(){
+ const {data,error}=await client.storage.from('private-archive').list('',{limit:100});
+ if(error){say(error.message);return}
+ $('files').replaceChildren();
+ for(const file of data||[]){
+  if(!file.id)continue;
+  const li=document.createElement('li'),name=document.createElement('span');name.textContent=file.name;li.append(name);
+  const dl=document.createElement('button');dl.textContent='Download';dl.onclick=async()=>{const {data,error}=await client.storage.from('private-archive').download(file.name);if(error){say(error.message);return}const url=URL.createObjectURL(data),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+  const del=document.createElement('button');del.textContent='Delete';del.onclick=async()=>{if(!confirm('Delete '+file.name+'?'))return;const {error}=await client.storage.from('private-archive').remove([file.name]);if(error)say(error.message);else await listFiles()};
+  li.append(dl,del);$('files').append(li);
+ }
+}
+$('form').onsubmit=async e=>{e.preventDefault();say('Sending sign-in email…');const {error}=await client.auth.signInWithOtp({email:$('email').value.trim(),options:{emailRedirectTo:location.origin+location.pathname}});say(error?error.message:'Check your email for a sign-in link.')};
+$('signout').onclick=async()=>{await client.auth.signOut();say('Signed out.');await render()};
+$('uploadBtn').onclick=async()=>{const files=$('upload').files;if(!files.length)return;for(const file of files){const {error}=await client.storage.from('private-archive').upload(file.name,file,{upsert:false});if(error){say(file.name+': '+error.message);return}}$('upload').value='';say('Upload complete.');await listFiles()};
+client.auth.onAuthStateChange(()=>setTimeout(render,0));render();
+</script></body></html>

@@ -53,7 +53,8 @@ async function join(){
  if(!window.supabase)return text('notice','Live play could not load. Refresh to try again.');
  $('#join').disabled=true;text('notice','Joining room '+code+'…');
  try{
-  const candidate={name,code,secret:room?.code===code?room.secret:hex()};
+  const stored=read('pounce.room');
+  const candidate={name,code,secret:stored?.code===code?stored.secret:hex()};
   const data=await call('join',candidate);
   room=candidate;save('pounce.room',room);save('pounce.name',name);
   info=null;messages=[];absorb(data);
@@ -184,8 +185,7 @@ function renderChat(){
  box.innerHTML=info?messages.map(m=>`<div class="msg ${m.seat===info.seat?'mine':''}"><small>${esc(info.names[m.seat]||'Player')}</small>${esc(m.text)}</div>`).join('')||'<p class="fine">Say hello.</p>':'<p class="fine">Join a friend to open the shared chat.</p>';
  if(near)box.scrollTop=box.scrollHeight;
  if($('#chat').open)seen=messages.at(-1)?.ts||0;
- const unread=messages.filter(m=>m.seat!==info?.seat&&m.ts>seen).length;
- text('chatToggle',unread?'Chat ('+unread+')':'Chat');
+ text('chatToggle','Chat');
 }
 $('#chatToggle').onclick=()=>{$('#chat').showModal();renderChat();poll()};
 $('#chatClose').onclick=()=>$('#chat').close();

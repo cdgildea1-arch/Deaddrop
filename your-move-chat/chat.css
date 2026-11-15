@@ -1,0 +1,38 @@
+.move-chat{
+ color-scheme:dark;box-sizing:border-box;position:fixed;inset:0;margin:auto;
+ width:min(calc(100% - 22px),500px);height:min(650px,calc(100dvh - 24px));
+ max-width:none;max-height:none;background:#242735;color:#fff6e9;
+ border:1px solid #ffffff36;border-radius:19px;padding:13px;
+ font:15px/1.35 system-ui,sans-serif;text-align:left;user-select:text;
+}
+.move-chat[open]{display:flex;flex-direction:column;gap:9px}
+.move-chat::backdrop{background:#111321cc;backdrop-filter:blur(4px)}
+.move-chat-head{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;border-bottom:1px solid #ffffff24;padding-bottom:8px}
+.move-chat-head h2{margin:0;color:inherit;font:750 20px system-ui,sans-serif}
+.move-chat-head small{display:block;color:#c3bdcd;font-size:11px;margin-top:2px}
+.move-chat button{
+ color:#fff6e9;background:#ffffff13;border:1px solid #ffffff24;border-radius:8px;
+ padding:8px 12px;font:650 13px system-ui,sans-serif;line-height:1.2;white-space:nowrap;
+}
+.move-chat [data-switch]{font-size:11px;color:#d2c8dc;padding:6px 8px}
+.move-chat [data-close]{font-size:20px;padding:6px 9px}
+.move-chat input{
+ box-sizing:border-box;min-width:0;width:100%;height:40px;margin:0;padding:8px 10px;
+ border:1px solid #ffffff42;border-radius:8px;color:#fff6e9;background:#151724;
+ font:16px system-ui,sans-serif;
+}
+.move-chat [data-join]{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,.65fr);align-items:end;gap:7px}
+.move-chat [data-join] button{grid-column:1/-1;justify-self:start}
+.move-chat [data-join] label{font-size:12px;color:#dfd6e8}
+.move-chat [data-join] input{display:block}
+.move-chat [hidden]{display:none!important}
+.move-chat [data-messages]{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.move-chat [data-messages] article{max-width:86%;margin:6px 10% 6px 0;background:#ffffff10;border-radius:13px;padding:9px 12px;overflow-wrap:anywhere;white-space:pre-wrap}
+.move-chat [data-messages] .mine{margin:6px 0 6px auto;background:#b5a2df28}
+.move-chat article small{display:block;font-size:10px;color:#d8cde6;margin-bottom:2px}
+.move-chat-empty,.move-chat [data-status]{color:#d0c4d8;font-size:13px;margin:4px 0}
+.move-chat [data-status]:empty{display:none}
+.move-chat [data-compose]{display:flex;gap:6px;flex:none}
+.move-chat button:disabled{opacity:.5}
+.move-chat-launch{flex:none;padding:6px 8px}
+html[data-move-chat=pounce] .chatBadge{display:none!important}

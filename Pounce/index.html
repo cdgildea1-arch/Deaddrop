@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-move-chat="pounce">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -192,7 +192,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 @media (max-height:700px){ .logo{font-size:44px} .fan{height:76px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
-</head>
+<link rel="stylesheet" href="/your-move-chat/chat.css"><script type="module" src="/your-move-chat/chat.mjs"></script></head>
 <body>
 <div id="bg"></div>
 <div id="app">
@@ -1165,7 +1165,7 @@ function absorb(v, full){
   if(CH.msgs.length) CH.lastTs = top(CH.msgs).ts;
   const theirs = fresh.filter(m=>m.seat!==CH.seat && m.ts>CH.seen);
   if(CH.open){ markSeen(); }
-  else if(theirs.length && !full){ const m = top(theirs); toast(friendName(), m.text); snd('sel'); }
+  else if(theirs.length && !full && !document.documentElement.dataset.moveChat){ const m = top(theirs); toast(friendName(), m.text); snd('sel'); }
   else if(theirs.length && full){ /* backlog: badge only */ }
   updateBadge();
 }
@@ -1317,13 +1317,20 @@ function closeChat(){
   schedulePoll();
 }
 document.addEventListener('click', e => { if(e.target.closest('.chatOpen')) openChat(); });
+document.addEventListener('your-move-chat-open', ()=>{
+  if(G && !G.over && !G.paused && !LV.inGame){ G.paused = true; G.pauseAt = now(); G.chatHold = true; }
+});
+document.addEventListener('your-move-chat-close', ()=>{ if(G?.chatHold) closeChat(); });
+document.addEventListener('your-move-chat-joined', e=>{
+  const room=store.get('room',null);
+  if(room&&room.code===e.detail.code){setRoom(room);absorb(e.detail,true);}
+});
 (() => {
   const q = new URLSearchParams(location.search).get('room');
   if(q){
     history.replaceState(null, '', location.pathname);
     const code = q.toUpperCase();
-    if(CH.room && CH.room.code === code){ openChat(); }
-    else if(CODE_RE.test(code)){ if(CH.room) leaveRoom(true); CH.prefill = code; CH.setupMode = code===HOME_ROOM ? 'home' : 'other'; setTimeout(openChat, 300); }
+    if(CODE_RE.test(code)) document.documentElement.dataset.moveInvite = code;
   }
   if(CH.room){ poll(true).then(schedulePoll); }
 })();

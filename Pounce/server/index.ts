@@ -2,6 +2,7 @@
 // A 6-character room code (or a reserved 8-digit one) invites one friend; each device holds its own random 96-bit seat key.
 // Only SHA-256 hashes of seat keys are stored. The table has RLS on and no public grants.
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
+const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4']);
 const isToken = (x: unknown) => typeof x === 'string' && /^[a-f0-9]{24}$/.test(x);
 const isCode = (x: unknown) => typeof x === 'string' && /^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(x);
 const hash = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))), n => n.toString(16).padStart(2, '0')).join('');
@@ -49,7 +50,7 @@ Deno.serve(async (req: Request) => {
       const seated = row.host_hash === secretHash || row.guest_hash === secretHash;
       if (!seated && !/^[0-9]{8}$/.test(b.code)) return reply({ error: 'This phone is not part of that room.' }, 403);
       const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { host_hash: /^[0-9]{8}$/.test(b.code) ? 'unclaimed' : secretHash, guest_hash: null,
-        names: ['', ''], messages: [], live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
+        names: ['', ''], messages: [], game_threads: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
       return reply({ reset: true });
     }
@@ -81,6 +82,32 @@ Deno.serve(async (req: Request) => {
     }
     if (seat < 0) return reply({ error: 'This phone is not part of that room.' }, 403);
     if (b.op === 'get' || b.op === 'join') return reply(view(row, seat, after));
+
+    if (b.op === 'table-get' || b.op === 'table-message') {
+      if (!gameThreads.has(b.game)) return reply({ error: 'Choose a game.' }, 400);
+      const tableView = (current: any) => {
+        const messages = current.game_threads[b.game] || [];
+        return { code: current.code, seat, joined: !!current.guest_hash, names: current.names, live: current.live,
+          cursor: messages.at(-1)?.ts || 0, messages: messages.filter((m: any) => m.ts > after) };
+      };
+      if (b.op === 'table-get') return reply(tableView(row));
+      if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500)
+        return reply({ error: 'Messages can be up to 500 characters.' }, 400);
+      const live = row.live;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (!row || row.live !== live || (seat === 0 ? row.host_hash : row.guest_hash) !== secretHash)
+          return reply({ error: 'This phone is not part of that room.' }, 403);
+        const messages = row.game_threads[b.game] || [];
+        if (messages.some((m: any) => m.id === b.id)) return reply(tableView(row));
+        const ts = Math.max(Date.now(), (messages.at(-1)?.ts || 0) + 1);
+        const game_threads = { ...row.game_threads, [b.game]: [...messages, { id: b.id, seat, text: b.text.trim(), ts }].slice(-300) };
+        const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { game_threads, rev: row.rev + 1, updated_at: new Date().toISOString() });
+        if (rows.length) return reply(tableView(rows[0]));
+        row = (await db(path))[0];
+      }
+      return reply({ error: 'Busy room. Send again.' }, 409);
+    }
+
 
     if (b.op === 'message') {
       if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500) return reply({ error: 'Messages can be up to 500 characters.' }, 400);

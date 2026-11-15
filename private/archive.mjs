@@ -1,0 +1,149 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/+esm';
+
+const client = createClient(
+  'https://lecudeiafwhyhufceurv.supabase.co',
+  'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD',
+  { auth: { persistSession: true, detectSessionInUrl: true } },
+);
+const bucket = client.storage.from('private-archive');
+const $ = id => document.getElementById(id);
+const frame = $('archive');
+const params = new URLSearchParams(location.search);
+
+const documents = {
+  'hub.html': '327a6670bb991a6a229694ff0daeddc2ecac1462e773b2b570fce8d1c38835b2',
+  'archive.html': '8cef389933a688773ef0c7729607eb9df10d369e006ec21757d09c7e76f4b10b',
+  'cards.html': 'a64d6883d19adcdf7917b68480c2199ac83dc627cbc6be0765cdb9caba31ed2a',
+  'deaddrop.html': 'c8a71f34bfcbb5062fe79a6d88d6f3f87c7e9c386eaa17d47fbfe5536ef4b6ec',
+  'the_ledger.html': '22fbaa448a03915df8cd8c505a1cc570e20a3c1b4a8161d1eec4758b60a5b577',
+  'pins.html': 'a0b377deb8badc5966a439da753e0564e73bb511f22f17e23f4a5af5e00de7ec',
+  'confirmed-pins.html': '69e8423339ca402ff71adc5f8780b0d3a0e5f9140565638c8f74ebb30a511494',
+  'previously-pinned.html': 'dbd36d427a9e4fa05a70229dac4528d2ac55f44cc0b762bfb88c9dc9f216eef8',
+  'emergency.html': '6f55475c1b98b9e1f4d261031630b7dedd12d455defe632d54c18b309262c4df',
+  'Manuscript.html': '21da887c307818bdac9fdad959b2792730ce1ad1017e16f41e5b137bd935d041',
+};
+const requested = params.get('page');
+const page = Object.hasOwn(documents, requested) ? requested : 'hub.html';
+const say = text => { $('status').textContent = text; };
+let generation = 0;
+let displayedUser = null;
+
+function privateLink(name) {
+  return name === 'hub.html' ? '/private/' : '/private/?' + new URLSearchParams({ page:name });
+}
+
+function buildPage(markup) {
+  const doc = new DOMParser().parseFromString(markup, 'text/html');
+  for (const anchor of doc.querySelectorAll('a[href]')) {
+    const href = anchor.getAttribute('href');
+    if (!href || href.startsWith('#')) continue;
+    const destination = new URL(href, location.origin + '/');
+    if (destination.origin !== location.origin) continue;
+    const name = decodeURIComponent(destination.pathname.split('/').pop());
+    if (!Object.hasOwn(documents, name)) continue;
+    anchor.href = privateLink(name) + destination.hash;
+    anchor.target = '_top';
+  }
+  for (const script of doc.querySelectorAll('script:not([src])')) {
+    script.textContent = script.textContent.replace(/window\.location\.href\s*=\s*(['"])hub\.html\1/g, "window.top.location.href = '/private/'");
+  }
+  const controls = doc.createElement('nav');
+  controls.setAttribute('aria-label', 'Private Archive');
+  controls.style.cssText = 'position:fixed;bottom:max(12px,env(safe-area-inset-bottom));right:12px;display:flex;gap:7px;z-index:1000;font:600 12px system-ui,sans-serif';
+  const links = page === 'hub.html'
+    ? [['Manuscript', privateLink('Manuscript.html')], ['Sign out', '/private/?signout=1']]
+    : [['‹ Hub', '/private/']];
+  for (const [label, url] of links) {
+    const link = doc.createElement('a');
+    link.textContent = label;
+    link.href = url;
+    link.target = '_top';
+    link.style.cssText = 'padding:10px 12px;border:1px solid #ac8d72;border-radius:20px;background:#2c211a;color:#f5e9dc;text-decoration:none';
+    controls.append(link);
+  }
+  doc.body.append(controls);
+  return '<!doctype html>\n' + doc.documentElement.outerHTML;
+}
+
+async function readPage() {
+  const { data, error } = await bucket.download(page);
+  if (error) throw error;
+  const bytes = await data.arrayBuffer();
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+    byte => byte.toString(16).padStart(2, '0')).join('');
+  if (hash !== documents[page]) throw new Error('This archive page could not be verified.');
+  return new TextDecoder().decode(bytes);
+}
+
+function closeArchive() {
+  displayedUser = null;
+  frame.hidden = true;
+  frame.removeAttribute('srcdoc');
+  $('gate').hidden = false;
+}
+
+async function render() {
+  const version = ++generation;
+  const { data:{user} } = await client.auth.getUser();
+  if (version !== generation) return;
+  if (!user) {
+    closeArchive();
+    $('form').hidden = false;
+    $('signout').hidden = true;
+    say('');
+    return;
+  }
+  $('form').hidden = true;
+  $('signout').hidden = false;
+  if (displayedUser === user.id && !frame.hidden) return;
+  closeArchive();
+  say('Checking access…');
+  const { data, error } = await client.from('archive_authorized_users').select('user_id').eq('user_id', user.id).maybeSingle();
+  if (version !== generation) return;
+  if (error || !data) {
+    say(error ? 'Could not verify archive access. Refresh to try again.' : 'This email is signed in and awaiting archive approval.');
+    return;
+  }
+  try {
+    const markup = await readPage();
+    if (version !== generation) return;
+    document.title = page === 'hub.html' ? 'Private Archive · Hub' : 'Private Archive';
+    frame.srcdoc = buildPage(markup);
+    frame.hidden = false;
+    $('gate').hidden = true;
+    displayedUser = user.id;
+  } catch {
+    if (version === generation) say('Could not open this archive page. Refresh to try again.');
+  }
+}
+
+$('form').onsubmit = async event => {
+  event.preventDefault();
+  const button = event.submitter;
+  button.disabled = true;
+  say('Sending sign-in email…');
+  const { error } = await client.auth.signInWithOtp({
+    email: $('email').value.trim(),
+    options: { emailRedirectTo: location.origin + '/private/' },
+  });
+  say(error ? error.message : 'Check your email for a sign-in link.');
+  button.disabled = false;
+};
+
+async function signOut() {
+  ++generation;
+  closeArchive();
+  const { error } = await client.auth.signOut();
+  if (error) { say('Could not sign out. Try again.'); $('signout').hidden = false; return; }
+  location.replace('/private/');
+}
+$('signout').onclick = signOut;
+if (params.has('signout')) {
+  await signOut();
+} else {
+  client.auth.onAuthStateChange(event => {
+    if (event === 'SIGNED_OUT') closeArchive();
+    setTimeout(render, 0);
+  });
+  await render();
+}

@@ -37,7 +37,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;str
 
 /* ---------- menu ---------- */
 #menu{text-align:center}
-.menutop{display:flex;justify-content:space-between;flex:none}
+.menutop{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;flex:none}
+.menutop .home-link{justify-self:start;color:var(--text);font-size:13px;text-decoration:none;padding:8px 4px}
+.menutop .chatOpen{justify-self:end}
 .menumain{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow-y:auto}
 .logo{font-size:52px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin:6px 0 0;color:var(--text)}
 .aka{margin:0 0 18px;font-size:14px;color:var(--muted);letter-spacing:1px}
@@ -199,6 +201,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 
   <section id="menu" class="screen">
     <div class="menutop">
+      <a class="home-link" href="/">‹ Your Move</a>
       <button class="iconbtn" id="soundBtn" aria-label="Sound"></button>
       <button class="iconbtn chatOpen" aria-label="Messages"><span class="bubble"></span><span class="badge chatBadge hidden"></span></button>
     </div>

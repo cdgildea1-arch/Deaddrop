@@ -1,5 +1,4 @@
 const slot = document.documentElement.dataset.moveChat;
-const swipeEnabled = document.documentElement.hasAttribute('data-chat-swipe');
 const api = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 const gameNames = {
@@ -32,9 +31,9 @@ const panel = document.createElement('dialog');
 panel.className = 'move-chat';
 panel.setAttribute('aria-labelledby', 'move-chat-title');
 panel.innerHTML = `
-  <div class="move-chat-head" ${swipeEnabled ? 'data-gesture tabindex="0" aria-label="Chat header"' : ''}>
+  <div class="move-chat-head" data-gesture tabindex="0" aria-label="Chat header">
     <div><h2 id="move-chat-title">Chat</h2><small data-context></small></div>
-    ${swipeEnabled ? '' : '<button type="button" data-switch>Room</button>'}
+    <button type="button" data-clear aria-label="Swipe: clear this chat on this device">Swipe</button>
     <button type="button" data-close aria-label="Close chat">×</button>
   </div>
   <form data-join hidden>
@@ -51,7 +50,7 @@ const feed = find('messages');
 let room, mode = 'table', generation = 0, joining = false, sending = false, loading = false;
 let lastView, baseline = 0, writeVersion = 0, visibleSignature = '';
 const sessionCuts = new Map();
-const cutKey = view => 'your-move.chat.cut.' + slot + '.' + room.code + '.' + view.live;
+const cutKey = view => 'your-move.chat.cut.' + (mode === 'room' ? 'shared-room' : slot) + '.' + room.code + '.' + view.live;
 const setStatus = value => { find('status').textContent = value; };
 const selectors = {
   pounce: 'button.chatOpen[aria-label="Messages"]', mahjong: '#speakButton',
@@ -59,6 +58,7 @@ const selectors = {
 };
 function setup(show) {
   find('join').hidden = !show;
+  find('clear').disabled = show || !lastView || sending;
   find('compose').hidden = show;
   find('message').disabled = show || !lastView;
   find('compose').querySelector('button').disabled = show || !lastView || sending;
@@ -69,15 +69,10 @@ function setup(show) {
 }
 function context() {
   find('context').textContent = mode === 'room' ? 'Room ' + (room?.code || '25800852') : gameNames[slot];
-  if (swipeEnabled) {
-    find('gesture').setAttribute('aria-keyshortcuts', mode === 'table' ? 'ArrowUp' : 'ArrowDown');
-  } else {
-    find('switch').textContent = mode === 'table' ? 'Room' : 'Table';
-    find('switch').setAttribute('aria-label', mode === 'table' ? 'Switch to room chat' : 'Switch to game chat');
-  }
+  find('gesture').setAttribute('aria-keyshortcuts', mode === 'table' ? 'ArrowUp' : 'ArrowDown');
 }
 function showMessages(view) {
-  const messages = view.messages.filter(message => mode === 'room' || message.ts > baseline);
+  const messages = view.messages.filter(message => message.ts > baseline);
   const signature = mode + ':' + view.live + ':' + messages.map(message => message.id).join(',');
   if (signature === visibleSignature) return;
   visibleSignature = signature;
@@ -110,11 +105,10 @@ async function load({ restart = false } = {}) {
   try {
     const result = await request(thread === 'table' ? 'table-get' : 'get', room, { game: slot });
     if (current !== generation || sending || startedAtWrite !== writeVersion) return;
-    if (thread === 'table') {
-      const key = cutKey(result);
-      baseline = restart ? result.cursor : sessionCuts.get(key) ?? read(key, 0);
-      if (restart) { sessionCuts.set(key, baseline); write(key, baseline); }
-    }
+    const key = cutKey(result);
+    const cursor = result.cursor ?? result.messages.reduce((latest, message) => Math.max(latest, message.ts), 0);
+    baseline = restart ? cursor : sessionCuts.get(key) ?? read(key, 0);
+    if (restart) { sessionCuts.set(key, baseline); write(key, baseline); }
     lastView = result;
     showMessages(result);
     setStatus('');
@@ -155,6 +149,9 @@ function fitPanel() {
 }
 window.visualViewport?.addEventListener('resize', fitPanel);
 window.visualViewport?.addEventListener('scroll', fitPanel);
+find('clear').onclick = () => {
+  if (panel.open && room && lastView && !sending && !joining) change(mode, true);
+};
 function open() {
   if (panel.open) return;
   room = read('pounce.room');
@@ -191,18 +188,14 @@ function attachSwipe(surface) {
   surface.addEventListener('pointercancel', () => { start = null; });
   surface.addEventListener('lostpointercapture', () => { start = null; });
 }
-if (swipeEnabled) {
-  const chatHeader = find('gesture');
-  attachSwipe(chatHeader);
-  attachSwipe(feed);
-  chatHeader.addEventListener('keydown', event => {
-    if (event.target !== chatHeader || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
-    event.preventDefault();
-    swipeChat(event.key === 'ArrowUp' ? 'up' : 'down');
-  });
-} else {
-  find('switch').onclick = () => swipeChat(mode === 'table' ? 'up' : 'down');
-}
+const chatHeader = find('gesture');
+attachSwipe(chatHeader);
+attachSwipe(feed);
+chatHeader.addEventListener('keydown', event => {
+  if (event.target !== chatHeader || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  event.preventDefault();
+  swipeChat(event.key === 'ArrowUp' ? 'up' : 'down');
+});
 find('join').onsubmit = async event => {
   event.preventDefault();
   const name = find('name').value.trim();

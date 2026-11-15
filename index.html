@@ -76,6 +76,10 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
  .shelf{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
  .game strong{font-size:clamp(11px,2.45vw,17px)}
 }
+/* Give the iPhone status bar extra clearance without growing the page. */
+@media (max-width:620px) and (orientation:portrait){
+ main{padding-top:calc(env(safe-area-inset-top, 0px) + clamp(16px,3.1dvh,26px))}
+}
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
 </style>
 </head>

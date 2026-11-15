@@ -136,3 +136,15 @@ body.playing{overflow:hidden}
  #game .board-tools{gap:3px}
  #game .board-tools button{padding-inline:5px}
 }
+/* Printed faces and stock, with the color of a game table. */
+.playing .brand,.hero h1{font-style:italic}
+.playing .brand{color:#8d292d;letter-spacing:.12em;font-size:15px}
+#board{
+ background-color:#145d5d;
+ background-image:linear-gradient(145deg,#27817d35,transparent 48%);
+ border-top-color:#e1af59;
+}
+.person{box-shadow:0 2px 2px #092b2b77}
+.person .person-name{color:#2d2820}
+#openQuestions{background:#a63334}
+#game .board-tools button[aria-pressed=true]{background:#edbf68;color:#35251b;border-color:#b18440}

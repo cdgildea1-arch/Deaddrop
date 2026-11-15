@@ -26,12 +26,11 @@ canvas.height=700;
 canvas.setAttribute('aria-label','Shared drawing canvas');
 const ctx=canvas.getContext('2d');
 let state, remote, net, room, link, peer, pending, receipt, session;
-let local=false, localSeat=0, passing=false, timer, points, pointer, renderedKey;
+let timer, points, pointer, renderedKey;
 const host=()=>room?.seat===0;
-const seat=()=>local?localSeat:room?.seat;
-const available=()=>local||Boolean(link&&peer);
-const board=()=>local||host()?(state&&view(state,seat())):remote;
-const name=()=>local?'Player '+(seat()+1):'you';
+const seat=()=>room?.seat;
+const available=()=>Boolean(link&&peer);
+const board=()=>host()?(state&&view(state,seat())):remote;
 function notice(text=''){
   txt('notice',text);
   $('notice').hidden=!text;
@@ -48,18 +47,12 @@ function startRound(){
   state=newRound(kind,(state?.round||0)+1);
   session??=token();
   receipt=null;
-  passing=local&&state.round>1;
-  localSeat=state.turn;
   resetDraft();
   publish();
   render();
 }
 function apply(seat,action){
   if(!state||!move(state,seat,action))return false;
-  if(local&&state.turn!==seat&&state.phase!=='done'){
-    if(kind!=='draw-together')passing=true;
-    else localSeat=state.turn;
-  }
   clearTimeout(timer);
   if(state.phase==='study'){
     const {round,rev,turn}=state;
@@ -73,9 +66,9 @@ function apply(seat,action){
 }
 function submit(data){
   const current=board();
-  if(!current||!available()||passing||pending||current.turn!==seat())return;
+  if(!current||!available()||pending||current.turn!==seat())return;
   const action={...data,round:current.round,rev:current.rev};
-  if(local||host()){
+  if(host()){
     if(apply(seat(),action)){
       if(data.type==='stroke')resetDraft();
       publish();
@@ -124,7 +117,7 @@ $('joinForm').addEventListener('submit',async event=>{
   if(!player||!/^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(code))return notice('Enter your name and a valid game code.');
   if(!window.supabase)return notice('Live play couldn’t load. Reload and try again.');
   const submitter=event.submitter;
-  submitter.disabled=$('local').disabled=true;
+  submitter.disabled=true;
   notice('Joining your friend…');
   try{
     room=await joinRoom(code,player);
@@ -133,19 +126,13 @@ $('joinForm').addEventListener('submit',async event=>{
     wire();
     render();
   }catch(error){notice(error.message)}
-  finally{submitter.disabled=$('local').disabled=false}
+  finally{submitter.disabled=false}
 });
-$('local').onclick=()=>{
-  local=true;
-  notice();
-  screen(true);
-  startRound();
-};
 $('leave').onclick=()=>{
   clearTimeout(timer);
   net?.close();
   state=remote=net=room=peer=pending=receipt=session=null;
-  link=local=passing=false;
+  link=false;
   resetDraft();
   renderedKey=null;
   stage.replaceChildren();
@@ -229,22 +216,18 @@ function makeGrid(current,enabled){
 function render(){
   if($('play').hidden)return;
   const current=board();
-  const active=available()&&current?.turn===seat()&&!pending&&!passing;
-  const key=JSON.stringify([current?.round,current?.rev,active,passing,session]);
+  const active=available()&&current?.turn===seat()&&!pending;
+  const key=JSON.stringify([current?.round,current?.rev,active,session]);
   const updateStage=renderedKey!==key;
   renderedKey=key;
   setAction('');
   $('erase').hidden=true;
-  txt('round',current?'Round '+current.round+(local?' · '+name():''):room?'Room '+room.code:'');
+  txt('round',current?'Round '+current.round:room?'Room '+room.code:'');
   let status;
   if(!current){
     status=!link?'Connecting…':!peer?'Waiting for your friend to join.':host()?'Both players are here.':'Waiting for your friend to start.';
     if(host()&&available())setAction('Start round',startRound);
     if(updateStage)stage.replaceChildren();
-  }else if(passing){
-    status='Pass the phone to Player '+(current.turn+1)+'.';
-    setAction('I have the phone',()=>{localSeat=state.turn;passing=false;render()});
-    stage.replaceChildren();
   }else if(kind==='draw-together'){
     if(canvas.parentNode!==stage)stage.replaceChildren(canvas);
     canvas.dataset.drawing=String(active&&current.phase==='draw');
@@ -277,7 +260,7 @@ function render(){
       status=shelf?(current.won?'Correct! ': 'That wasn’t the spot. ')+'The outlined object replaced '+current.original+'.':current.won?'Found it in '+current.marks.length+(current.marks.length===1?' tap!':' taps!'):'The dot was in the outlined spot.';
     }
   }
-  if(current?.phase==='done'&&(local||host())&&available())setAction('Next round',startRound);
-  if(current&&!local&&!available())status='Waiting for your friend to reconnect…';
+  if(current?.phase==='done'&&host()&&available())setAction('Next round',startRound);
+  if(current&&!available())status='Waiting for your friend to reconnect…';
   txt('status',status);
 }

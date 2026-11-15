@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-move-chat="quick-draw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#20192c">
+<title>Quick Draw · Your Move</title>
+<link rel="stylesheet" href="../mini/style.css">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus">
+<script defer src="/Pounce/supabase.min.js"></script>
+<script type="module" src="./app.mjs"></script>
+<script type="module" src="/your-move-chat/chat.mjs?v=quick-draw"></script>
+</head>
+<body data-kind="draw-together">
+<main>
+<header><a href="/">‹ Your Move</a><button id="chatToggle" type="button">Chat</button></header>
+<section id="entry">
+ <div class="hero"><div id="mark" aria-hidden="true">✎</div><h1>Quick Draw</h1><p>One draws. One guesses. Beat the clock.</p></div>
+ <form id="joinForm">
+  <label>Your name<input id="name" autocomplete="nickname" maxlength="18" required></label>
+  <label>Game code<input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" required></label>
+  <button class="primary">Join a friend</button>
+ </form>
+ <details><summary>How to play</summary><p>Pick one of three words and draw it. Your friend has 60 seconds to guess. Swap roles every turn. Most points after six turns wins.</p></details>
+</section>
+<section id="play" hidden>
+ <div class="game-head"><div><h1 id="gameTitle">Quick Draw</h1><p id="round"></p></div><button id="leave" type="button">Leave</button></div>
+ <div id="scores"></div>
+ <div class="prompt"><p id="status" role="status"></p><strong id="clock"></strong></div>
+ <div id="choices" hidden></div>
+ <div id="art" hidden><canvas id="canvas" width="720" height="540" aria-label="Drawing canvas"></canvas></div>
+ <div id="tools" hidden><div id="colors" role="group" aria-label="Ink color"></div><button id="undo" type="button">Undo</button><button id="clear" type="button">Clear</button></div>
+ <p id="guesses" aria-live="polite" hidden></p>
+ <form id="guessForm" hidden><input id="guess" aria-label="Your guess" placeholder="Type a guess…" maxlength="40" autocomplete="off" enterkeyhint="send"><button class="primary">Guess</button></form>
+ <button id="mainAction" class="primary" type="button" hidden></button>
+</section>
+<p id="notice" role="alert" hidden></p>
+</main>
+</body>
+</html>

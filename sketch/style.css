@@ -1,0 +1,19 @@
+#play{gap:8px}
+#scores,.prompt,#tools,#colors,#guessForm,#choices{display:flex;align-items:center;gap:6px}
+#scores span{flex:1;padding:5px 8px;border-radius:8px;background:var(--card);font-size:13px;overflow-wrap:anywhere}
+.prompt #status{min-height:2.4em;flex:1}
+#clock{font-variant-numeric:tabular-nums;color:var(--accent)}
+#choices button{flex:1;min-width:0;padding-inline:5px;overflow-wrap:anywhere}
+#art{display:grid;place-items:center}
+canvas{width:min(100%,58dvh,480px);aspect-ratio:4/3;background:#fffaf3}
+#tools{justify-content:center;flex-wrap:wrap}
+#tools button{min-height:35px;font-size:13px;padding:4px 9px}
+#colors button{width:32px;min-height:32px;border-radius:50%;padding:0;background:var(--swatch);border:2px solid #ffffff70}
+#colors button[aria-pressed="true"]{outline:2px solid white;outline-offset:2px}
+#guessForm input{flex:1;min-width:0;min-height:44px;padding:8px;border:1px solid #fff5;border-radius:9px;background:#171522;color:var(--ink);font-size:16px}
+#guesses{min-height:1.3em;font-size:13px;color:var(--soft);overflow-wrap:anywhere}
+@media(orientation:landscape) and (max-height:540px){
+ #play{display:flex;gap:4px}
+ canvas{width:min(100%,47dvh,480px)}
+ #play .game-head button{min-height:30px}
+}

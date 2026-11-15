@@ -30,10 +30,10 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 .shuffle:focus-visible,.shuffle:hover{outline:2px solid #ffe3a9;outline-offset:2px}
 @media(max-width:359px){header h1{font-size:36px}.shuffle{padding-inline:7px}}
-.shelf{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));min-height:0;gap:clamp(6px,2vw,12px);max-height:635px}
+.shelf{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));min-height:0;gap:clamp(6px,2vw,12px);max-height:635px}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
- grid-column:span 4;min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
+ grid-column:span 5;min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
  display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;
  padding:clamp(5px,1.7vw,12px);border-radius:clamp(9px,3vw,17px);border:1px solid #fff3;
  background:radial-gradient(ellipse at 85% 0%,#fff3,transparent 68%),var(--surface);
@@ -75,6 +75,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .changed{--surface:#cfe1a5;--text:#253321;--stamp:#395130}
 .draw{--surface:#ddbaea;--text:#32253d;--stamp:#663778}
 .warmer{--surface:#f4a97e;--text:#411f20;--stamp:#8c3629}
+.quick-draw{--surface:#fbc5a2;--text:#392b38;--stamp:#773b69}
 .hide-dot{--surface:#94d9d4;--text:#1b383b;--stamp:#226167}
 @media (min-width:700px){main{padding-inline:30px}.game{padding:15px}}
 @media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.game::after{font-size:9px}.mark{font-size:clamp(18px,6.5dvh,33px)}}
@@ -110,6 +111,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game mini draw" href="/mini/?game=draw-together"><span class="mark" aria-hidden="true">〰</span><strong>Draw Together</strong></a>
   <a class="game mini warmer" href="/mini/?game=warmer"><span class="mark" aria-hidden="true">◉</span><strong>Warmer</strong></a>
   <a class="game mini hide-dot" href="/mini/?game=hide-a-dot"><span class="mark" aria-hidden="true">⊙</span><strong>Hide a Dot</strong></a>
+  <a class="game mini quick-draw" href="/sketch/"><span class="mark" aria-hidden="true">✎</span><strong>Quick Draw</strong></a>
  </nav>
 </main>
 <script>

@@ -1,5 +1,4 @@
-import {traits,cast,newGame,action,view,candidates,botMove} from './rules.mjs';
-import {portrait} from './portraits.mjs';
+import {traits,cast,newGame,action,view,candidates,botMove} from './rules.mjs?v=print';
 
 const $=s=>document.querySelector(s);
 const text=(id,value)=>{$('#'+id).textContent=value};
@@ -67,12 +66,12 @@ async function join(){
 function send(event,payload){if(connected)channel.send({type:'broadcast',event,payload}).catch(()=>{})}
 function track(){if(connected)channel.track({sid,name:room.name,ready}).catch(()=>{})}
 function publish(result){if(host()&&game)send('state',{sid,game:view(game,1),result})}
-function saveGame(){if(host()&&game)save('guess-who.game.'+info.live,game)}
+function saveGame(){if(host()&&game)save('guess-who.print.game.'+info.live,game)}
 let lastResult;
 const receipts=new Map();
 function connect(){
  client??=window.supabase.createClient(API.split('/functions')[0],KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- const ch=client.channel('guess-who-v1-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
+ const ch=client.channel('guess-who-v2-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
  channel=ch;
  ch.on('presence',{event:'sync'},()=>{
   if(channel!==ch)return;
@@ -118,15 +117,14 @@ function renderLobby(){
  text('ready',ready?'Ready · tap to cancel':'I’m ready');
  $('#start').hidden=!host();
  $('#start').disabled=!(connected&&ready&&peer?.ready);
- text('start',host()&&read('guess-who.game.'+info.live)?.winner===null?'Resume game':'Start round');
+ text('start',host()&&read('guess-who.print.game.'+info.live)?.winner===null?'Resume game':'Start round');
 }
-const photos=cast.map(portrait);
-const face=(id)=>`<img src="${photos[id]}" alt="">`;
+const face=id=>`<span class="portrait" aria-hidden="true" style="--px:${(id%6)*20}%;--py:${Math.floor(id/6)*100/3}%"></span>`;
 $('#portraits').innerHTML=[1,7,14].map(face).join('');
 
 function start(){
  if(!practice&&!(host()&&connected&&ready&&peer?.ready))return;
- const saved=host()&&screen==='lobby'?read('guess-who.game.'+info.live):null;
+ const saved=host()&&screen==='lobby'?read('guess-who.print.game.'+info.live):null;
  game=saved&&saved.winner===null?saved:newGame(practice?[$('#name').value.trim()||'You','Computer']:info.names.slice(0,2));
  if(practice)action(game,1,{id:game.id,type:'pick',choice:Math.floor(Math.random()*cast.length)});
  lastResult=null;receipts.clear();clearDraft();show('game');saveGame();publish();render();runBot();
@@ -144,8 +142,12 @@ function submit(type,data={}){
 }
 function typedTrait(question){
  const normalized=question.toLowerCase().replace(/[?!.]/g,'').trim();
- const match=normalized.match(/^(?:do they have|are they wearing|do they wear|does (?:your|the) character (?:have|wear)) (?:a |any )?(glasses|hat|earrings|freckles|long hair|light hair)$/);
- return match&&({'long hair':'longHair','light hair':'lightHair'}[match[1]]||match[1]);
+ const stated=traits.find(([,label])=>label.toLowerCase().replace(/[?!.]/g,'')===normalized);
+ if(stated)return stated[0];
+ const match=normalized.match(/^(?:do they have|are they wearing|do they wear|does (?:your|the) character (?:have|wear)) (?:a |an |any )?(.+)$/);
+ if(!match)return null;
+ const aliases={'long hair':'longHair','light hair':'lightHair','blonde hair':'lightHair','blond hair':'lightHair','grey hair':'grayHair','curly hair':'curly','beard':'beard','moustache':'mustache'};
+ return aliases[match[1]]||traits.find(([, ,name])=>name.replace(/^(?:a|an) /,'')===match[1])?.[0]||null;
 }
 function runBot(){
  clearTimeout(botTimer);
@@ -184,8 +186,8 @@ function render(){
  $('#board').innerHTML=cast.map(p=>{
   const out=mine.ready&&(!possible.has(p.id)||marks.has(p.id));
   const active=!mine.ready?canAct(g):!ended&&(mode==='mark'||mode==='guess'&&enabled);
-  const label=[p.name,...traits.filter(([key])=>p[key]).map(([key])=>({longHair:'long hair',lightHair:'light hair'}[key]||key))].join(', ');
-  return `<button class="person ${out?'out':''} ${mine.secret===p.id&&!ended?'mine':''}" data-person="${p.id}" aria-label="${esc(label+(out?', crossed out':''))}" ${active?'':'disabled'}>${face(p.id)}<span>${esc(p.name)}</span></button>`;
+  const label=[p.name,...traits.filter(([key])=>p[key]).map(([, ,description])=>description)].join(', ');
+  return `<button class="person ${out?'out':''} ${mine.secret===p.id&&!ended?'mine':''}" data-person="${p.id}" aria-label="${esc(label+(out?', crossed out':''))}" ${active?'':'disabled'}>${face(p.id)}<span class="person-name">${esc(p.name)}</span></button>`;
  }).join('');
  $('#history').innerHTML=g.history.slice().reverse().map(h=>`<li>${esc(g.players[h.seat].name)} · ${esc(h.label)} · ${(h.trait||h.custom)?(h.answer?'Yes':'No'):(h.answer?'Correct':'Incorrect')}</li>`).join('');
 }

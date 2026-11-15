@@ -1,14 +1,51 @@
 export const traits = [
- ['glasses','Are they wearing glasses?'],
- ['hat','Are they wearing a hat?'],
- ['earrings','Are they wearing earrings?'],
- ['freckles','Do they have freckles?'],
- ['longHair','Do they have long hair?'],
- ['lightHair','Do they have light hair?']
+ ['glasses','Are they wearing glasses?','glasses'],
+ ['hat','Are they wearing a hat?','a hat'],
+ ['earrings','Are they wearing earrings?','earrings'],
+ ['freckles','Do they have freckles?','freckles'],
+ ['longHair','Do they have hair reaching their shoulders?','shoulder-length hair'],
+ ['lightHair','Do they have blond or gray hair?','blond or gray hair'],
+ ['mustache','Do they have a mustache?','a mustache'],
+ ['beard','Do they have a full beard?','a full beard'],
+ ['grayHair','Do they have gray hair?','gray hair'],
+ ['teeth','Are they showing their teeth?','visible teeth'],
+ ['curly','Do they have clearly curly hair?','curly hair'],
+ ['tie','Are they wearing a tie?','a tie'],
+ ['receding','Do they have a receding hairline?','a receding hairline'],
+ ['turtleneck','Are they wearing a turtleneck?','a turtleneck'],
+ ['afro','Do they have an afro?','an afro'],
+ ['centerPart','Is their hair parted down the middle?','a middle part']
 ];
 const names='Avery|Blair|Casey|Devon|Emery|Frankie|Gray|Harper|Indigo|Jamie|Kai|Lane|Morgan|Noel|Oakley|Parker|Quinn|Remy|Sage|Taylor|Val|Wren|Yael|Zion'.split('|');
-const patterns=[0,39,18,61,33,54,27,12,53,46,35,56,15,22,57,26,7,58,13,17,52,24,3,44];
-export const cast=names.map((name,id)=>({name,id,...Object.fromEntries(traits.map(([key],bit)=>[key,Boolean(patterns[id]&(1<<bit))]))}));
+// Row-major traits observed in the printed portrait sheet.
+const features=[
+ 'mustache teeth curly',
+ 'earrings freckles longHair lightHair turtleneck',
+ 'glasses tie receding',
+ 'earrings teeth curly afro',
+ 'longHair lightHair mustache beard teeth',
+ 'glasses earrings lightHair grayHair curly',
+ 'earrings longHair teeth',
+ 'glasses mustache tie',
+ 'freckles longHair teeth curly',
+ 'hat grayHair lightHair',
+ 'earrings longHair centerPart',
+ 'glasses mustache curly',
+ 'hat lightHair teeth',
+ 'earrings curly',
+ 'glasses mustache beard',
+ 'earrings longHair lightHair teeth turtleneck',
+ 'mustache teeth tie receding',
+ 'hat earrings freckles longHair',
+ 'teeth tie',
+ 'glasses earrings lightHair teeth curly',
+ 'lightHair grayHair tie receding',
+ 'earrings freckles longHair centerPart',
+ 'mustache teeth curly afro',
+ 'earrings grayHair lightHair'
+];
+
+export const cast=names.map((name,id)=>({name,id,...Object.fromEntries(traits.map(([key])=>[key,features[id].split(' ').includes(key)]))}));
 export const newGame=names=>({id:crypto.randomUUID(),rev:0,players:names.map(name=>({name,secret:null})),turn:Math.floor(Math.random()*2),winner:null,history:[],question:null});
 export function action(game,seat,move){
  if(move.id!==game.id||game.winner!==null||!game.players[seat])throw Error('This round has ended.');

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Temporary access · Private Archive</title>
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#f8f5ed">
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:#f8f5ed;color:#193653;font:16px system-ui,sans-serif}
+main{width:min(100% - 36px,420px);margin:max(9vh,40px) auto;padding:24px;border:1px solid #7895ad;border-radius:20px;background:#fdfbf6;box-shadow:0 12px 30px #19365312}
+h1{margin:0 0 18px;font:700 38px Georgia,serif}
+label{display:grid;gap:8px}
+input,button{font:inherit;border-radius:9px;padding:11px;min-height:44px}
+input{min-width:0;border:1px solid #6a8eab;background:#eef3f6;color:inherit}
+button{border:1px solid #496a87;background:#cddde9;color:#193653;font-weight:700;margin-top:12px}
+button:focus-visible,input:focus-visible{outline:2px solid #315d80;outline-offset:2px}
+#status:empty{display:none}
+.session-note{font-size:.875rem;line-height:1.4;color:#47627a;margin:12px 0 0}
+iframe{display:block;position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#f8f5ed}
+</style>
+
+</head>
+<body>
+<main>
+ <h1>Private Archive</h1>
+ <form id="unlock" hidden>
+  <label>Temporary passphrase<input id="passphrase" type="password" inputmode="numeric" autocomplete="off" required></label>
+  <button type="submit">Open the Hub</button>
+ </form>
+ <p id="status" role="status"></p>
+ <a href="/private/">Email sign-in</a>
+</main>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/+esm';
+
+const project = 'https://lecudeiafwhyhufceurv.supabase.co';
+const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
+const client = createClient(project, apiKey, { auth: { persistSession:true, autoRefreshToken:true } });
+const ticket = new URLSearchParams(location.hash.slice(1)).get('ticket');
+const form = document.getElementById('unlock');
+const status = document.getElementById('status');
+const input = document.getElementById('passphrase');
+
+if (!ticket || !/^[A-Za-z0-9_-]{43}$/.test(ticket)) {
+  status.textContent = 'Open your private temporary link to use a passphrase.';
+} else {
+  history.replaceState(null, '', location.pathname);
+  form.hidden = false;
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = event.submitter;
+    button.disabled = true;
+    status.textContent = 'Opening the archive…';
+    try {
+      const response = await fetch(project + '/functions/v1/archive-temporary-entry', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', apikey:apiKey },
+        body:JSON.stringify({ ticket, passphrase:input.value.trim() }),
+        cache:'no-store',
+      });
+      const result = await response.json();
+      if (!response.ok || !result.tokenHash) {
+        status.textContent = result.error || 'Temporary access is unavailable.';
+        return;
+      }
+      const { error } = await client.auth.verifyOtp({ token_hash:result.tokenHash, type:'email' });
+      if (error) {
+        status.textContent = 'Could not start your sign-in. Try again in this browser.';
+        return;
+      }
+      location.replace('/private/');
+    } catch {
+      status.textContent = 'Could not connect. Check your connection and try again.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+</script>
+</body>
+</html>

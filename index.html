@@ -13,9 +13,10 @@
 <style>
 :root{color-scheme:dark;--ink:#f8f1de;--dim:#c6bba8;--table:#19151a}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% 2%,#2a2029,var(--table) 70%);color:var(--ink);font-family:system-ui,sans-serif}
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;touch-action:manipulation;margin:0;background:radial-gradient(ellipse at 50% 2%,#2a2029,var(--table) 70%);color:var(--ink);font-family:system-ui,sans-serif}
 main{
- width:min(100%,800px);height:100dvh;min-height:0;margin:auto;
+ width:min(100%,800px);height:100%;height:100dvh;min-height:0;margin:auto;
  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right))
          max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
  display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(9px,2.3dvh,24px);
@@ -35,15 +36,16 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .shelf h2:first-child{margin-top:0}
 .game{grid-column:span 2}
 .game.wide{grid-column:span 3}
-.game.full{grid-column:1/-1;grid-template-rows:none;grid-template-columns:auto auto;justify-content:center;gap:clamp(8px,3vw,18px)}
-.game.full strong{min-height:0}
+.game.full{grid-column:1/-1}
 /* Your move: a gold outline on saved games that are waiting on you */
 .game.waiting{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffd273,0 3px 12px #ffd27355}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
- min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
- display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;text-align:center;gap:2px;
- padding:clamp(5px,1.7vw,12px);border-radius:clamp(9px,3vw,17px);border:1px solid #fff3;
+ --label-size:clamp(11px,min(4vw,2.75dvh),23px);
+ container-type:size;min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
+ display:grid;grid-template-rows:minmax(0,1fr) 2.16em;
+ font:700 var(--label-size)/1.08 Georgia,serif;text-align:center;gap:2px;
+ padding:clamp(3px,.8dvh,9px) clamp(5px,1.4vw,12px);border-radius:clamp(9px,3vw,17px);border:1px solid #fff3;
  background:
    repeating-linear-gradient(107deg,#fff0 0 3px,#fff1 3px 4px,#0000 4px 7px),
    repeating-linear-gradient(18deg,#0000 0 2px,#0001 2px 3px,#0000 3px 6px),
@@ -53,10 +55,15 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 .game:hover,.game:focus-visible{transform:translateY(-2px);outline:2px solid #ffe3a9;outline-offset:2px}
 .game:active{transform:scale(.97)}
-.game strong{font:700 clamp(12px,min(4vw,3.3dvh),23px)/1.08 Georgia,serif;min-height:2.16em;display:grid;align-content:center;letter-spacing:-.025em;overflow-wrap:anywhere}
-.mark{display:grid;min-height:0;place-items:center;color:var(--stamp);font-size:clamp(16px,min(10vw,6.6dvh),65px);line-height:1;font-weight:850;font-family:Georgia,serif}
+.game strong{display:grid;align-content:center;font:inherit;letter-spacing:-.025em;overflow-wrap:anywhere;min-width:0}
+.mark{
+ display:grid;min-height:0;place-items:center;color:var(--stamp);
+ font:850 clamp(13px,min(9vw,4.6dvh),56px)/1 Georgia,serif;
+ font-size:clamp(9px,min(9vw,38cqh),56px);
+}
+.pounce .mark,.hearts .mark,.mahjong .mark{font-size:clamp(8px,min(9vw,30cqh),49px)}
 .paper{
- background:#fff6dd;color:#45362c;display:grid;place-items:center;
+ transform-origin:center;background:#fff6dd;color:#45362c;display:grid;place-items:center;
  width:1.25em;height:1.52em;border-radius:.13em;box-shadow:2px 3px #21182a3b;
  font-size:.74em;transform:rotate(-10deg);
 }
@@ -67,7 +74,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .hearts{--surface:#9c3d53;--text:#fff6e6;--stamp:#ffcec3}
 .hearts .paper{color:#a43552}
 .uno{--surface:#4c3273;--text:#fff0c8;--stamp:#ffcb52}
-.uno .mark{font-family:system-ui,sans-serif;font-size:clamp(16px,min(8vw,6dvh),52px);font-style:italic;transform:rotate(-10deg);text-shadow:2px 2px #bd3f56}
+.uno .mark{font-family:system-ui,sans-serif;font-size:clamp(10px,min(7vw,32cqh),48px);font-style:italic;text-shadow:2px 2px #bd3f56}
+.uno .mark span{transform:rotate(-8deg)}
 .guess{--surface:#d5b894;--text:#2a2821;--stamp:#7a3130}
 .guess .paper{aspect-ratio:1;height:1.25em;font-style:italic}
 .scrabble{--surface:#d79c77;--text:#241913;--stamp:#4f3023}
@@ -86,19 +94,23 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .same-word{--surface:#b6d7a1;--text:#203828;--stamp:#315d3e}
 .quick-draw{--surface:#fbc5a2;--text:#392b38;--stamp:#773b69}
 .hide-dot{--surface:#94d9d4;--text:#1b383b;--stamp:#226167}
-@media (min-width:700px){main{padding-inline:30px}.game{padding:15px}}
-@media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.mark{font-size:clamp(16px,5.5dvh,33px)}}
+@media (min-width:700px){main{padding-inline:30px}}
+@media (max-height:490px){
+ main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}
+ h1{font-size:36px}
+ header p{margin-top:2px}
+ .shelf{gap:4px}
+ .game{--label-size:clamp(10px,3dvh,15px);padding-block:2px}
+}
 @media (orientation:landscape) and (min-width:560px){
  .shelf{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto repeat(2,minmax(0,1fr)) auto repeat(2,minmax(0,1fr))}
  .game,.game.wide{grid-column:span 3}
  .game.full{grid-column:span 6}
- .game{padding:5px}
- .game strong{font-size:clamp(11px,min(2.65vw,4.2dvh),21px)}
- .mark{font-size:clamp(14px,5dvh,40px)}
+ .game{--label-size:clamp(11px,min(2.65vw,3.8dvh),21px)}
 }
 /* Give the iPhone status bar extra clearance without growing the page. */
 @media (max-width:620px) and (orientation:portrait){
- main{padding-top:calc(env(safe-area-inset-top, 0px) + clamp(16px,3.1dvh,26px))}
+ main{padding-top:calc(env(safe-area-inset-top, 0px) + clamp(11px,2.3dvh,23px))}
 }
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
 </style>
@@ -114,7 +126,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game pounce" href="/Pounce/"><span class="mark" aria-hidden="true"><span class="paper double">♣</span></span><strong>Pounce</strong></a>
   <a class="game speed" href="/speed/"><span class="mark" aria-hidden="true">ϟ</span><strong>Speed</strong></a>
   <a class="game hearts" data-game="hearts" href="/hearts/"><span class="mark" aria-hidden="true"><span class="paper">♥</span></span><strong>Hearts</strong></a>
-  <a class="game uno" data-game="uno" href="/uno/"><span class="mark" aria-hidden="true">UNO!</span><strong>UNO</strong></a>
+  <a class="game uno" data-game="uno" href="/uno/"><span class="mark" aria-hidden="true"><span>UNO!</span></span><strong>UNO</strong></a>
   <a class="game guess" data-game="guess-who" href="/guess-who/"><span class="mark" aria-hidden="true"><span class="paper">?</span></span><strong>Guess Who?</strong></a>
   <a class="game scrabble" data-game="scrabble" href="/scrabble/"><span class="mark" aria-hidden="true"><span class="paper">S<small>1</small></span></span><strong>Scrabble</strong></a>
   <a class="game dots wide" data-game="dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
@@ -130,6 +142,14 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
  </nav>
 </main>
 <script type="module">
+// iOS browser views can still rubber-band a fixed page. Keep single-finger drags
+// on the shelf from moving it, while leaving pinch zoom and zoomed panning usable.
+document.addEventListener('touchmove', event => {
+ if (event.touches.length === 1 && (window.visualViewport?.scale ?? 1) <= 1.01 && event.cancelable) {
+  event.preventDefault();
+ }
+}, { passive: false });
+
 // Your move: ask the games server which saved games are waiting on this phone (same room as the games and chat).
 async function yourMove(){
  let room;try{room=JSON.parse(localStorage.getItem('pounce.room'))}catch{}

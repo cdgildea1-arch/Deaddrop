@@ -5,7 +5,7 @@ const publicKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 const client = createClient(
   project,
   publicKey,
-  { auth: { persistSession: true, detectSessionInUrl: true } },
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
 );
 const bucket = client.storage.from('private-archive');
 const $ = id => document.getElementById(id);
@@ -29,6 +29,23 @@ const page = Object.hasOwn(documents, requested) ? requested : 'hub.html';
 const say = text => { $('status').textContent = text; };
 let generation = 0;
 let displayedUser = null;
+const callback = new URLSearchParams(location.hash.slice(1));
+const emailLinkFailed = params.has('error') || params.has('error_code') ||
+  callback.has('error') || callback.has('error_code');
+
+function showForm(message = '') {
+  closeArchive();
+  $('form').hidden = false;
+  $('signout').hidden = true;
+  say(message);
+}
+
+function showRetry(message) {
+  closeArchive();
+  $('form').hidden = true;
+  $('retry').hidden = false;
+  say(message);
+}
 
 function privateLink(name) {
   return name === 'hub.html' ? '/private/' : '/private/?' + new URLSearchParams({ page:name });
@@ -158,24 +175,37 @@ function closeArchive() {
 
 async function render() {
   const version = ++generation;
-  const { data:{user} } = await client.auth.getUser();
+  $('retry').hidden = true;
+  const { data: { session }, error: sessionError } = await client.auth.getSession();
   if (version !== generation) return;
-  if (!user) {
-    closeArchive();
-    $('form').hidden = false;
-    $('signout').hidden = true;
-    say('');
+  if (sessionError?.name === 'AuthRetryableFetchError') {
+    showRetry('Could not check your saved sign-in. Check your connection and try again.');
+    return;
+  }
+  if (!session) {
+    showForm(emailLinkFailed ? 'This sign-in link is expired or already used. Open the newest email link or request another.' : '');
     return;
   }
   $('form').hidden = true;
   $('signout').hidden = false;
+  const { data: { user }, error: userError } = await client.auth.getUser();
+  if (version !== generation) return;
+  if (!user) {
+    if (userError?.name === 'AuthRetryableFetchError' || (userError?.status || 0) >= 500) {
+      showRetry('Could not check your saved sign-in. Check your connection and try again.');
+    } else {
+      showForm('Your saved sign-in has ended. Request a new link to continue.');
+    }
+    return;
+  }
   if (displayedUser === user.id && !frame.hidden) return;
   closeArchive();
   say('Checking access…');
   const { data, error } = await client.from('archive_authorized_users').select('user_id').eq('user_id', user.id).maybeSingle();
   if (version !== generation) return;
   if (error || !data) {
-    say(error ? 'Could not verify archive access. Refresh to try again.' : 'This email is signed in and awaiting archive approval.');
+    if (error) showRetry('Could not verify archive access. Try again.');
+    else say('This email is signed in and awaiting archive approval.');
     return;
   }
   try {
@@ -187,21 +217,33 @@ async function render() {
     frame.hidden = false;
     $('gate').hidden = true;
   } catch {
-    if (version === generation) say('Could not open this archive page. Refresh to try again.');
+    if (version === generation) showRetry('Could not open this archive page. Try again.');
   }
 }
 
+$('retry').onclick = render;
 $('form').onsubmit = async event => {
   event.preventDefault();
   const button = event.submitter;
   button.disabled = true;
   say('Sending sign-in email…');
-  const { error } = await client.auth.signInWithOtp({
-    email: $('email').value.trim(),
-    options: { emailRedirectTo: location.origin + '/private/' },
-  });
-  say(error ? error.message : 'Check your email for a sign-in link.');
-  button.disabled = false;
+  try {
+    const { error } = await client.auth.signInWithOtp({
+      email: $('email').value.trim(),
+      options: { emailRedirectTo: location.origin + '/private/', shouldCreateUser: false },
+    });
+    if (error?.status === 429 || error?.code === 'over_email_send_rate_limit') {
+      say('Email delivery is temporarily limited. Use your newest sign-in email if it still works, or try again later. Your archive approval is still in place.');
+    } else if (error?.code === 'otp_disabled' || error?.code === 'signup_disabled' || error?.code === 'user_not_found') {
+      say('Check that you entered the email approved for this archive.');
+    } else {
+      say(error ? error.message : 'Check your inbox. Open the newest sign-in link in the browser you want to keep using.');
+    }
+  } catch {
+    say('Could not reach the sign-in service. Check your connection and try again.');
+  } finally {
+    button.disabled = false;
+  }
 };
 
 async function signOut() {
@@ -217,7 +259,7 @@ if (params.has('signout')) {
 } else {
   client.auth.onAuthStateChange(event => {
     if (event === 'SIGNED_OUT') closeArchive();
-    setTimeout(render, 0);
+    if (event !== 'INITIAL_SESSION') setTimeout(render, 0);
   });
   await render();
 }

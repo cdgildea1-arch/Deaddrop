@@ -1,7 +1,10 @@
-import {traits,cast,newGame,action,view,candidates,botMove} from './rules.mjs?v=print';
+import {traits,cast,newGame,action,view,candidates,botMove} from './rules.mjs?v=fit';
 
 const $=s=>document.querySelector(s);
-const text=(id,value)=>{$('#'+id).textContent=value};
+const text=(id,value)=>{
+ $('#'+id).textContent=value;
+ if(id==='notice')$('#questionNotice').textContent=value;
+};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const read=(k,d=null)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
@@ -16,6 +19,7 @@ $('#name').value=room?.name||read('pounce.name','');
 
 function show(id){
  screen=id;
+ document.body.classList.toggle('playing',id==='game');
  for(const name of ['menu','lobby','game'])$('#'+name).hidden=name!==id;
  text('notice','');
 }
@@ -66,12 +70,12 @@ async function join(){
 function send(event,payload){if(connected)channel.send({type:'broadcast',event,payload}).catch(()=>{})}
 function track(){if(connected)channel.track({sid,name:room.name,ready}).catch(()=>{})}
 function publish(result){if(host()&&game)send('state',{sid,game:view(game,1),result})}
-function saveGame(){if(host()&&game)save('guess-who.print.game.'+info.live,game)}
+function saveGame(){if(host()&&game)save('guess-who.fit.game.'+info.live,game)}
 let lastResult;
 const receipts=new Map();
 function connect(){
  client??=window.supabase.createClient(API.split('/functions')[0],KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- const ch=client.channel('guess-who-v2-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
+ const ch=client.channel('guess-who-v3-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
  channel=ch;
  ch.on('presence',{event:'sync'},()=>{
   if(channel!==ch)return;
@@ -88,6 +92,7 @@ function connect(){
   remote=p.game;
   const acknowledged=pending&&p.result?.nonce===pending.nonce;
   if(acknowledged){
+   if(!p.result.error&&$('#questions').open)$('#questions').close();
    pending=null;
    if(p.result.error)text('notice',p.result.error);
   }
@@ -117,14 +122,14 @@ function renderLobby(){
  text('ready',ready?'Ready · tap to cancel':'I’m ready');
  $('#start').hidden=!host();
  $('#start').disabled=!(connected&&ready&&peer?.ready);
- text('start',host()&&read('guess-who.print.game.'+info.live)?.winner===null?'Resume game':'Start round');
+ text('start',host()&&read('guess-who.fit.game.'+info.live)?.winner===null?'Resume game':'Start round');
 }
 const face=id=>`<span class="portrait" aria-hidden="true" style="--px:${(id%6)*20}%;--py:${Math.floor(id/6)*100/3}%"></span>`;
 $('#portraits').innerHTML=[1,7,14].map(face).join('');
 
 function start(){
  if(!practice&&!(host()&&connected&&ready&&peer?.ready))return;
- const saved=host()&&screen==='lobby'?read('guess-who.print.game.'+info.live):null;
+ const saved=host()&&screen==='lobby'?read('guess-who.fit.game.'+info.live):null;
  game=saved&&saved.winner===null?saved:newGame(practice?[$('#name').value.trim()||'You','Computer']:info.names.slice(0,2));
  if(practice)action(game,1,{id:game.id,type:'pick',choice:Math.floor(Math.random()*cast.length)});
  lastResult=null;receipts.clear();clearDraft();show('game');saveGame();publish();render();runBot();
@@ -135,6 +140,7 @@ function submit(type,data={}){
  const move={type,...data,id:state.id,rev:state.rev,nonce:hex()};
  if(practice||host()){
   try{action(game,seat(),move)}catch(e){return text('notice',e.message)}
+  if($('#questions').open)$('#questions').close();
   mode='pick';text('notice','');saveGame();publish();render();runBot();
  }else{
   pending=move;send('move',{sid,move});render();
@@ -173,6 +179,8 @@ function render(){
  if(remaining.some(([key])=>key===chosen))$('#question').value=chosen;
  $('#question').disabled=$('#ask').disabled=!enabled||!remaining.length;
  $('#customQuestion').disabled=$('#customForm button').disabled=!enabled;
+ text('questionPrompt',g.question?.label||'');
+ text('openQuestions',g.question&&g.question.seat!==me?'Answer question':'Questions');
  $('#answerRow').hidden=!g.question||g.question.seat===me;
  $('#answerYes').disabled=$('#answerNo').disabled=!canAct(g);
 
@@ -203,6 +211,8 @@ $('#board').onclick=e=>{
 };
 $('#mark').onclick=()=>{mode=mode==='mark'?'pick':'mark';text('notice',mode==='mark'?'Tap cards to cross them out or restore them.':'');render()};
 $('#guess').onclick=()=>{mode=mode==='guess'?'pick':'guess';text('notice',mode==='guess'?'Tap the character you want to guess.':'');render()};
+$('#openQuestions').onclick=()=>$('#questions').showModal();
+$('#closeQuestions').onclick=()=>$('#questions').close();
 $('#ask').onclick=()=>submit('ask',{trait:$('#question').value});
 $('#customForm').onsubmit=e=>{
  e.preventDefault();const input=$('#customQuestion'),label=input.value.trim();if(!label||!canPlay(current()))return;

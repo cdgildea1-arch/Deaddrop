@@ -16,7 +16,7 @@ export const traits = [
  ['afro','Do they have an afro?','an afro'],
  ['centerPart','Is their hair parted down the middle?','a middle part']
 ];
-const names='Avery|Blair|Casey|Devon|Emery|Frankie|Gray|Harper|Indigo|Jamie|Kai|Lane|Morgan|Noel|Oakley|Parker|Quinn|Remy|Sage|Taylor|Val|Wren|Yael|Zion'.split('|');
+const names='Avery|Blair|Casey|Devon|Emery|Frankie|Gray|Harper|Indigo|Jamie|Kai|Lane|Morgan|Noel|Oakley|Parker|Quinn|Remy|Sage|Taylor'.split('|');
 // Row-major traits observed in the printed portrait sheet.
 const features=[
  'mustache teeth curly',
@@ -38,11 +38,7 @@ const features=[
  'mustache teeth tie receding',
  'hat earrings freckles longHair',
  'teeth tie',
- 'glasses earrings lightHair teeth curly',
- 'lightHair grayHair tie receding',
- 'earrings freckles longHair centerPart',
- 'mustache teeth curly afro',
- 'earrings grayHair lightHair'
+ 'glasses earrings lightHair teeth curly'
 ];
 
 export const cast=names.map((name,id)=>({name,id,...Object.fromEntries(traits.map(([key])=>[key,features[id].split(' ').includes(key)]))}));

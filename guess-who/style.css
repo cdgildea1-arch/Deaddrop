@@ -89,3 +89,32 @@ button{color:var(--ink);background:#79542b13;border:1px solid #79542b2c;border-r
 .hero h1{color:#8d292d;text-shadow:1px 2px #fff4da}
 #board{border-top:4px solid #287270}
 .person:not(:disabled):hover{outline:2px solid #efb956;outline-offset:-2px}
+/* Reserve the viewport for the table while a round is active. */
+body.playing{overflow:hidden}
+.playing main{height:100dvh;display:flex;flex-direction:column;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+.playing header{height:39px;min-height:39px}
+.playing header button{padding:7px 10px}
+#game{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;padding-top:0}
+#game .gamebar{height:26px;min-height:26px}
+#game .gamebar button{padding:3px 0}
+#game #status{margin:2px 0 4px;padding:5px 8px;min-height:38px;max-height:64px;flex-shrink:0}
+#game #status h2{font-size:16px;margin:0}
+#game #status p{font-size:12px;margin:2px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#secret .portrait{width:35px}
+#game .board-tools{margin:3px 0 5px;gap:4px;flex-wrap:nowrap;justify-content:center}
+#game .board-tools button{padding:7px 8px;font-size:11px;width:auto;margin:0;white-space:nowrap}
+#game .board-tools span{margin-left:3px;white-space:nowrap;font-size:10px}
+.board-slot{flex:1;min-height:0;container-type:size}
+#board{box-sizing:border-box;width:min(100%,calc((100cqh - 96px)*1.25));margin:0 auto;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:6px}
+.person{padding:3px 3px 0}
+.person .person-name{padding:3px 0;font-size:clamp(9px,2.7vw,13px);line-height:1.1}
+.playing #notice{margin:2px 0 0;font:11px system-ui,sans-serif}
+.playing #notice:empty{display:none}
+#questions{height:auto;max-height:calc(100dvh - 24px);overflow:auto}
+#questions .chathead{margin-bottom:10px}
+#questionPrompt:empty,#questionNotice:empty{display:none}
+#questionPrompt,#questionNotice{margin:8px 0}
+#questionNotice{color:var(--red)}
+@media(orientation:landscape) and (max-height:520px){
+ #board{grid-template-columns:repeat(10,minmax(0,1fr));width:min(100%,calc((100cqh - 52px)*5))}
+}

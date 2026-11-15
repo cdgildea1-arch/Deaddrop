@@ -40,12 +40,14 @@ const turnGames: Record<string, any> = {
     create: (names: string[]) => dots.newGame(names, 2),
     act: (g: any, seat: number, m: any) => dots.action(g, seat, m),
     view: (g: any) => dots.view(g), done: (g: any) => g.winner !== null,
+    yourMove: (g: any, s: number) => g.turn === s,
   },
   hearts: {
     create: (names: string[]) => hearts.newGame([...names, ...cpu], 2),
     // Dealing the next hand was a host-only button. Either player may deal now, so nobody waits on the other.
     act: (g: any, seat: number, m: any) => hearts.action(g, m?.type === 'next' ? 0 : seat, m),
     view: hearts.view, done: (g: any) => g.phase === 'end',
+    yourMove: (g: any, s: number) => g.phase === 'pass' ? !g.passes[s] : g.phase === 'play' ? g.turn === s : g.phase === 'summary',
     bot: (g: any) => g.phase === 'pass' ? g.passes.findIndex((p: any, i: number) => i >= g.humans && !p) : g.phase === 'play' && g.turn >= g.humans ? g.turn : -1,
     botMove: hearts.botMove,
   },
@@ -53,6 +55,7 @@ const turnGames: Record<string, any> = {
     create: (names: string[], o: any) => uno.newGame([...names, ...cpu], 2, o?.extras !== false),
     act: (g: any, seat: number, m: any) => uno.action(g, seat, m),
     view: uno.view, done: (g: any) => g.winner !== null,
+    yourMove: (g: any, s: number) => g.turn === s,
     bot: (g: any) => g.winner === null && g.turn >= g.humans ? g.turn : -1,
     botMove: uno.botMove,
   },
@@ -60,11 +63,13 @@ const turnGames: Record<string, any> = {
     create: (names: string[]) => guessWho.newGame(names),
     act: (g: any, seat: number, m: any) => guessWho.action(g, seat, m),
     view: guessWho.view, done: (g: any) => g.winner !== null,
+    yourMove: (g: any, s: number) => g.players[s].secret === null || (g.question ? g.question.seat !== s : g.turn === s && g.players[1 - s].secret !== null),
   },
   duet: {
     create: (names: string[], o: any) => duet.newGame(names, o?.turns === 11 ? 11 : 9),
     act: (g: any, seat: number, m: any) => duet.action(g, seat, m),
     view: duet.view, done: (g: any) => !!g.outcome,
+    yourMove: (g: any, s: number) => g.phase === 'final' || (g.phase === 'clue' ? g.giver === s : g.giver !== s),
   },
   scrabble: {
     create: (names: string[], o: any) => {
@@ -75,6 +80,7 @@ const turnGames: Record<string, any> = {
     },
     act: async (g: any, seat: number, m: any) => scrabble.action(g, seat, m, await words()),
     view: scrabble.view, done: (g: any) => g.end,
+    yourMove: (g: any, s: number) => g.turn === s,
     // Finding a computer word needs the whole dictionary tree, which is too heavy here, so a phone suggests the
     // computer's play (op "bot-view" + "bot") and this function checks it like any other move.
     clientBot: (g: any) => !g.end && g.turn >= g.humans ? g.turn : -1,
@@ -102,13 +108,21 @@ Deno.serve(async (req: Request) => {
     const b = JSON.parse(raw);
     if (!isCode(b.code) || !isToken(b.secret)) return reply({ error: 'Check the room code.' }, 400);
     const turn = turnGames[b.game];
-    if (!turn && !liveGames.has(b.game)) return reply({ error: 'Choose a game.' }, 400);
+    if (!turn && !liveGames.has(b.game) && b.op !== 'status') return reply({ error: 'Choose a game.' }, 400);
 
     const room = (await rest('pounce_rooms_v1', '?select=code,host_hash,guest_hash,names,live&code=eq.' + b.code))[0];
     if (!room) return reply({ error: 'No room with that code.' }, 404);
     const secretHash = await hash(b.secret);
     const seat = room.host_hash === secretHash ? 0 : room.guest_hash === secretHash ? 1 : -1;
     if (seat < 0) return reply({ error: 'This phone is not part of that room. Join again.' }, 403);
+
+    // Home screen: which saved turn games are waiting on this phone ("Your move") and which on the other person.
+    if (b.op === 'status') {
+      const rows = await rest('your_move_games', '?select=game,live,state,updated_at&code=eq.' + b.code);
+      const games = rows.filter((r: any) => r.live === room.live && turnGames[r.game] && !turnGames[r.game].done(r.state))
+        .map((r: any) => ({ game: r.game, yours: !!turnGames[r.game].yourMove(r.state, seat), updated: r.updated_at }));
+      return reply({ seat, names: room.names, games });
+    }
 
     const path = '?code=eq.' + b.code + '&game=eq.' + encodeURIComponent(b.game);
     const load = async () => {

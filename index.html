@@ -30,7 +30,15 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 .shuffle:focus-visible,.shuffle:hover{outline:2px solid #ffe3a9;outline-offset:2px}
 @media(max-width:359px){header h1{font-size:36px}.shuffle{padding-inline:7px}}
-.shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));min-height:0;gap:clamp(5px,1.7vw,12px);max-height:740px}
+.shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto repeat(3,minmax(0,1fr)) auto repeat(3,minmax(0,1fr));min-height:0;gap:clamp(5px,1.7vw,12px);max-height:820px}
+.shelf h2{grid-column:1/-1;margin:clamp(2px,.8dvh,8px) 2px -2px;font:650 clamp(10px,2.8vw,13px)/1 system-ui,sans-serif;letter-spacing:.08em;color:var(--dim)}
+.shelf h2:first-child{margin-top:0}
+.game{grid-column:span 2}
+.game.wide{grid-column:span 3}
+.game.full{grid-column:1/-1;grid-template-rows:none;grid-template-columns:auto auto;justify-content:center;gap:clamp(8px,3vw,18px)}
+.game.full strong{min-height:0}
+/* Your move: a gold outline on saved games that are waiting on you */
+.game.waiting{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffd273,0 3px 12px #ffd27355}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
  min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
@@ -81,10 +89,12 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 @media (min-width:700px){main{padding-inline:30px}.game{padding:15px}}
 @media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.mark{font-size:clamp(16px,5.5dvh,33px)}}
 @media (orientation:landscape) and (min-width:560px){
- .shelf{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+ .shelf{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto repeat(2,minmax(0,1fr)) auto repeat(2,minmax(0,1fr))}
+ .game,.game.wide{grid-column:span 3}
+ .game.full{grid-column:span 6}
  .game{padding:5px}
  .game strong{font-size:clamp(11px,min(2.65vw,4.2dvh),21px)}
- .mark{font-size:clamp(16px,8dvh,55px)}
+ .mark{font-size:clamp(14px,5dvh,40px)}
 }
 /* Give the iPhone status bar extra clearance without growing the page. */
 @media (max-width:620px) and (orientation:portrait){
@@ -100,24 +110,40 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
+  <h2>2P / CPU</h2>
   <a class="game pounce" href="/Pounce/"><span class="mark" aria-hidden="true"><span class="paper double">♣</span></span><strong>Pounce</strong></a>
   <a class="game speed" href="/speed/"><span class="mark" aria-hidden="true">ϟ</span><strong>Speed</strong></a>
-  <a class="game hearts" href="/hearts/"><span class="mark" aria-hidden="true"><span class="paper">♥</span></span><strong>Hearts</strong></a>
-  <a class="game uno" href="/uno/"><span class="mark" aria-hidden="true">UNO!</span><strong>UNO</strong></a>
-  <a class="game guess" href="/guess-who/"><span class="mark" aria-hidden="true"><span class="paper">?</span></span><strong>Guess Who?</strong></a>
-  <a class="game scrabble" href="/scrabble/"><span class="mark" aria-hidden="true"><span class="paper">S<small>1</small></span></span><strong>Scrabble</strong></a>
-  <a class="game duet" href="/duet/"><span class="mark" aria-hidden="true">••</span><strong>Codenames Duet</strong></a>
-  <a class="game dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
-  <a class="game mahjong" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
+  <a class="game hearts" data-game="hearts" href="/hearts/"><span class="mark" aria-hidden="true"><span class="paper">♥</span></span><strong>Hearts</strong></a>
+  <a class="game uno" data-game="uno" href="/uno/"><span class="mark" aria-hidden="true">UNO!</span><strong>UNO</strong></a>
+  <a class="game guess" data-game="guess-who" href="/guess-who/"><span class="mark" aria-hidden="true"><span class="paper">?</span></span><strong>Guess Who?</strong></a>
+  <a class="game scrabble" data-game="scrabble" href="/scrabble/"><span class="mark" aria-hidden="true"><span class="paper">S<small>1</small></span></span><strong>Scrabble</strong></a>
+  <a class="game dots wide" data-game="dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
+  <a class="game mahjong wide" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
+  <h2>2P</h2>
+  <a class="game duet" data-game="duet" href="/duet/"><span class="mark" aria-hidden="true">••</span><strong>Codenames Duet</strong></a>
   <a class="game changed" href="/mini/?game=what-changed"><span class="mark" aria-hidden="true">◫</span><strong>What Changed?</strong></a>
   <a class="game warmer" href="/mini/?game=warmer"><span class="mark" aria-hidden="true">◉</span><strong>Warmer</strong></a>
   <a class="game hide-dot" href="/mini/?game=hide-a-dot"><span class="mark" aria-hidden="true">⊙</span><strong>Hide a Dot</strong></a>
   <a class="game draw" href="/mini/?game=draw-together"><span class="mark" aria-hidden="true">〰</span><strong>Draw Together</strong></a>
   <a class="game quick-draw" href="/sketch/"><span class="mark" aria-hidden="true">✎</span><strong>Quick Draw</strong></a>
-  <a class="game same-word" href="/same-word/"><span class="mark" aria-hidden="true">≈</span><strong>Same Word</strong></a>
+  <a class="game same-word full" href="/same-word/"><span class="mark" aria-hidden="true">≈</span><strong>Same Word</strong></a>
  </nav>
 </main>
-<script>
+<script type="module">
+// Your move: ask the games server which saved games are waiting on this phone (same room as the games and chat).
+async function yourMove(){
+ let room;try{room=JSON.parse(localStorage.getItem('pounce.room'))}catch{}
+ if(!room?.code||!room?.secret)return;
+ try{
+  const {gameCall}=await import('/your-move-sync.mjs');
+  const {games}=await gameCall('status',room,null);
+  for(const tile of document.querySelectorAll('.shelf [data-game]'))
+   tile.classList.toggle('waiting',games.some(g=>g.yours&&g.game===tile.dataset.game));
+ }catch{}
+}
+yourMove();
+setInterval(()=>{if(!document.hidden)yourMove()},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)yourMove()});
 const gameLinks=[...document.querySelectorAll('.shelf a')];
 document.querySelector('.shuffle').addEventListener('click',()=>{
  const game=gameLinks[Math.floor(Math.random()*gameLinks.length)];

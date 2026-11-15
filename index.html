@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html data-game-screen="fixed" lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -114,7 +114,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
 </style>
-</head>
+<link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
 <body>
 <main>
  <header>
@@ -142,13 +142,6 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
  </nav>
 </main>
 <script type="module">
-// iOS browser views can still rubber-band a fixed page. Keep single-finger drags
-// on the shelf from moving it, while leaving pinch zoom and zoomed panning usable.
-document.addEventListener('touchmove', event => {
- if (event.touches.length === 1 && (window.visualViewport?.scale ?? 1) <= 1.01 && event.cancelable) {
-  event.preventDefault();
- }
-}, { passive: false });
 
 // Your move: ask the games server which saved games are waiting on this phone (same room as the games and chat).
 async function yourMove(){

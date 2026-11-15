@@ -1,0 +1,15 @@
+body{--bg:#15221e;--card:#244737;--accent:#d3eca8}
+.stats,#votes,#answers{display:flex;gap:8px}
+.stats span,#answers article{flex:1;min-width:0;padding:10px 12px;border:1px solid #fdf4e336;border-radius:12px;background:#243b33}
+.stats span{font-size:14px;color:var(--accent)}
+.prompt{display:flex;min-height:clamp(72px,17dvh,142px);justify-content:center;align-items:center;position:relative;padding:16px 44px;border-radius:16px;background:#d3eca8;color:#203024;text-align:center}
+#prompt{font:700 clamp(27px,8vw,52px)/1 Georgia,serif;overflow-wrap:anywhere}
+#clock{position:absolute;right:10px;top:8px;font-weight:800;font-variant-numeric:tabular-nums}
+#status{min-height:0;font-size:15px}
+#answerField{display:grid;gap:5px;color:var(--soft);font-size:14px}
+#answer{min-height:46px;padding:10px;border:1px solid #fff6;border-radius:10px;color:var(--ink);background:#131c19;font-size:16px}
+#answers small{color:var(--soft)}
+#answers p{font-size:clamp(15px,4vw,22px);font-weight:750;overflow-wrap:anywhere}
+#votes button{flex:1}
+@media(max-height:500px){.prompt{min-height:55px}#play{gap:6px}}
+@media(orientation:landscape) and (max-height:540px){#play{display:flex}}

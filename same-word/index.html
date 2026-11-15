@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-move-chat="same-word">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#172823">
+<title>Same Word · Your Move</title>
+<link rel="stylesheet" href="../mini/style.css">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus">
+<script defer src="/Pounce/supabase.min.js"></script>
+<script type="module" src="./app.mjs"></script>
+<script type="module" src="/your-move-chat/chat.mjs?v=same-word"></script>
+</head>
+<body>
+<main>
+<header><a href="/">‹ Your Move</a><button id="chatToggle" type="button">Chat</button></header>
+<section id="entry">
+ <div class="hero"><div id="mark" aria-hidden="true">≈</div><h1>Same Word</h1><p>One prompt. Ten seconds. Think alike.</p></div>
+ <form id="joinForm">
+  <label>Your name<input id="name" autocomplete="nickname" maxlength="18" required></label>
+  <label>Game code<input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" required></label>
+  <button class="primary">Join a friend</button>
+ </form>
+ <details><summary>How to play</summary><p>Type the first thing the prompt makes you think of. Both answers lock in when time is up. If you both agree they match, your streak grows.</p></details>
+</section>
+<section id="play" hidden>
+ <div class="game-head"><h1 id="gameTitle">Same Word</h1><button id="leave" type="button">Leave</button></div>
+ <div class="stats"><span id="streak">Streak 0</span><span id="best">Best 0</span></div>
+ <div class="prompt"><strong id="prompt"></strong><span id="clock" aria-label="Seconds left"></span></div>
+ <p id="status" role="status" aria-live="polite"></p>
+ <label id="answerField" hidden>Your answer<input id="answer" autocomplete="off" maxlength="64" placeholder="Type the first thing that comes to mind"></label>
+ <div id="answers" hidden></div>
+ <div id="votes" hidden><button class="primary" id="match" type="button">✓ Close enough</button><button id="miss" type="button">No match</button></div>
+ <button class="primary" id="next" type="button" hidden></button>
+</section>
+<p id="notice" role="alert" hidden></p>
+</main>
+</body>
+</html>

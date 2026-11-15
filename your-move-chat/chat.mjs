@@ -4,7 +4,7 @@ const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 const gameNames = {
   pounce: 'Pounce', speed: 'Speed', scrabble: 'Scrabble', 'guess-who': 'Guess Who?',
   hearts: 'Hearts', uno: 'UNO', duet: 'Codenames Duet', dots: 'Dots & Boxes',
-  'quick-draw': 'Quick Draw', 'what-changed': 'What Changed?', 'draw-together': 'Draw Together', warmer: 'Warmer', 'hide-a-dot': 'Hide a Dot',
+  'same-word': 'Same Word', 'quick-draw': 'Quick Draw', 'what-changed': 'What Changed?', 'draw-together': 'Draw Together', warmer: 'Warmer', 'hide-a-dot': 'Hide a Dot',
   mahjong: 'Mahjong', 'mahjong-daily': 'Daily Mahjong', 'mahjong-level4': 'Mahjong Level 4',
 };
 

@@ -29,7 +29,7 @@ header{border-bottom:1px solid var(--line)}
 #clue button{padding:8px}
 #stop{margin:10px auto;display:block}
 .dots{--text:#203644;--muted:#486174;--gold:#f5bc68;--line:#375b7338;color-scheme:light;background:radial-gradient(ellipse at top,#f2f7f4,#cfe1e7)}
-.dots input,.dots dialog{background:#f5faf8}
+.dots input:not(.move-chat input),.dots dialog:not(.move-chat){background:#f5faf8}
 .dots button{background:#224f6920}
 .dots .primary{background:var(--gold)}
 .dots #status,.dots #notice,.dots #chatError{color:#7a302f}

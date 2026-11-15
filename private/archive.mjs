@@ -1,8 +1,10 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/+esm';
 
+const project = 'https://lecudeiafwhyhufceurv.supabase.co';
+const publicKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 const client = createClient(
-  'https://lecudeiafwhyhufceurv.supabase.co',
-  'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD',
+  project,
+  publicKey,
   { auth: { persistSession: true, detectSessionInUrl: true } },
 );
 const bucket = client.storage.from('private-archive');
@@ -12,7 +14,7 @@ const params = new URLSearchParams(location.search);
 
 const documents = {
   'hub.html': '327a6670bb991a6a229694ff0daeddc2ecac1462e773b2b570fce8d1c38835b2',
-  'archive.html': '8cef389933a688773ef0c7729607eb9df10d369e006ec21757d09c7e76f4b10b',
+  'archive.html': 'e35ee1267ae866af7df9d1d27f5cb87ebc483da481f7d9f9da7ce7b199b04d1c',
   'cards.html': 'a64d6883d19adcdf7917b68480c2199ac83dc627cbc6be0765cdb9caba31ed2a',
   'deaddrop.html': 'c8a71f34bfcbb5062fe79a6d88d6f3f87c7e9c386eaa17d47fbfe5536ef4b6ec',
   'the_ledger.html': '22fbaa448a03915df8cd8c505a1cc570e20a3c1b4a8161d1eec4758b60a5b577',
@@ -32,6 +34,27 @@ function privateLink(name) {
   return name === 'hub.html' ? '/private/' : '/private/?' + new URLSearchParams({ page:name });
 }
 
+const allowedRequests = {
+  '/rest/v1/cards': ['GET'],
+  '/rest/v1/ledger': ['GET'],
+  '/rest/v1/pins': ['GET', 'POST'],
+  '/rest/v1/dead_drop_messages': ['GET', 'POST', 'DELETE'],
+};
+window.privateArchiveRequest = async (input, init = {}) => {
+  const url = new URL(input, location.origin);
+  const method = String(init.method || 'GET').toUpperCase();
+  if (url.origin !== project || !Object.hasOwn(allowedRequests, url.pathname) ||
+      !allowedRequests[url.pathname].includes(method) || !displayedUser) {
+    return new Response(null, { status: 403 });
+  }
+  const { data: { session }, error } = await client.auth.getSession();
+  if (error || session?.user?.id !== displayedUser) return new Response(null, { status: 401 });
+  const headers = new Headers(init.headers);
+  headers.set('apikey', publicKey);
+  headers.set('Authorization', 'Bearer ' + session.access_token);
+  return fetch(url, { ...init, headers, cache: 'no-store' });
+};
+
 function buildPage(markup) {
   const doc = new DOMParser().parseFromString(markup, 'text/html');
   for (const anchor of doc.querySelectorAll('a[href]')) {
@@ -45,7 +68,22 @@ function buildPage(markup) {
     anchor.target = '_top';
   }
   for (const script of doc.querySelectorAll('script:not([src])')) {
-    script.textContent = script.textContent.replace(/window\.location\.href\s*=\s*(['"])hub\.html\1/g, "window.top.location.href = '/private/'");
+    let code = script.textContent.replace(
+      /window\.location\.href\s*=\s*(['"])(hub|pins)\.html\1/g,
+      (_match, _quote, name) => 'window.top.location.href = ' + JSON.stringify(privateLink(name + '.html')),
+    );
+    if (['archive.html', 'cards.html', 'the_ledger.html', 'pins.html', 'deaddrop.html'].includes(page)) {
+      code = code.replace(/\bawait fetch\(/g, 'await window.parent.privateArchiveRequest(');
+    }
+    if (page === 'deaddrop.html') {
+      code = code.replace('  loadSavedConfig();',
+        '  sbConfig = ' + JSON.stringify({ url: project, key: publicKey, table: 'dead_drop_messages' }) + ';');
+    }
+    script.textContent = code;
+  }
+  if (page === 'deaddrop.html') {
+    doc.getElementById('settingsToggle')?.setAttribute('hidden', '');
+    doc.getElementById('settingsPanel')?.setAttribute('hidden', '');
   }
   const controls = doc.createElement('nav');
   controls.setAttribute('aria-label', 'Private Archive');
@@ -66,7 +104,8 @@ function buildPage(markup) {
 }
 
 async function readPage() {
-  const { data, error } = await bucket.download(page);
+  const file = page === 'archive.html' ? 'archive-rotated.html' : page;
+  const { data, error } = await bucket.download(file);
   if (error) throw error;
   const bytes = await data.arrayBuffer();
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
@@ -108,10 +147,10 @@ async function render() {
     const markup = await readPage();
     if (version !== generation) return;
     document.title = page === 'hub.html' ? 'Private Archive · Hub' : 'Private Archive';
+    displayedUser = user.id;
     frame.srcdoc = buildPage(markup);
     frame.hidden = false;
     $('gate').hidden = true;
-    displayedUser = user.id;
   } catch {
     if (version === generation) say('Could not open this archive page. Refresh to try again.');
   }

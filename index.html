@@ -1,84 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Central</title>
-<meta name="description" content="Central — games.">
+<meta name="theme-color" content="#15171b">
+<meta name="description" content="Pick a game at Central. Nine tables for two players or solo practice.">
+<title>Central · Game Shelf</title>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f4f1;
-    color: #1f2328;
-  }
-  .wrap {
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 24px max(32px, env(safe-area-inset-bottom));
-  }
-  h1 {
-    font-size: 30px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin: 0 0 6px;
-  }
-  p.sub {
-    margin: 0 0 32px;
-    color: #6b7075;
-    font-size: 15px;
-  }
-  nav {
-    display: grid;
-    gap: 14px;
-    width: 100%;
-    max-width: 340px;
-  }
-  nav a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 20px;
-    background: #fff;
-    border: 1px solid #e2e2dc;
-    border-radius: 14px;
-    color: inherit;
-    text-decoration: none;
-    font-size: 17px;
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-  }
-  nav a:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-  nav a:active { transform: scale(0.98); }
-  nav a span { color: #9a9ea3; font-weight: 400; }
-  @media (prefers-color-scheme: dark) {
-    body { background: #16181b; color: #e8e9ea; }
-    p.sub { color: #8b9096; }
-    nav a { background: #1f2226; border-color: #2c3035; box-shadow: none; }
-    nav a span { color: #6f757b; }
-  }
+:root{color-scheme:dark;--ink:#f8f1de;--dim:#c6bba8;--table:#15171b}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 2%,#30292d,var(--table) 71%);color:var(--ink);font-family:system-ui,sans-serif}
+main{
+ width:min(100%,800px);height:100dvh;min-height:0;margin:auto;
+ padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right))
+         max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+ display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(9px,2.3dvh,24px);
+}
+header{display:flex;align-items:end;justify-content:space-between;gap:9px}
+h1{margin:0;font:700 clamp(39px,10vw,76px)/.93 Georgia,serif;letter-spacing:-.064em}
+header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
+.count{color:#f1cc85;border:1px solid #f1cc854d;border-radius:999px;padding:5px 8px;font-size:10px;white-space:nowrap;margin-bottom:1px}
+.shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));min-height:0;gap:clamp(6px,2vw,12px);max-height:635px}
+.game{
+ --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
+ min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
+ display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;
+ padding:clamp(5px,1.7vw,12px);border-radius:clamp(9px,3vw,17px);border:1px solid #fff3;
+ background:radial-gradient(ellipse at 85% 0%,#fff3,transparent 68%),var(--surface);
+ color:var(--text);text-decoration:none;box-shadow:inset 0 -2px #0003,0 3px 6px #0003;
+ transition:transform .15s,box-shadow .15s;
+}
+.game::after{content:'↗';position:absolute;top:5px;right:6px;font-size:12px;color:var(--stamp)}
+.game:hover,.game:focus-visible{transform:translateY(-2px);outline:2px solid #ffe3a9;outline-offset:2px}
+.game:active{transform:scale(.97)}
+.game strong{font-size:clamp(10px,3.25vw,19px);line-height:1.12;letter-spacing:-.025em;overflow-wrap:normal}
+.mark{display:grid;min-height:0;place-items:center;color:var(--stamp);font-size:clamp(23px,min(9vw,7dvh),60px);line-height:1;font-weight:850;font-family:Georgia,serif}
+.paper{
+ background:#fff6dd;color:#45362c;display:grid;place-items:center;
+ width:1.25em;height:1.52em;border-radius:.13em;box-shadow:2px 3px #21182a3b;
+ font-size:.74em;transform:rotate(-10deg);
+}
+.double{position:relative;isolation:isolate}
+.double::before{content:'';position:absolute;z-index:-1;inset:2px -5px;background:#202c33;transform:rotate(15deg);border:1px solid #fff8;border-radius:4px}
+.pounce{--surface:#283c36;--text:#fff2d8;--stamp:#f4d390}
+.speed{--surface:#efd18d;--text:#371f1f;--stamp:#9c4028}
+.hearts{--surface:#9c3d53;--text:#fff6e6;--stamp:#ffcec3}
+.hearts .paper{color:#a43552}
+.uno{--surface:#4c3273;--text:#fff0c8;--stamp:#ffcb52}
+.uno .mark{font-family:system-ui,sans-serif;font-size:clamp(19px,min(7vw,6dvh),52px);font-style:italic;transform:rotate(-10deg);text-shadow:2px 2px #bd3f56}
+.guess{--surface:#d5b894;--text:#2a2821;--stamp:#7a3130}
+.guess .paper{aspect-ratio:1;height:1.25em;font-style:italic}
+.scrabble{--surface:#c98b69;--text:#2c221e;--stamp:#4f3023}
+.scrabble .paper{height:1.22em;transform:rotate(0);position:relative}
+.scrabble small{position:absolute;font:700 .28em system-ui,sans-serif;bottom:.13em;right:.16em}
+.duet{--surface:#22605b;--text:#fff0d7;--stamp:#b7e1bf}
+.duet .mark{font-family:system-ui,sans-serif;letter-spacing:-.07em}
+.dots{--surface:#afd3e1;--text:#192f3d;--stamp:#174b68}
+.dot-mark{display:grid;grid-template-columns:repeat(3,1fr);gap:.13em;transform:rotate(-8deg)}
+.dot-mark i{width:.13em;height:.13em;border-radius:50%;background:currentColor}
+.mahjong{--surface:#d8dec0;--text:#2e3a2e;--stamp:#235f4f}
+.mahjong .paper{color:#266451}
+@media (min-width:700px){main{padding-inline:30px}.game{padding:15px}}
+@media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.game::after{font-size:9px}.mark{font-size:clamp(18px,6.5dvh,33px)}}
+@media (orientation:landscape) and (max-height:520px){
+ .shelf{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+ .game strong{font-size:clamp(11px,2.45vw,17px)}
+}
+@media(prefers-reduced-motion:reduce){.game{transition:none}}
 </style>
 </head>
 <body>
-  <main class="wrap">
-    <h1>Central</h1>
-    <p class="sub">Games</p>
-    <nav>
-      <a href="/Pounce/">Pounce <span>&rarr;</span></a>
-      <a href="/speed/">Speed <span>&rarr;</span></a>
-      <a href="/scrabble/">Scrabble <span>&rarr;</span></a>
-      <a href="/guess-who/">Guess Who? <span>&rarr;</span></a>
-      <a href="/hearts/">Hearts <span>&rarr;</span></a>
-      <a href="/uno/">UNO <span>&rarr;</span></a>
-      <a href="/duet/">Codenames Duet <span>&rarr;</span></a>
-      <a href="/dots/">Dots &amp; Boxes <span>&rarr;</span></a>
-      <a href="/mahjong/">Mahjong <span>&rarr;</span></a>
-    </nav>
-  </main>
+<main>
+ <header>
+  <div><h1>Central</h1><p>Pick a game</p></div>
+  <span class="count">9 games</span>
+ </header>
+ <nav class="shelf" aria-label="Games">
+  <a class="game pounce" href="/Pounce/"><span class="mark" aria-hidden="true"><span class="paper double">♣</span></span><strong>Pounce</strong></a>
+  <a class="game speed" href="/speed/"><span class="mark" aria-hidden="true">ϟ</span><strong>Speed</strong></a>
+  <a class="game hearts" href="/hearts/"><span class="mark" aria-hidden="true"><span class="paper">♥</span></span><strong>Hearts</strong></a>
+  <a class="game uno" href="/uno/"><span class="mark" aria-hidden="true">UNO!</span><strong>UNO</strong></a>
+  <a class="game guess" href="/guess-who/"><span class="mark" aria-hidden="true"><span class="paper">?</span></span><strong>Guess Who?</strong></a>
+  <a class="game scrabble" href="/scrabble/"><span class="mark" aria-hidden="true"><span class="paper">S<small>1</small></span></span><strong>Scrabble</strong></a>
+  <a class="game duet" href="/duet/"><span class="mark" aria-hidden="true">••</span><strong>Codenames Duet</strong></a>
+  <a class="game dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
+  <a class="game mahjong" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
+ </nav>
+</main>
 </body>
 </html>

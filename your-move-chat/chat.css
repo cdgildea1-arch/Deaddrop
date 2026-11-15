@@ -105,3 +105,29 @@ html[data-move-chat] dialog.move-chat [data-gesture]:focus-visible{
   display:flex;margin:5px 0 13px;transform:scale(.82);height:70px;
  }
 }
+
+/* Small game illustrations stay readable at phone size. */
+.hearts-cover{display:flex;justify-content:center;align-items:center;margin:3px auto 17px;height:clamp(61px,12dvh,94px)}
+.hearts-cover span{
+ position:relative;display:grid;place-items:center;width:clamp(49px,14vw,70px);
+ aspect-ratio:5/7;border-radius:9px;background:#f7e7d3;color:#272332;
+ border:2px solid #fff1dc;box-shadow:0 5px 11px #1d0f1a99;
+ font:700 clamp(25px,7vw,43px) Georgia,serif;transform:rotate(-18deg) translate(7px,7px)
+}
+.hearts-cover span:nth-child(2){background:#f8d9cd;color:#9e354c;transform:translateY(-5px);z-index:1}
+.hearts-cover span:last-child{transform:rotate(17deg) translate(-7px,7px)}
+.hearts-cover small{position:absolute;top:3px;left:5px;font:700 10px system-ui,sans-serif;color:inherit}
+html[data-move-chat=hearts] #menu .hero h1{color:#ffe7d3;font-style:italic}
+html[data-move-chat=hearts] #menu .panel{border-color:#db9ba65e;background:#6b30414a;box-shadow:0 10px 25px #180d1a4f}
+.dots-cover{
+ position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;place-items:center;
+ width:86px;aspect-ratio:1;padding:12px;margin:0 auto 14px;background:#f2f8f5;
+ border:1px solid #7397a07a;border-radius:13px;box-shadow:3px 5px #46758335;transform:rotate(-8deg)
+}
+.dots-cover i{position:relative;z-index:1;width:6px;height:6px;background:#284a5e;border-radius:50%}
+.dots-cover::before{content:'';position:absolute;inset:13px auto auto 13px;width:28px;height:28px;background:#78b3c8;border:2px solid #2b7185;border-radius:3px}
+.dots-cover::after{content:'';position:absolute;inset:auto 13px 16px auto;width:28px;height:3px;background:#b34c57;border-radius:3px}
+@media(max-height:525px){.dots-cover{width:64px;padding:8px;gap:9px;margin-bottom:7px}.dots-cover::before,.dots-cover::after{display:none}.hearts-cover{height:61px;margin-bottom:10px}.hearts-cover span{width:47px}}
+@media (min-height:650px) and (max-width:620px) and (orientation:portrait){
+ html[data-move-chat=speed] body #menu .fan{display:flex;height:70px;transform:scale(.8);margin:5px auto 9px}
+}

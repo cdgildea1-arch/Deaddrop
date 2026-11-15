@@ -194,7 +194,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 @media (max-height:700px){ .logo{font-size:44px} .fan{height:76px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
-<link rel="stylesheet" href="/your-move-chat/chat.css?v=ios"><script type="module" src="/your-move-chat/chat.mjs"></script></head>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=menus"></script></head>
 <body>
 <div id="bg"></div>
 <div id="app">
@@ -1076,34 +1076,24 @@ function refreshLobby(){ if(LV.lobby && !$('#overlay').classList.contains('hidde
 function renderLobby(){
   const back = `<button class="link" id="lobbyBack">Back</button>`;
   if(!CH.room){
-    overlay(`<h2>Play a friend</h2><p>You and your friend both join room <b style="color:var(--gold);letter-spacing:2px">${HOME_ROOM}</b> on your own phones.</p>
-      <input class="field" id="lobbyName" maxlength="18" placeholder="Your name, like Casey" value="${esc(store.get('name',''))}" autocomplete="nickname">
-      <button class="big" id="lobbyJoin">Join room ${HOME_ROOM}</button>
-      <div class="err" id="lobbyErr"></div>
-      <button class="big alt hidden" id="lobbyReset">Reset room ${HOME_ROOM}</button>
-      <button class="link chatOpen">Use a different room code</button>${back}`);
-    const nameOk = () => {
-      const name = $('#lobbyName').value.trim();
-      if(!name){ $('#lobbyErr').textContent = 'Put your name in first.'; return null; }
-      if(/^[0-9 ]+$/.test(name)){ $('#lobbyErr').textContent = 'Type your name there, not the room number.'; return null; }
-      return name;
+    overlay(`<h2>Play a friend</h2><p>Enter the same game code on both devices.</p>
+      <label for="lobbyName">Your name</label>
+      <input class="field" id="lobbyName" maxlength="18" placeholder="Your name" value="${esc(store.get('name',''))}" autocomplete="nickname">
+      <label for="lobbyCode">Game code</label>
+      <input class="field" id="lobbyCode" maxlength="8" placeholder="Enter game code" autocomplete="off" autocapitalize="characters">
+      <button class="big" id="lobbyJoin">Join a friend</button>
+      <div class="err" id="lobbyErr" role="status"></div>${back}`);
+    const join = async () => {
+      const name = $('#lobbyName').value.trim(), code = $('#lobbyCode').value.trim().toUpperCase();
+      const error = $('#lobbyErr'), button = $('#lobbyJoin');
+      if(!name || /^[0-9 ]+$/.test(name)){ error.textContent = 'Enter your name first.'; return; }
+      if(!CODE_RE.test(code)){ error.textContent = 'Enter a valid game code.'; return; }
+      error.textContent = 'Connecting…'; button.disabled = true;
+      try{ await joinRoom(code, name); renderLobby(); }
+      catch(e){ error.textContent = e.message; button.disabled = false; }
     };
-    $('#lobbyJoin').onclick = async () => {
-      const name = nameOk(); if(!name) return;
-      $('#lobbyErr').textContent = 'Connecting…';
-      try{ await joinRoom(HOME_ROOM, name); renderLobby(); }
-      catch(e){
-        $('#lobbyErr').textContent = /two people/.test(e.message) ? e.message + ' Or reset the room to start over.' : e.message;
-        if(/two people/.test(e.message)) $('#lobbyReset').classList.remove('hidden');
-      }
-    };
-    $('#lobbyReset').onclick = async () => {
-      const name = nameOk(); if(!name) return;
-      if(!confirm(`Reset room ${HOME_ROOM}? This ends any game in it and anyone in it has to join again.`)) return;
-      $('#lobbyErr').textContent = 'Resetting…';
-      try{ await chatCall('reset', {code:HOME_ROOM, secret:hex(12)}); await joinRoom(HOME_ROOM, name); renderLobby(); }
-      catch(e){ $('#lobbyErr').textContent = e.message; }
-    };
+    $('#lobbyJoin').onclick = join;
+    $('#lobbyCode').onkeydown = e => { if(e.key==='Enter' && !$('#lobbyJoin').disabled) join(); };
   } else {
     const host = CH.seat===0, myName = CH.room.name, fname = CH.names[1-CH.seat];
     const conn = LV.status==='on' ? '' : LV.status==='failed' ? 'Live play couldn’t load. Check your connection.' : 'Connecting…';

@@ -38,7 +38,7 @@ panel.innerHTML = `
   </div>
   <form data-join hidden>
     <label>Name<input data-name autocomplete="nickname" maxlength="18" required></label>
-    <label>Room code<input data-code value="25800852" maxlength="8" autocomplete="off" required></label>
+    <label>Game code<input data-code placeholder="Enter game code" maxlength="8" autocomplete="off" required></label>
     <button>Join chat</button>
   </form>
   <div data-messages role="log" aria-label="Messages" aria-live="polite"></div>
@@ -64,11 +64,11 @@ function setup(show) {
   find('compose').querySelector('button').disabled = show || !lastView || sending;
   if (show) {
     find('name').value = room?.name || read('pounce.name', '');
-    find('code').value = room?.code || '25800852';
+    find('code').value = '';
   }
 }
 function context() {
-  find('context').textContent = mode === 'room' ? 'Room ' + (room?.code || '25800852') : gameNames[slot];
+  find('context').textContent = mode === 'room' ? (room?.code ? 'Room ' + room.code : 'Room') : gameNames[slot];
   find('gesture').setAttribute('aria-keyshortcuts', mode === 'table' ? 'ArrowUp' : 'ArrowDown');
 }
 function showMessages(view) {
@@ -266,7 +266,7 @@ if (document.documentElement.dataset.moveInvite) {
     loading = false;
     lastView = null;
     setup(true);
-    find('code').value = code;
+    find('code').focus();
   }
 }
 setInterval(() => {

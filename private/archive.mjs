@@ -85,22 +85,57 @@ function buildPage(markup) {
     doc.getElementById('settingsToggle')?.setAttribute('hidden', '');
     doc.getElementById('settingsPanel')?.setAttribute('hidden', '');
   }
-  const controls = doc.createElement('nav');
-  controls.setAttribute('aria-label', 'Private Archive');
-  controls.style.cssText = 'position:fixed;bottom:max(12px,env(safe-area-inset-bottom));right:12px;display:flex;gap:7px;z-index:1000;font:600 12px system-ui,sans-serif';
-  const links = page === 'hub.html'
-    ? [['Manuscript', privateLink('Manuscript.html')], ['Sign out', '/private/?signout=1']]
-    : [['‹ Hub', '/private/']];
-  for (const [label, url] of links) {
+  if (page === 'hub.html') {
+    styleReadingRoom(doc);
+  } else {
+    const controls = doc.createElement('nav');
+    controls.setAttribute('aria-label', 'Private Archive');
+    controls.style.cssText = 'position:fixed;bottom:max(12px,env(safe-area-inset-bottom));right:12px;z-index:1000;font:600 12px system-ui,sans-serif';
+    const back = doc.createElement('a');
+    back.textContent = '‹ Hub';
+    back.href = '/private/';
+    back.target = '_top';
+    back.style.cssText = 'display:block;padding:10px 12px;border:1px solid #ac8d72;border-radius:20px;background:#2c211a;color:#f5e9dc;text-decoration:none';
+    controls.append(back);
+    doc.body.append(controls);
+  }
+  return '<!doctype html>\n' + doc.documentElement.outerHTML;
+}
+
+function styleReadingRoom(doc) {
+  doc.body.classList.add('reading-room');
+  const style = doc.createElement('link');
+  style.rel = 'stylesheet';
+  style.href = '/private/reading-room.css?v=1';
+  doc.head.append(style);
+
+  const wrap = doc.querySelector('.wrap');
+  const heading = doc.createElement('header');
+  heading.className = 'room-heading';
+  const title = doc.createElement('h1');
+  title.textContent = 'The Hub';
+  heading.append(doc.querySelector('.footer-note'), title);
+  wrap.prepend(heading);
+
+  doc.querySelectorAll('.tab-bar, .dots, .menu-sub, .lock-badge').forEach(element => element.remove());
+  for (const script of doc.querySelectorAll('script')) {
+    if (script.textContent.includes("const carousel = document.getElementById('carousel')")) script.remove();
+  }
+  const grid = doc.getElementById('carousel');
+  grid.setAttribute('role', 'navigation');
+  grid.setAttribute('aria-label', 'Archive sections');
+  grid.querySelectorAll('.menu-icon').forEach(icon => icon.setAttribute('aria-hidden', 'true'));
+  const footer = doc.createElement('footer');
+  footer.className = 'room-footer';
+  for (const [label, url] of [['Manuscript', privateLink('Manuscript.html')], ['Sign out', '/private/?signout=1']]) {
     const link = doc.createElement('a');
     link.textContent = label;
     link.href = url;
     link.target = '_top';
-    link.style.cssText = 'padding:10px 12px;border:1px solid #ac8d72;border-radius:20px;background:#2c211a;color:#f5e9dc;text-decoration:none';
-    controls.append(link);
+    footer.append(link);
   }
-  doc.body.append(controls);
-  return '<!doctype html>\n' + doc.documentElement.outerHTML;
+  footer.insertBefore(doc.getElementById('tp-widget'), footer.lastElementChild);
+  wrap.append(footer);
 }
 
 async function readPage() {

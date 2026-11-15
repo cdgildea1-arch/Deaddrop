@@ -9,16 +9,26 @@ export const traits = [
 const names='Avery|Blair|Casey|Devon|Emery|Frankie|Gray|Harper|Indigo|Jamie|Kai|Lane|Morgan|Noel|Oakley|Parker|Quinn|Remy|Sage|Taylor|Val|Wren|Yael|Zion'.split('|');
 const patterns=[0,39,18,61,33,54,27,12,53,46,35,56,15,22,57,26,7,58,13,17,52,24,3,44];
 export const cast=names.map((name,id)=>({name,id,...Object.fromEntries(traits.map(([key],bit)=>[key,Boolean(patterns[id]&(1<<bit))]))}));
-export const newGame=names=>({id:crypto.randomUUID(),rev:0,players:names.map(name=>({name,secret:null})),turn:Math.floor(Math.random()*2),winner:null,history:[]});
+export const newGame=names=>({id:crypto.randomUUID(),rev:0,players:names.map(name=>({name,secret:null})),turn:Math.floor(Math.random()*2),winner:null,history:[],question:null});
 export function action(game,seat,move){
  if(move.id!==game.id||game.winner!==null||!game.players[seat])throw Error('This round has ended.');
  const player=game.players[seat],other=game.players[1-seat];
  if(move.type==='pick'){
   if(player.secret!==null||!Number.isInteger(move.choice)||!cast[move.choice])throw Error('Choose a character from the board.');
   player.secret=move.choice;
+ }else if(move.type==='answer'){
+  const q=game.question;
+  if(!q||q.seat===seat||move.rev!==game.rev||typeof move.answer!=='boolean')throw Error('There is no question for you to answer.');
+  game.history.push({seat:q.seat,label:q.label,answer:move.answer,custom:true});
+  game.question=null;game.turn=seat;
  }else{
+  if(game.question)throw Error('Wait for your friend to answer.');
   if(game.turn!==seat||player.secret===null||other.secret===null||move.rev!==game.rev)throw Error('Wait for your turn.');
-  if(move.type==='ask'){
+  if(move.type==='custom'){
+   const label=typeof move.label==='string'?move.label.trim():'';
+   if(!label||label.length>160)throw Error('Type one yes-or-no question, up to 160 characters.');
+   game.question={seat,label};
+  }else if(move.type==='ask'){
    const trait=traits.find(([key])=>key===move.trait);
    if(!trait||game.history.some(h=>h.seat===seat&&h.trait===move.trait))throw Error('Pick a question you have not asked.');
    game.history.push({seat,trait:move.trait,label:trait[1],answer:cast[other.secret][move.trait]});

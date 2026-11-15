@@ -24,7 +24,7 @@ const seat=()=>practice?0:info?.seat??0;
 const host=()=>!practice&&info?.seat===0;
 const current=()=>practice||host()?game&&view(game,seat()):remote;
 const canAct=g=>g&&g.winner===null&&!pending&&(practice||connected&&!!peer?.ready);
-const canPlay=g=>canAct(g)&&g.players.every(p=>p.ready)&&g.turn===seat();
+const canPlay=g=>canAct(g)&&g.players.every(p=>p.ready)&&g.turn===seat()&&!g.question;
 function clearDraft(){mode='pick';marks.clear()}
 
 async function call(op,extra={}){
@@ -133,7 +133,7 @@ function start(){
 }
 function submit(type,data={}){
  const state=current();
- if(!canAct(state)||(type!=='pick'&&!canPlay(state)))return;
+ if(!canAct(state)||(!['pick','answer'].includes(type)&&!canPlay(state)))return;
  const move={type,...data,id:state.id,rev:state.rev,nonce:hex()};
  if(practice||host()){
   try{action(game,seat(),move)}catch(e){return text('notice',e.message)}
@@ -141,6 +141,11 @@ function submit(type,data={}){
  }else{
   pending=move;send('move',{sid,move});render();
  }
+}
+function typedTrait(question){
+ const normalized=question.toLowerCase().replace(/[?!.]/g,'').trim();
+ const match=normalized.match(/^(?:do they have|are they wearing|do they wear|does (?:your|the) character (?:have|wear)) (?:a |any )?(glasses|hat|earrings|freckles|long hair|light hair)$/);
+ return match&&({'long hair':'longHair','light hair':'lightHair'}[match[1]]||match[1]);
 }
 function runBot(){
  clearTimeout(botTimer);
@@ -158,13 +163,17 @@ function render(){
  text('mode',practice?'Solo practice':'Room '+room.code);
  $('#secret').innerHTML=mine.ready?face(mine.secret):'';
  const status=ended?(g.winner===me?'You win!':other.name+' wins!'):pending?'Sending…':!practice&&!peer?.ready?'Waiting for your friend to return':!mine.ready?'Choose your secret character':!other.ready?'Waiting for '+other.name+' to choose':g.turn===me?'Your turn':other.name+'’s turn';
- text('turn',status);
+ text('turn',g.question?(g.question.seat===me?'Waiting for an answer':'Answer your friend’s question'):status);
  const last=g.history.at(-1);
- text('lastClue',ended?`Your character was ${cast[mine.secret].name}. ${other.name} chose ${cast[other.secret].name}.`:last?`${g.players[last.seat].name}: ${last.label} ${last.answer?'Yes':'No'}.`:mine.ready?'Your character: '+cast[mine.secret].name:'Your choice stays hidden from the other player.');
+ text('lastClue',g.question?g.question.label:ended?`Your character was ${cast[mine.secret].name}. ${other.name} chose ${cast[other.secret].name}.`:last?`${g.players[last.seat].name}: ${last.label} ${last.answer?'Yes':'No'}.`:mine.ready?'Your character: '+cast[mine.secret].name:'Your choice stays hidden from the other player.');
  const remaining=traits.filter(([key])=>!g.history.some(h=>h.seat===me&&h.trait===key));
  $('#question').innerHTML=remaining.map(([key,label])=>`<option value="${key}">${esc(label)}</option>`).join('');
  if(remaining.some(([key])=>key===chosen))$('#question').value=chosen;
  $('#question').disabled=$('#ask').disabled=!enabled||!remaining.length;
+ $('#customQuestion').disabled=$('#customForm button').disabled=!enabled;
+ $('#answerRow').hidden=!g.question||g.question.seat===me;
+ $('#answerYes').disabled=$('#answerNo').disabled=!canAct(g);
+
  $('#mark').disabled=!mine.ready||ended;
  $('#guess').disabled=!enabled;
  $('#mark').setAttribute('aria-pressed',mode==='mark');
@@ -178,7 +187,7 @@ function render(){
   const label=[p.name,...traits.filter(([key])=>p[key]).map(([key])=>({longHair:'long hair',lightHair:'light hair'}[key]||key))].join(', ');
   return `<button class="person ${out?'out':''} ${mine.secret===p.id&&!ended?'mine':''}" data-person="${p.id}" aria-label="${esc(label+(out?', crossed out':''))}" ${active?'':'disabled'}>${face(p.id)}<span>${esc(p.name)}</span></button>`;
  }).join('');
- $('#history').innerHTML=g.history.slice().reverse().map(h=>`<li>${esc(g.players[h.seat].name)} · ${esc(h.label)} · ${h.trait?(h.answer?'Yes':'No'):(h.answer?'Correct':'Incorrect')}</li>`).join('');
+ $('#history').innerHTML=g.history.slice().reverse().map(h=>`<li>${esc(g.players[h.seat].name)} · ${esc(h.label)} · ${(h.trait||h.custom)?(h.answer?'Yes':'No'):(h.answer?'Correct':'Incorrect')}</li>`).join('');
 }
 $('#board').onclick=e=>{
  const b=e.target.closest('[data-person]');if(!b||b.disabled)return;
@@ -193,6 +202,14 @@ $('#board').onclick=e=>{
 $('#mark').onclick=()=>{mode=mode==='mark'?'pick':'mark';text('notice',mode==='mark'?'Tap cards to cross them out or restore them.':'');render()};
 $('#guess').onclick=()=>{mode=mode==='guess'?'pick':'guess';text('notice',mode==='guess'?'Tap the character you want to guess.':'');render()};
 $('#ask').onclick=()=>submit('ask',{trait:$('#question').value});
+$('#customForm').onsubmit=e=>{
+ e.preventDefault();const input=$('#customQuestion'),label=input.value.trim();if(!label||!canPlay(current()))return;
+ if(practice){const trait=typedTrait(label);if(!trait){text('notice','In solo play, try “Are they wearing glasses?” or another question from the list.');return;}submit('ask',{trait});}
+ else submit('custom',{label});
+ input.value='';
+};
+$('#answerYes').onclick=()=>submit('answer',{answer:true});
+$('#answerNo').onclick=()=>submit('answer',{answer:false});
 $('#again').onclick=start;
 $('#join').onclick=join;
 $('#practice').onclick=()=>{practice=true;start()};

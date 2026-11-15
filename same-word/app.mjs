@@ -1,5 +1,9 @@
 import {read, token, joinRoom, connect} from '../mini/room.mjs';
 import {nextRound, progress, answer, vote, view} from './rules.mjs';
+import {snapshots} from '../your-move-sync.mjs';
+// The first player's phone saves the streak and used prompts here so the next session picks up where you stopped.
+const saves=snapshots('same-word',()=>read('pounce.room'));
+let carry=null;
 
 const $=id=>document.getElementById(id);
 const set=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value};
@@ -20,7 +24,8 @@ $('joinForm').onsubmit=async event=>{
  if(!window.supabase)return status('Live play couldn’t load. Refresh and try again.');
  event.submitter.disabled=true;
  status('Joining your friend…');
- try{room=await joinRoom(code,name);screen(true);wire();status();render();}
+ try{room=await joinRoom(code,name);screen(true);wire();status();render();
+  if(host())saves.get().then(saved=>{if(!state&&saved?.state){carry=saved.state;session=saved.session||null;}}).catch(()=>{});}
  catch(error){status(error.message)}
  finally{event.submitter.disabled=false}
 };
@@ -34,6 +39,7 @@ input.addEventListener('input',()=>{
  else input.value=typed;
 });
 function publish(){
+ if(host()&&state)saves.put({state,session});
  if(host()&&state)net?.send('state',{session,round:view(state,1),at:Date.now()});
 }
 function wire(){
@@ -75,7 +81,7 @@ function wire(){
 $('next').onclick=()=>{
  if(!host()||!paired()||(state&&state.phase!=='result'))return;
  session??=token();
- state=nextRound(state);resetInput();publish();render();input.focus();
+ state=nextRound(state||carry);carry=null;resetInput();publish();render();input.focus();
 };
 function enqueue(type,fields){
  pending={type,session,number:remote.number,...fields};

@@ -194,7 +194,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 @media (max-height:700px){ .logo{font-size:44px} .fan{height:76px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
-<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=menus"></script></head>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=kill1"></script></head>
 <body>
 <div id="bg"></div>
 <div id="app">
@@ -882,6 +882,18 @@ const LV = { client:null, ch:null, key:null, status:'off', seat:0, peer:null, re
   seq:0, ack:0, pending:[], sid: Math.random().toString(36).slice(2,10), peerSid:null, stTimer:null };
 const isGuest = () => LV.inGame && ME===1;
 let sbLoad = null;
+// Server copy of the live game (your-move-games), so a match can resume later even on another phone.
+let liveSaves = null;
+import('/your-move-sync.mjs').then(m => { liveSaves = m.snapshots('pounce', () => CH.room); }).catch(()=>{});
+let pulledFor = null;
+function pullLiveSave(){
+  if(!liveSaves || !CH.room || CH.seat!==0 || pulledFor===CH.room.code) return;
+  pulledFor = CH.room.code;
+  liveSaves.get().then(rec => {
+    const local = store.get('live', null);
+    if(rec && rec.code===CH.room.code && (!local || local.code!==rec.code || (local.t||0) < (rec.t||0))) store.set('live', rec);
+  }).catch(()=>{});
+}
 function loadSupabase(){
   if(window.supabase) return Promise.resolve();
   return sbLoad || (sbLoad = new Promise((res, rej)=>{
@@ -910,7 +922,7 @@ async function connectLive(){
   ch.subscribe(status => {
     if(LV.ch !== ch) return;
     LV.status = status==='SUBSCRIBED' ? 'on' : (status==='CLOSED' ? 'off' : 'connecting');
-    if(status==='SUBSCRIBED'){ track(); if(LV.seat===1) liveSend('hello', {}); }
+    if(status==='SUBSCRIBED'){ track(); if(LV.seat===1) liveSend('hello', {}); else pullLiveSave(); }
     refreshLobby();
   });
   LV.ch = ch;
@@ -966,7 +978,9 @@ function sendState(){
   if(!LV.inGame || LV.seat!==0 || !G) return;
   const st = encodeState();
   liveSend('st', st);
-  store.set('live', {code: CH.room && CH.room.code, st});
+  const rec = {code: CH.room && CH.room.code, st, t: Date.now()};
+  store.set('live', rec);
+  if(liveSaves && CH.room) liveSaves.put(rec, !!st.over);
 }
 function scheduleState(){ if(!LV.stTimer) LV.stTimer = setTimeout(sendState, 25); }
 const centerCount = o => G.found.reduce((a,f)=>a + f.filter(c=>c.o===o).length, 0);
@@ -1148,7 +1162,7 @@ async function chatCall(op, extra={}){
 }
 function absorb(v, full){
   CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined; CH.live = v.live || null;
-  connectLive(); refreshLobby();
+  connectLive(); refreshLobby(); pullLiveSave();
   if(full) CH.msgs = [];
   const have = new Set(CH.msgs.map(m=>m.id));
   const fresh = v.messages.filter(m=>!have.has(m.id));

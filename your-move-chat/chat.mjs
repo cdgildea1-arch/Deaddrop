@@ -34,7 +34,7 @@ panel.setAttribute('aria-labelledby', 'move-chat-title');
 panel.innerHTML = `
   <div class="move-chat-head" data-gesture tabindex="0" aria-label="Chat header">
     <div><h2 id="move-chat-title">Chat</h2><small data-context></small></div>
-    <button type="button" data-clear aria-label="Swipe: clear this chat on this device">Swipe</button>
+    <button type="button" data-clear aria-label="Swipe: delete this chat for you">Swipe</button>
     <button type="button" data-close aria-label="Close chat">×</button>
   </div>
   <form data-join hidden>
@@ -150,8 +150,13 @@ function fitPanel() {
 }
 window.visualViewport?.addEventListener('resize', fitPanel);
 window.visualViewport?.addEventListener('scroll', fitPanel);
+// Kill switch: wipes this chat for you on the server, so it stays gone on every device you use.
+// The other person keeps their copy. The screen clears right away even if the server can't be reached.
 find('clear').onclick = () => {
-  if (panel.open && room && lastView && !sending && !joining) change(mode, true);
+  if (!panel.open || !room || !lastView || sending || joining) return;
+  const thread = mode === 'room' ? 'room' : slot;
+  change(mode, true);
+  request('clear', room, { thread }).catch(() => setStatus('Cleared here. Couldn’t reach the server, so tap Swipe again when you’re back online.'));
 };
 function open() {
   if (panel.open) return;

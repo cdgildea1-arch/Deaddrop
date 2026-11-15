@@ -20,9 +20,14 @@ async function db(path: string, method = 'GET', body?: unknown) {
   return await r.json();
 }
 
+// Kill switch: each seat can wipe a chat for itself. `cleared[seat][thread]` is the time up to which that seat no longer
+// gets messages back, on any device. The other person's copy is untouched.
+const clearedAt = (row: any, seat: number, thread: string) => Number(row.cleared?.[seat]?.[thread] || 0);
+
 function view(row: any, seat: number, after = 0) {
   // `live` is the secret realtime channel key for live games; only seated players ever see it.
-  return { code: row.code, rev: row.rev, seat, joined: !!row.guest_hash, names: row.names, live: row.live, messages: row.messages.filter((m: any) => m.ts > after) };
+  const from = Math.max(after, clearedAt(row, seat, 'room'));
+  return { code: row.code, rev: row.rev, seat, joined: !!row.guest_hash, names: row.names, live: row.live, messages: row.messages.filter((m: any) => m.ts > from) };
 }
 
 Deno.serve(async (req: Request) => {
@@ -50,7 +55,7 @@ Deno.serve(async (req: Request) => {
       const seated = row.host_hash === secretHash || row.guest_hash === secretHash;
       if (!seated && !/^[0-9]{8}$/.test(b.code)) return reply({ error: 'This phone is not part of that room.' }, 403);
       const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { host_hash: /^[0-9]{8}$/.test(b.code) ? 'unclaimed' : secretHash, guest_hash: null,
-        names: ['', ''], messages: [], game_threads: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
+        names: ['', ''], messages: [], game_threads: {}, cleared: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
       return reply({ reset: true });
     }
@@ -87,8 +92,9 @@ Deno.serve(async (req: Request) => {
       if (!gameThreads.has(b.game)) return reply({ error: 'Choose a game.' }, 400);
       const tableView = (current: any) => {
         const messages = current.game_threads[b.game] || [];
+        const from = Math.max(after, clearedAt(current, seat, b.game));
         return { code: current.code, seat, joined: !!current.guest_hash, names: current.names, live: current.live,
-          cursor: messages.at(-1)?.ts || 0, messages: messages.filter((m: any) => m.ts > after) };
+          cursor: messages.at(-1)?.ts || 0, messages: messages.filter((m: any) => m.ts > from) };
       };
       if (b.op === 'table-get') return reply(tableView(row));
       if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500)
@@ -108,6 +114,21 @@ Deno.serve(async (req: Request) => {
       return reply({ error: 'Busy room. Send again.' }, 409);
     }
 
+
+    if (b.op === 'clear') {
+      const thread = b.thread === 'room' ? 'room' : gameThreads.has(b.thread) ? b.thread : null;
+      if (!thread) return reply({ error: 'Choose a chat.' }, 400);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const list = thread === 'room' ? row.messages : (row.game_threads[thread] || []);
+        const upTo = Math.max(Date.now(), list.at(-1)?.ts || 0);
+        const mine = { ...(row.cleared?.[seat] || {}), [thread]: upTo };
+        const cleared = { ...(row.cleared || {}), [seat]: mine };
+        const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { cleared, rev: row.rev + 1, updated_at: new Date().toISOString() });
+        if (rows.length) return reply({ cleared: thread, upTo });
+        row = (await db(path))[0];
+      }
+      return reply({ error: 'Busy room. Try again.' }, 409);
+    }
 
     if (b.op === 'message') {
       if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500) return reply({ error: 'Messages can be up to 500 characters.' }, 400);

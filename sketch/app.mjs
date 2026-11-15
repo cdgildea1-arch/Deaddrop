@@ -1,5 +1,9 @@
 import {read, token, joinRoom, connect} from '../mini/room.mjs';
 import {round, act, publicView, ink, validLine} from './rules.mjs';
+import {snapshots} from '../your-move-sync.mjs';
+// The first player's phone saves the match (scores, round) here so it can carry on later.
+const saves=snapshots('quick-draw',()=>read('pounce.room'));
+let carry=null;
 const $=id=>document.getElementById(id);
 const set=(id,text)=>{$(id).textContent=text};
 const canvas=$('canvas'), ctx=canvas.getContext('2d');
@@ -27,6 +31,7 @@ $('joinForm').onsubmit=async event=>{
   screen(true);notice('');
   wire();
   render();
+  if(host())saves.get().then(saved=>{if(!game&&saved?.game){carry=saved.game;session=saved.session||null;notice('Saved match found · round '+carry.number+' of 6. Start to carry on.');}}).catch(()=>{});
  }catch(error){notice(error.message)}
  finally{event.submitter.disabled=false}
 };
@@ -35,12 +40,14 @@ $('leave').onclick=()=>{
  connected=false;pointer=null;$('code').value='';$('guess').value='';screen(false);notice('');
 };
 function publish(){
+ if(host()&&game)saves.put({game,session});
  if(host()&&game)net?.send('state',{session,round:publicView(game,1),receipt});
 }
 function start(){
- const next=game&&game.number<6;
+ const base=game||carry;carry=null;
+ const next=base&&base.number<6;
  if(!next)session=token();
- game=round(next?game.number+1:1,next?game.scores:[0,0],next?game.used:[]);
+ game=round(next?base.number+1:1,next?base.scores:[0,0],next?base.used:[]);
  draft=preview=receipt=null;received.clear();
  publish();render();
 }

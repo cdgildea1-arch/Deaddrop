@@ -1,4 +1,5 @@
 import {traits,cast,newGame,action,view,candidates,botMove} from './rules.mjs?v=fit';
+import {savedTable} from '../your-move-sync.mjs';
 
 const $=s=>document.querySelector(s);
 const text=(id,value)=>{
@@ -15,6 +16,33 @@ let room=read('pounce.room'), info, client, channel, connected=false, peer, read
 let practice=false, game, remote, screen='menu', mode='pick', marks=new Set(), pending=null, botTimer;
 let messages=[], seen=0, pollBusy=false;
 const sid=hex();
+// ---------- saved room games (your-move-games) ----------
+// The server keeps the game, so either phone can move while the other is away. Realtime "moved" is just a doorbell.
+let over=false, botTurn=-1, entering=false;
+const table=savedTable('guess-who',()=>room,data=>{
+ const changed=remote?.id!==data.game?.id||remote?.rev!==data.game?.rev;
+ if(changed)clearDraft();
+ remote=data.game;over=!!data.over;botTurn=data.botTurn??-1;
+ if(screen==='lobby'&&remote&&!over&&entering)show('game');
+ renderLobby();render();roomBot();
+});
+async function enterRoom(){entering=true;try{await table.load()}catch(e){text('notice',e.message)}finally{entering=false}}
+function refresh(){if(info&&!practice&&!pending&&screen!=='menu')table.load().catch(e=>text('notice',e.message))}
+async function roomStart(options){
+ if(!info||pending)return;
+ pending={};renderLobby();text('notice','');
+ try{await table.start(options);show('game');send('moved',{});}
+ catch(e){text('notice',e.message)}
+ finally{pending=null;renderLobby();render();}
+}
+async function roomMove(move){
+ pending=move;render();
+ try{await table.move(move);text('notice','');send('moved',{});}
+ catch(e){text('notice',e.message)}
+ finally{pending=null;render();}
+}
+function roomBot(){}
+
 $('#name').value=room?.name||read('pounce.name','');
 
 function show(id){
@@ -24,9 +52,9 @@ function show(id){
  text('notice','');
 }
 const seat=()=>practice?0:info?.seat??0;
-const host=()=>!practice&&info?.seat===0;
+const host=()=>false; // room games are kept on the server (your-move-games), not on a host phone
 const current=()=>practice||host()?game&&view(game,seat()):remote;
-const canAct=g=>g&&g.winner===null&&!pending&&(practice||connected&&!!peer?.ready);
+const canAct=g=>g&&g.winner===null&&!pending&&(practice||!!info);
 const canPlay=g=>canAct(g)&&g.players.every(p=>p.ready)&&g.turn===seat()&&!g.question;
 function clearDraft(){mode='pick';marks.clear()}
 
@@ -56,15 +84,14 @@ async function join(){
  const name=$('#name').value.trim(), code=$('#code').value.trim().toUpperCase();
  if(!name)return text('notice','Enter your name first.');
  if(!/^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(code))return text('notice','Enter your room code.');
- if(!window.supabase)return text('notice','Live play could not load. Refresh to try again.');
- $('#join').disabled=true;text('notice','Joining room '+code+'…');
+  $('#join').disabled=true;text('notice','Joining room '+code+'…');
  try{
   const stored=read('pounce.room');
   const candidate={name,code,secret:stored?.code===code?stored.secret:hex()};
   const data=await call('join',candidate);
   room=candidate;save('pounce.room',room);save('pounce.name',name);
-  practice=false;info=null;messages=[];absorb(data);
-  show('lobby');connect();
+  practice=false;info=null;messages=[];remote=null;over=false;table.forget();absorb(data);
+  show('lobby');connect();await enterRoom();
  }catch(e){text('notice',e.message)}
  finally{$('#join').disabled=false}
 }
@@ -75,8 +102,9 @@ function saveGame(){if(host()&&game)save('guess-who.fit.game.'+info.live,game)}
 let lastResult;
 const receipts=new Map();
 function connect(){
+ if(!window.supabase)return;
  client??=window.supabase.createClient(API.split('/functions')[0],KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- const ch=client.channel('guess-who-v3-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
+ const ch=client.channel('guess-who-v4-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
  channel=ch;
  ch.on('presence',{event:'sync'},()=>{
   if(channel!==ch)return;
@@ -108,7 +136,8 @@ function connect(){
   try{action(game,1,p.move);saveGame();}catch(e){lastResult.error=e.message}
   receipts.set(p.move.nonce,lastResult);
   publish(lastResult);render();runBot();
- }).on('broadcast',{event:'ping'},()=>poll())
+ }).on('broadcast',{event:'moved'},()=>refresh())
+ .on('broadcast',{event:'ping'},()=>poll())
  .subscribe(status=>{
   if(channel!==ch)return;
   connected=status==='SUBSCRIBED';
@@ -119,17 +148,17 @@ function connect(){
 function renderLobby(){
  if(screen!=='lobby'||!info)return;
  text('roomLabel','Room '+room.code+(connected?'':' · Connecting…'));
- $('#seats').innerHTML=info.names.map((name,i)=>`<div class="seat"><b>${esc(name||'Waiting for a friend')}</b><span>${i===seat()?(ready?'Ready':'You'):(peer?.ready?'Ready':peer?'Joined':'Offline')}</span></div>`).join('');
+ $('#seats').innerHTML=info.names.map((name,i)=>`<div class="seat"><b>${esc(name||'Waiting for a friend')}</b><span>${i===seat()?'You':peer?'Here now':'Away · can still play'}</span></div>`).join('');
  text('ready',ready?'Ready · tap to cancel':'I’m ready');
- $('#start').hidden=!host();
- $('#start').disabled=!(connected&&ready&&peer?.ready);
- text('start',host()&&read('guess-who.fit.game.'+info.live)?.winner===null?'Resume game':'Start round');
+ $('#ready').hidden=true;$('#start').hidden=false;
+ $('#start').disabled=!!pending;
+ text('start',remote&&!over?'Resume game':'Start round');
 }
 const face=id=>`<span class="portrait" aria-hidden="true" style="--px:${(id%6)*20}%;--py:${Math.floor(id/6)*100/3}%"></span>`;
 $('#portraits').innerHTML=[1,7,14].map(face).join('');
 
 function start(){
- if(!practice&&!(host()&&connected&&ready&&peer?.ready))return;
+ if(!practice)return roomStart({});
  const saved=host()&&screen==='lobby'?read('guess-who.fit.game.'+info.live):null;
  game=saved&&saved.winner===null?saved:newGame(practice?[$('#name').value.trim()||'You','Computer']:info.names.slice(0,2));
  if(practice)action(game,1,{id:game.id,type:'pick',choice:Math.floor(Math.random()*cast.length)});
@@ -144,7 +173,7 @@ function submit(type,data={}){
   if($('#questions').open)$('#questions').close();
   mode='pick';text('notice','');saveGame();publish();render();runBot();
  }else{
-  pending=move;send('move',{sid,move});render();
+  roomMove(move);
  }
 }
 function typedTrait(question){
@@ -171,7 +200,7 @@ function render(){
  const chosen=$('#question').value, possible=new Set(candidates(g,me).map(p=>p.id));
  text('mode',practice?'Solo practice':'Room '+room.code);
  $('#secret').innerHTML=mine.ready?face(mine.secret):'';
- const status=ended?(g.winner===me?'You win!':other.name+' wins!'):pending?'Sending…':!practice&&!peer?.ready?'Waiting for your friend to return':!mine.ready?'Choose your secret character':!other.ready?'Waiting for '+other.name+' to choose':g.turn===me?'Your turn':other.name+'’s turn';
+ const status=ended?(g.winner===me?'You win!':other.name+' wins!'):pending?'Sending…':!mine.ready?'Choose your secret character':!other.ready?'Waiting for '+other.name+' to choose':g.turn===me?'Your turn':other.name+'’s turn';
  text('turn',g.question?(g.question.seat===me?'Waiting for an answer':'Answer your friend’s question'):status);
  const last=g.history.at(-1);
  text('lastClue',g.question?g.question.label:ended?`Your character was ${cast[mine.secret].name}. ${other.name} chose ${cast[other.secret].name}.`:last?`${g.players[last.seat].name}: ${last.label} ${last.answer?'Yes':'No'}.`:mine.ready?'Your character: '+cast[mine.secret].name:'Your choice stays hidden from the other player.');
@@ -189,8 +218,8 @@ function render(){
  $('#guess').disabled=!enabled;
  $('#mark').setAttribute('aria-pressed',mode==='mark');
  $('#guess').setAttribute('aria-pressed',mode==='guess');
- $('#again').hidden=!ended||(!host()&&!practice);
- $('#again').disabled=!practice&&(!connected||!peer?.ready);
+ $('#again').hidden=!ended;
+ $('#again').disabled=!!pending;
  text('count',mine.ready&&!ended?'Possible: '+[...possible].filter(id=>!marks.has(id)).length:'');
  $('#board').innerHTML=cast.map(p=>{
   const out=mine.ready&&(!possible.has(p.id)||marks.has(p.id));
@@ -229,6 +258,7 @@ $('#practice').onclick=()=>{practice=true;start()};
 $('#ready').onclick=()=>{ready=!ready;track();renderLobby();if(ready)send('hello',{})};
 $('#start').onclick=start;
 function leave(){
+ over=false;table.forget();
  clearTimeout(botTimer);if(channel)client.removeChannel(channel);
  channel=null;connected=false;peer=null;ready=false;pending=null;practice=false;game=remote=null;
  clearDraft();show('menu');
@@ -254,5 +284,7 @@ $('#chatForm').onsubmit=async e=>{
  finally{e.submitter.disabled=false}
 };
 setInterval(()=>{if(!document.hidden)poll()},3500);
-setInterval(()=>{if(pending&&connected)send('move',{sid,move:pending});if(host()&&ready&&peer?.ready&&game)publish(lastResult)},1800);
+// Backup for a missed doorbell: check the saved game every few seconds while it's on screen.
+setInterval(()=>{if(!document.hidden)refresh()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 renderChat();

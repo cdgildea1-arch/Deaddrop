@@ -1,17 +1,20 @@
 import { games, limit, newRound, move, view } from './rules.mjs';
 import { read, token, joinRoom, connect } from './room.mjs';
+import { snapshots } from '../your-move-sync.mjs';
 
 const params = new URLSearchParams(location.search);
 const requested = params.get('game');
 const kind = Object.hasOwn(games,requested) ? requested : 'what-changed';
 const {title,detail,instructions} = games[kind];
+// The first player's phone saves the board here so you can pick it back up later.
+const saves = snapshots(kind, () => read('pounce.room'));
 const $ = id => document.getElementById(id);
 const txt = (id,value) => { $(id).textContent=value; };
 const marks = {'what-changed':'◫','draw-together':'〰',warmer:'◉','hide-a-dot':'⊙'};
 document.title = title+' · Your Move';
 document.body.dataset.kind = kind;
 document.documentElement.dataset.moveChat = kind;
-void import('/your-move-chat/chat.mjs?v=mini');
+void import('/your-move-chat/chat.mjs?v=kill1');
 txt('title',title);
 txt('gameTitle',title);
 txt('mark',marks[kind]);
@@ -40,6 +43,7 @@ function screen(playing){
   $('play').hidden=!playing;
 }
 function publish(){
+  if(host()&&state)saves.put({state,session});
   if(host()&&state&&net)net.send('state',{session,board:view(state,1),receipt});
 }
 function startRound(){
@@ -54,15 +58,17 @@ function startRound(){
 function apply(seat,action){
   if(!state||!move(state,seat,action))return false;
   clearTimeout(timer);
-  if(state.phase==='study'){
-    const {round,rev,turn}=state;
-    timer=setTimeout(()=>{
-      apply(turn,{type:'recall',round,rev});
-      publish();
-      render();
-    },5000);
-  }
+  studyTimer();
   return true;
+}
+function studyTimer(){
+  if(state?.phase!=='study')return;
+  const {round,rev,turn}=state;
+  timer=setTimeout(()=>{
+    apply(turn,{type:'recall',round,rev});
+    publish();
+    render();
+  },5000);
 }
 function submit(data){
   const current=board();
@@ -125,6 +131,11 @@ $('joinForm').addEventListener('submit',async event=>{
     screen(true);
     wire();
     render();
+    if(host())saves.get().then(saved=>{
+      if(state||!room||saved?.state?.kind!==kind)return;
+      state=saved.state;session=saved.session||token();
+      clearTimeout(timer);studyTimer();publish();render();
+    }).catch(()=>{});
   }catch(error){notice(error.message)}
   finally{submitter.disabled=false}
 });

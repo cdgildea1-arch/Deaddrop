@@ -1,4 +1,5 @@
 import {directions,suit,rank,newGame,legal,action,view,botMove} from './rules.mjs';
+import {savedTable} from '../your-move-sync.mjs';
 
 const $=s=>document.querySelector(s);
 const text=(id,value)=>{$('#'+id).textContent=value};
@@ -12,6 +13,33 @@ let room=read('pounce.room'), info, client, channel, connected=false, peer, read
 let practice=false, game, remote, screen='menu', selected=new Set(), pending=null, botTimer;
 let messages=[], seen=0, pollBusy=false;
 const sid=hex();
+// ---------- saved room games (your-move-games) ----------
+// The server keeps the game, so either phone can move while the other is away. Realtime "moved" is just a doorbell.
+let over=false, botTurn=-1, entering=false;
+const table=savedTable('hearts',()=>room,data=>{
+ const changed=remote?.id!==data.game?.id||remote?.rev!==data.game?.rev;
+ if(changed&&(data.game?.phase!=='pass'||data.game?.passes[seat()]))clearDraft();
+ remote=data.game;over=!!data.over;botTurn=data.botTurn??-1;
+ if(screen==='lobby'&&remote&&!over&&entering)show('game');
+ renderLobby();render();roomBot();
+});
+async function enterRoom(){entering=true;try{await table.load()}catch(e){text('notice',e.message)}finally{entering=false}}
+function refresh(){if(info&&!practice&&!pending&&screen!=='menu')table.load().catch(e=>text('notice',e.message))}
+async function roomStart(options){
+ if(!info||pending)return;
+ pending={};renderLobby();text('notice','');
+ try{await table.start(options);show('game');send('moved',{});}
+ catch(e){text('notice',e.message)}
+ finally{pending=null;renderLobby();render();}
+}
+async function roomMove(move){
+ pending=move;render();
+ try{await table.move(move);text('notice','');send('moved',{});}
+ catch(e){text('notice',e.message)}
+ finally{pending=null;render();}
+}
+function roomBot(){}
+
 $('#name').value=room?.name||read('pounce.name','');
 
 function show(id){
@@ -20,9 +48,9 @@ function show(id){
  text('notice','');
 }
 const seat=()=>practice?0:info?.seat??0;
-const host=()=>!practice&&info?.seat===0;
+const host=()=>false; // room games are kept on the server (your-move-games), not on a host phone
 const current=()=>practice||host()?game&&view(game,seat()):remote;
-const canAct=g=>g&&g.phase!=='end'&&!pending&&(practice||connected&&!!peer?.ready);
+const canAct=g=>g&&g.phase!=='end'&&!pending&&(practice||!!info);
 function clearDraft(){selected.clear()}
 
 async function call(op,extra={}){
@@ -51,15 +79,14 @@ async function join(){
  const name=$('#name').value.trim(), code=$('#code').value.trim().toUpperCase();
  if(!name)return text('notice','Enter your name first.');
  if(!/^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(code))return text('notice','Enter your room code.');
- if(!window.supabase)return text('notice','Live play could not load. Refresh to try again.');
- $('#join').disabled=true;text('notice','Joining room '+code+'…');
+  $('#join').disabled=true;text('notice','Joining room '+code+'…');
  try{
   const stored=read('pounce.room');
   const candidate={name,code,secret:stored?.code===code?stored.secret:hex()};
   const data=await call('join',candidate);
   room=candidate;save('pounce.room',room);save('pounce.name',name);
-  practice=false;info=null;messages=[];absorb(data);
-  show('lobby');connect();
+  practice=false;info=null;messages=[];remote=null;over=false;table.forget();absorb(data);
+  show('lobby');connect();await enterRoom();
  }catch(e){text('notice',e.message)}
  finally{$('#join').disabled=false}
 }
@@ -70,8 +97,9 @@ function saveGame(){if(host()&&game)save('hearts.game.'+info.live,game)}
 let lastResult;
 const receipts=new Map();
 function connect(){
+ if(!window.supabase)return;
  client??=window.supabase.createClient(API.split('/functions')[0],KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- const ch=client.channel('hearts-v1-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
+ const ch=client.channel('hearts-v2-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+seat()}}});
  channel=ch;
  ch.on('presence',{event:'sync'},()=>{
   if(channel!==ch)return;
@@ -102,7 +130,8 @@ function connect(){
   try{action(game,1,p.move);saveGame();}catch(e){lastResult.error=e.message}
   receipts.set(p.move.nonce,lastResult);
   publish(lastResult);render();runBot();
- }).on('broadcast',{event:'ping'},()=>poll())
+ }).on('broadcast',{event:'moved'},()=>refresh())
+ .on('broadcast',{event:'ping'},()=>poll())
  .subscribe(status=>{
   if(channel!==ch)return;
   connected=status==='SUBSCRIBED';
@@ -113,14 +142,14 @@ function connect(){
 function renderLobby(){
  if(screen!=='lobby'||!info)return;
  text('roomLabel','Room '+room.code+(connected?'':' · Connecting…'));
- $('#seats').innerHTML=info.names.map((name,i)=>`<div class="seat"><b>${esc(name||'Waiting for a friend')}</b><span>${i===seat()?(ready?'Ready':'You'):(peer?.ready?'Ready':peer?'Joined':'Offline')}</span></div>`).join('');
+ $('#seats').innerHTML=info.names.map((name,i)=>`<div class="seat"><b>${esc(name||'Waiting for a friend')}</b><span>${i===seat()?'You':peer?'Here now':'Away · can still play'}</span></div>`).join('');
  text('ready',ready?'Ready · tap to cancel':'I’m ready');
- $('#start').hidden=!host();
- $('#start').disabled=!(connected&&ready&&peer?.ready);
- text('start',host()&&read('hearts.game.'+info.live)?.phase && read('hearts.game.'+info.live).phase!=='end'?'Resume game':'Start match');
+ $('#ready').hidden=true;$('#start').hidden=false;
+ $('#start').disabled=!!pending;
+ text('start',remote&&!over?'Resume game':'Start match');
 }
 function start(){
- if(!practice&&!(host()&&connected&&ready&&peer?.ready))return;
+ if(!practice)return roomStart({});
  const saved=host()&&screen==='lobby'?read('hearts.game.'+info.live):null;
  const names=practice?[$('#name').value.trim()||'You','Clover','Ace','Ruby']:[...info.names.slice(0,2),'Clover','Ace'];
  game=saved&&saved.phase!=='end'?saved:newGame(names,practice?1:2);
@@ -134,12 +163,12 @@ function submit(type,data={}){
   try{action(game,seat(),move)}catch(e){return text('notice',e.message)}
   clearDraft();text('notice','');saveGame();publish();render();runBot();
  }else{
-  pending=move;send('move',{sid,move});render();
+  roomMove(move);
  }
 }
 function runBot(){
  clearTimeout(botTimer);
- if(!game||screen!=='game'||(!practice&&(!connected||!peer?.ready)))return;
+ if(!game||screen!=='game'||!practice)return;
  const index=game.phase==='pass'?game.passes.findIndex((p,i)=>i>=game.humans&&!p):game.phase==='play'&&game.turn>=game.humans?game.turn:-1;
  if(index<0)return;
  botTimer=setTimeout(()=>{
@@ -162,15 +191,15 @@ function render(){
  const display=g.trick.length?g.trick:g.last;
  text('tableLabel',passing?'PASSING '+directions[(g.round-1)%4].toUpperCase():summary?'HAND '+g.round+' COMPLETE':g.trick.length||!g.last.length?'CURRENT TRICK':'LAST TRICK');
  $('#trick').innerHTML=display.map(({seat,card:c})=>`<div class="play">${card(c,false,true)}<small>${esc(g.names[seat])}</small></div>`).join('')||'<span class="empty" aria-hidden="true"></span>';
- const label=g.phase==='end'?(g.winner===me?'You win!':g.names[g.winner]+' wins!'):pending?'Sending…':!practice&&!peer?.ready?'Waiting for your friend to return':passing?g.passes[me]?'Waiting for the other players':'Choose three cards to pass '+directions[(g.round-1)%4].toLowerCase():summary?'Scores updated':playable?'Your turn':g.names[g.turn]+'’s turn';
+ const label=g.phase==='end'?(g.winner===me?'You win!':g.names[g.winner]+' wins!'):pending?'Sending…':passing?g.passes[me]?'Waiting for the other players':'Choose three cards to pass '+directions[(g.round-1)%4].toLowerCase():summary?'Scores updated':playable?'Your turn':g.names[g.turn]+'’s turn';
  text('turn',label);
  text('lastTrick',g.moon!==null?g.names[g.moon]+' shot the moon!':g.last.length&&g.trick.length?'Previous trick: '+g.last.map(e=>short(e.card)).join('  '):g.broken&&!summary?'Hearts are broken':'');
  const options=playable?legal(g,me):[];
  $('#hand').innerHTML=g.hands[me].map(c=>card(c,active&&(passing&&!g.passes[me]||options.includes(c)))).join('');
  $('#passCards').hidden=!passing||g.passes[me];$('#passCards').disabled=!active||selected.size!==3;
  text('passCards','Pass cards ('+selected.size+'/3)');
- $('#again').hidden=!summary||(!host()&&!practice);
- $('#again').disabled=!active&&g.phase!=='end'||!practice&&(!connected||!peer?.ready);
+ $('#again').hidden=!summary;
+ $('#again').disabled=!active&&g.phase!=='end';
  text('again',g.phase==='end'?'Play again':'Next hand');
 }
 $('#hand').onclick=e=>{
@@ -188,6 +217,7 @@ $('#practice').onclick=()=>{practice=true;start()};
 $('#ready').onclick=()=>{ready=!ready;track();renderLobby();if(ready)send('hello',{})};
 $('#start').onclick=start;
 function leave(){
+ over=false;table.forget();
  clearTimeout(botTimer);if(channel)client.removeChannel(channel);
  channel=null;connected=false;peer=null;ready=false;pending=null;practice=false;game=remote=null;
  clearDraft();show('menu');
@@ -213,5 +243,7 @@ $('#chatForm').onsubmit=async e=>{
  finally{e.submitter.disabled=false}
 };
 setInterval(()=>{if(!document.hidden)poll()},3500);
-setInterval(()=>{if(pending&&connected)send('move',{sid,move:pending});if(host()&&ready&&peer?.ready&&game)publish(lastResult)},1800);
+// Backup for a missed doorbell: check the saved game every few seconds while it's on screen.
+setInterval(()=>{if(!document.hidden)refresh()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 renderChat();

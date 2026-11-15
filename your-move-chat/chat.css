@@ -74,3 +74,34 @@ html[data-move-chat] dialog.move-chat [data-gesture]:focus-visible{
  html[data-move-chat=guess-who] #board{padding:3px;gap:3px}
  html[data-move-chat=guess-who] #board .person{padding:1px 1px 0}
 }
+
+/* Keep game navigation below the iPhone web app's status-bar fade. */
+@media (max-width:620px) and (orientation:portrait){
+ html[data-move-chat] main > header:first-child{
+  margin-top:clamp(10px,2.1dvh,18px);
+  flex-shrink:0;
+ }
+ html[data-move-chat] main > header:first-child > a{color:var(--text);font-weight:600}
+ html[data-move-chat=pounce] .screen .menutop,
+ html[data-move-chat=pounce] .screen .topbar{margin-top:clamp(10px,2.1dvh,18px)}
+ html[data-move-chat=mahjong] body > header,
+ html[data-move-chat=mahjong-daily] .wrap > header,
+ html[data-move-chat=mahjong-level4] header.top{margin-top:clamp(10px,2.1dvh,18px)}
+ html[data-move-chat=uno] body #menu .hero h1{
+  font-size:clamp(68px,min(25vw,14dvh),112px);
+  margin:3px 0 0;
+ }
+ html[data-move-chat=uno] body #menu .hero p{margin-top:22px;font-size:14px}
+ html[data-move-chat=uno] body #menu .setup{padding:14px}
+ html[data-move-chat=uno] body #menu button{min-height:42px;font-size:16px}
+ html[data-move-chat=scrabble] body #menu .hero h1{font-size:clamp(38px,11.5vw,57px)}
+ html[data-move-chat=scrabble] body #menu input,
+ html[data-move-chat=scrabble] body #menu select{height:40px}
+ html[data-move-chat=scrabble] body #menu button{min-height:40px}
+ html[data-move-chat=scrabble] #board{width:min(100%,calc(100dvh - 240px))}
+}
+@media (min-height:680px) and (max-width:620px) and (orientation:portrait){
+ html[data-move-chat=uno] body #menu .fan{
+  display:flex;margin:5px 0 13px;transform:scale(.82);height:70px;
+ }
+}

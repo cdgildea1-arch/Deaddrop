@@ -56,3 +56,18 @@ header{border-bottom:1px solid var(--line)}
 .box{width:20%;height:20%;display:grid;place-items:center;font-weight:900;font-size:clamp(11px,4vw,29px);opacity:.69;transform:translate(-50%,-50%)}
 .box.p0{background:#8dc8d6;color:#143944}.box.p1{background:#f1a7aa;color:#582024}
 @media(max-width:390px){main{padding-inline:9px}#words{gap:4px}}
+
+/* The three cards preview the roles on the Duet board. */
+.duet-key{display:flex;justify-content:center;align-items:center;gap:7px;margin:0 auto 17px}
+.duet-key span{
+ display:grid;place-items:center;width:clamp(53px,15vw,83px);height:clamp(37px,10vw,54px);
+ border:1px solid #e3d7a67a;border-radius:5px;background:#e8d9ae;color:#342f2b;
+ font:800 clamp(8px,2.1vw,11px) ui-monospace,monospace;letter-spacing:.07em;
+ box-shadow:0 4px 0 #0814119c;transform:rotate(-12deg) translate(4px,5px);
+}
+.duet-key span:nth-child(2){background:#b3d491;color:#183329;transform:translateY(-4px);z-index:1}
+.duet-key span:last-child{background:#27282c;color:#f5dfb7;transform:rotate(12deg) translate(-4px,5px)}
+.duet .hero h1{color:#f4ead3;letter-spacing:-.05em}
+.duet .hero h1 em{color:#c1df9f;font-weight:650}
+.duet #menu .panel{box-shadow:0 10px 30px #07191652}
+@media(max-height:535px){.duet-key{margin-bottom:10px}.duet-key span{height:31px}}

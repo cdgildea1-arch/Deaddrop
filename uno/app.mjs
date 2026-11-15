@@ -150,6 +150,8 @@ function cardMarkup(c,enabled){
  const name=[c.color,labels[c.value]||c.value].filter(Boolean).join(' ');
  return `<button class="card ${c.color||'wild'}" data-card="${c.id}" aria-label="${name}" ${enabled?'':'disabled'}><small>${glyph}</small><strong>${glyph}</strong></button>`;
 }
+const handPageSize=10;
+let handPage=0,lastGameId;
 function render(){
  if(screen!=='game')return;
  const g=current();if(!g)return;
@@ -161,7 +163,16 @@ function render(){
  text('direction',g.direction===1?'↻ Clockwise':'↺ Counterclockwise');
  text('turn',over?(g.winner===me?'You win!':g.names[g.winner]+' wins!'):pending?'Sending…':!practice&&!peer?.ready?'Waiting for your friend':active?'Your turn':g.names[g.turn]+'’s turn');
  text('last',g.last);
- $('#hand').innerHTML=g.hands[me].map(c=>cardMarkup(c,active&&legal(g,me,c))).join('');
+ const hand=g.hands[me],pages=Math.max(1,Math.ceil(hand.length/handPageSize));
+ if(lastGameId!==g.id){handPage=0;lastGameId=g.id;}
+ const drawnIndex=g.drawn===null?-1:hand.findIndex(c=>c.id===g.drawn);
+ if(drawnIndex>=0&&active)handPage=Math.floor(drawnIndex/handPageSize);
+ handPage=Math.min(handPage,pages-1);
+ $('#handPager').hidden=pages===1;
+ $('#handPrev').disabled=handPage===0||drawnIndex>=0;
+ $('#handNext').disabled=handPage===pages-1||drawnIndex>=0;
+ text('handPage',(handPage+1)+' / '+pages+' · '+hand.length+' cards');
+ $('#hand').innerHTML=hand.slice(handPage*handPageSize,(handPage+1)*handPageSize).map(c=>cardMarkup(c,active&&legal(g,me,c))).join('');
  $('#draw').disabled=!active||g.drawn!==null;
  $('#pass').hidden=!active||g.drawn===null;
  $('#call').disabled=!active||g.counts[me]!==2||g.called;
@@ -189,6 +200,8 @@ $('#colorButtons').onclick=e=>{
 $('#wildForm').onsubmit=e=>e.preventDefault();
 $('#closeWild').onclick=()=>$('#wild').close();
 $('#call').onclick=()=>submit('call');
+$('#handPrev').onclick=()=>{handPage--;render()};
+$('#handNext').onclick=()=>{handPage++;render()};
 $('#draw').onclick=()=>submit('draw');
 $('#pass').onclick=()=>submit('pass');
 $('#again').onclick=start;

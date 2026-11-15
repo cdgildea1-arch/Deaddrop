@@ -7,7 +7,7 @@ const requested = params.get('game');
 const kind = Object.hasOwn(games,requested) ? requested : 'what-changed';
 const {title,detail,instructions} = games[kind];
 // The first player's phone saves the board here so you can pick it back up later.
-const saves = snapshots(kind, () => read('pounce.room'));
+const saves = snapshots(kind, () => room);
 const $ = id => document.getElementById(id);
 const txt = (id,value) => { $(id).textContent=value; };
 const marks = {'what-changed':'◫','draw-together':'〰',warmer:'◉','hide-a-dot':'⊙'};

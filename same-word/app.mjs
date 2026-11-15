@@ -2,7 +2,7 @@ import {read, token, joinRoom, connect} from '../mini/room.mjs';
 import {nextRound, progress, answer, vote, view} from './rules.mjs';
 import {snapshots} from '../your-move-sync.mjs';
 // The first player's phone saves the streak and used prompts here so the next session picks up where you stopped.
-const saves=snapshots('same-word',()=>read('pounce.room'));
+const saves=snapshots('same-word',()=>room);
 let carry=null;
 
 const $=id=>document.getElementById(id);

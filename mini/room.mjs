@@ -19,7 +19,7 @@ export async function joinRoom(code, name) {
     localStorage.setItem('pounce.room',JSON.stringify(candidate));
     localStorage.setItem('pounce.name',JSON.stringify(name));
   } catch {}
-  return data;
+  return { ...data, secret: candidate.secret };
 }
 
 export function connect(kind, room, handlers) {

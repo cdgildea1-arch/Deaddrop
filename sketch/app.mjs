@@ -2,7 +2,7 @@ import {read, token, joinRoom, connect} from '../mini/room.mjs';
 import {round, act, publicView, ink, validLine} from './rules.mjs';
 import {snapshots} from '../your-move-sync.mjs';
 // The first player's phone saves the match (scores, round) here so it can carry on later.
-const saves=snapshots('quick-draw',()=>read('pounce.room'));
+const saves=snapshots('quick-draw',()=>room);
 let carry=null;
 const $=id=>document.getElementById(id);
 const set=(id,text)=>{$(id).textContent=text};

@@ -44,21 +44,65 @@ export function savedTable(game, getRoom, onState) {
   };
 }
 
-// Snapshot saves for live games, throttled so a fast game doesn't flood the server.
+// Each room has its own queue, so switching rooms cannot redirect a pending save.
 export function snapshots(game, getRoom) {
-  let last = 0, timer = 0, queued = null;
-  const flush = () => {
-    timer = 0;
-    const snapshot = queued; queued = null; last = Date.now();
-    if (snapshot) gameCall('snap-put', getRoom(), game, { snapshot }).catch(() => {});
-  };
+  const queues = new Map();
+
+  function currentQueue() {
+    const room = getRoom();
+    if (!room?.code || !room.secret) return null;
+    const key = JSON.stringify([room.code, room.secret]);
+    if (!queues.has(key)) {
+      queues.set(key, {
+        room: { code: room.code, secret: room.secret },
+        last: 0, timer: null, queued: null, writes: Promise.resolve(),
+      });
+    }
+    return queues.get(key);
+  }
+
+  function write(queue, op, fields) {
+    queue.writes = queue.writes
+      .then(() => gameCall(op, queue.room, game, fields))
+      .catch(() => {});
+    return queue.writes;
+  }
+
+  function flush(queue) {
+    clearTimeout(queue.timer);
+    queue.timer = null;
+    if (queue.queued === null) return queue.writes;
+    const snapshot = queue.queued;
+    queue.queued = null;
+    queue.last = Date.now();
+    return write(queue, 'snap-put', { snapshot });
+  }
+
   return {
-    get: async () => (await gameCall('snap-get', getRoom(), game)).snapshot,
-    put(snapshot, now = false) {
-      queued = snapshot;
-      if (now) { clearTimeout(timer); flush(); return; }
-      if (!timer) timer = setTimeout(flush, Math.max(0, 2500 - (Date.now() - last)));
+    async get() {
+      const queue = currentQueue();
+      if (!queue) return null;
+      await flush(queue);
+      return (await gameCall('snap-get', queue.room, game)).snapshot;
     },
-    clear: () => { clearTimeout(timer); timer = 0; queued = null; return gameCall('snap-clear', getRoom(), game).catch(() => {}); },
+    put(snapshot, now = false) {
+      const queue = currentQueue();
+      if (!queue) return;
+      queue.queued = structuredClone(snapshot);
+      if (now) {
+        flush(queue);
+      } else if (queue.timer === null) {
+        queue.timer = setTimeout(() => flush(queue), Math.max(0, 2500 - (Date.now() - queue.last)));
+      }
+    },
+    clear() {
+      const queue = currentQueue();
+      if (!queue) return Promise.resolve();
+      clearTimeout(queue.timer);
+      queue.timer = null;
+      queue.queued = null;
+      // An in-flight save must finish before clearing, or it could restore the old game.
+      return write(queue, 'snap-clear');
+    },
   };
 }

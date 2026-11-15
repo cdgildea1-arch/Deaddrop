@@ -1,4 +1,5 @@
 const slot = document.documentElement.dataset.moveChat;
+const swipeEnabled = document.documentElement.hasAttribute('data-chat-swipe');
 const api = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 const gameNames = {
@@ -31,9 +32,9 @@ const panel = document.createElement('dialog');
 panel.className = 'move-chat';
 panel.setAttribute('aria-labelledby', 'move-chat-title');
 panel.innerHTML = `
-  <div class="move-chat-head">
+  <div class="move-chat-head" ${swipeEnabled ? 'data-gesture tabindex="0" aria-label="Chat header"' : ''}>
     <div><h2 id="move-chat-title">Chat</h2><small data-context></small></div>
-    <button type="button" data-switch>Room</button>
+    ${swipeEnabled ? '' : '<button type="button" data-switch>Room</button>'}
     <button type="button" data-close aria-label="Close chat">×</button>
   </div>
   <form data-join hidden>
@@ -68,14 +69,19 @@ function setup(show) {
 }
 function context() {
   find('context').textContent = mode === 'room' ? 'Room ' + (room?.code || '25800852') : gameNames[slot];
-  find('switch').textContent = mode === 'table' ? 'Room' : 'Table';
-  find('switch').setAttribute('aria-label', mode === 'table' ? 'Switch to room chat' : 'Switch to game chat');
+  if (swipeEnabled) {
+    find('gesture').setAttribute('aria-keyshortcuts', mode === 'table' ? 'ArrowUp' : 'ArrowDown');
+  } else {
+    find('switch').textContent = mode === 'table' ? 'Room' : 'Table';
+    find('switch').setAttribute('aria-label', mode === 'table' ? 'Switch to room chat' : 'Switch to game chat');
+  }
 }
 function showMessages(view) {
   const messages = view.messages.filter(message => mode === 'room' || message.ts > baseline);
   const signature = mode + ':' + view.live + ':' + messages.map(message => message.id).join(',');
   if (signature === visibleSignature) return;
   visibleSignature = signature;
+  feed.toggleAttribute('data-blank', messages.length === 0);
   const nearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 60;
   feed.replaceChildren();
   if (!messages.length) {
@@ -133,6 +139,7 @@ function change(next, restart = false) {
   find('message').value = '';
   context();
   feed.replaceChildren();
+  feed.setAttribute('data-blank', '');
   setStatus('');
   setup(!room);
   if (room) void load({ restart });
@@ -161,11 +168,41 @@ panel.addEventListener('close', () => {
   generation++;loading = false;lastView = null;feed.replaceChildren();find('message').value = '';
   document.dispatchEvent(new Event('your-move-chat-close'));
 });
-find('switch').onclick = () => {
-  if (sending || joining) return;
-  const next = mode === 'table' ? 'room' : 'table';
-  change(next, next === 'table');
-};
+function swipeChat(direction) {
+  if (!panel.open || sending || joining) return;
+  if (direction === 'up' && mode === 'table') change('room');
+  if (direction === 'down' && mode === 'room') change('table', true);
+}
+function attachSwipe(surface) {
+  let start = null;
+  surface.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || event.target.closest('button,input,select,textarea,a')) return;
+    if (surface === feed && !feed.hasAttribute('data-blank')) return;
+    start = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    surface.setPointerCapture?.(event.pointerId);
+  });
+  surface.addEventListener('pointerup', event => {
+    if (start?.id !== event.pointerId) return;
+    const x = event.clientX - start.x;
+    const y = event.clientY - start.y;
+    start = null;
+    if (Math.abs(y) >= 32 && Math.abs(y) > Math.abs(x) * 1.4) swipeChat(y < 0 ? 'up' : 'down');
+  });
+  surface.addEventListener('pointercancel', () => { start = null; });
+  surface.addEventListener('lostpointercapture', () => { start = null; });
+}
+if (swipeEnabled) {
+  const chatHeader = find('gesture');
+  attachSwipe(chatHeader);
+  attachSwipe(feed);
+  chatHeader.addEventListener('keydown', event => {
+    if (event.target !== chatHeader || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    swipeChat(event.key === 'ArrowUp' ? 'up' : 'down');
+  });
+} else {
+  find('switch').onclick = () => swipeChat(mode === 'table' ? 'up' : 'down');
+}
 find('join').onsubmit = async event => {
   event.preventDefault();
   const name = find('name').value.trim();

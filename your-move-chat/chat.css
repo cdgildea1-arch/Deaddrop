@@ -43,3 +43,11 @@ html[data-move-chat] dialog.move-chat :is(button,input):focus-visible{
 }
 .move-chat-launch{flex:none;padding:6px 8px}
 html[data-move-chat=pounce] .chatBadge{display:none!important}
+
+html[data-chat-swipe] dialog.move-chat [data-gesture]{
+ grid-template-columns:1fr auto;min-height:48px;touch-action:none;user-select:none;
+}
+html[data-chat-swipe] dialog.move-chat [data-messages][data-blank]{touch-action:none}
+html[data-chat-swipe] dialog.move-chat [data-gesture]:focus-visible{
+ outline:2px solid #f0cc86;outline-offset:2px;
+}

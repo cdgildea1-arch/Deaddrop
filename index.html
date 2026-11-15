@@ -11,9 +11,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/your-move-assets/move-180.png">
 <link rel="icon" type="image/png" href="/your-move-assets/move-192.png">
 <style>
-:root{color-scheme:dark;--ink:#f8f1de;--dim:#c6bba8;--table:#15171b}
+:root{color-scheme:dark;--ink:#f8f1de;--dim:#c6bba8;--table:#19151a}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% 2%,#30292d,var(--table) 71%);color:var(--ink);font-family:system-ui,sans-serif}
+body{margin:0;background:radial-gradient(ellipse at 50% 2%,#2a2029,var(--table) 70%);color:var(--ink);font-family:system-ui,sans-serif}
 main{
  width:min(100%,800px);height:100dvh;min-height:0;margin:auto;
  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right))
@@ -30,21 +30,23 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 .shuffle:focus-visible,.shuffle:hover{outline:2px solid #ffe3a9;outline-offset:2px}
 @media(max-width:359px){header h1{font-size:36px}.shuffle{padding-inline:7px}}
-.shelf{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));min-height:0;gap:clamp(6px,2vw,12px);max-height:635px}
+.shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));min-height:0;gap:clamp(5px,1.7vw,12px);max-height:740px}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
- grid-column:span 6;min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
- display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;
+ min-height:0;min-width:0;position:relative;isolation:isolate;overflow:hidden;
+ display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;text-align:center;gap:2px;
  padding:clamp(5px,1.7vw,12px);border-radius:clamp(9px,3vw,17px);border:1px solid #fff3;
- background:radial-gradient(ellipse at 85% 0%,#fff3,transparent 68%),var(--surface);
+ background:
+   repeating-linear-gradient(107deg,#fff0 0 3px,#fff1 3px 4px,#0000 4px 7px),
+   repeating-linear-gradient(18deg,#0000 0 2px,#0001 2px 3px,#0000 3px 6px),
+   linear-gradient(145deg,#fff1,transparent 56%,#0001),var(--surface);
  color:var(--text);text-decoration:none;box-shadow:inset 0 -2px #0003,0 3px 6px #0003;
  transition:transform .15s,box-shadow .15s;
 }
-.game::after{content:'↗';position:absolute;top:5px;right:6px;font-size:12px;color:var(--stamp)}
 .game:hover,.game:focus-visible{transform:translateY(-2px);outline:2px solid #ffe3a9;outline-offset:2px}
 .game:active{transform:scale(.97)}
-.game strong{font-size:clamp(10px,3.25vw,19px);line-height:1.12;letter-spacing:-.025em;overflow-wrap:normal}
-.mark{display:grid;min-height:0;place-items:center;color:var(--stamp);font-size:clamp(23px,min(9vw,7dvh),60px);line-height:1;font-weight:850;font-family:Georgia,serif}
+.game strong{font:700 clamp(12px,min(4vw,3.3dvh),23px)/1.08 Georgia,serif;min-height:2.16em;display:grid;align-content:center;letter-spacing:-.025em;overflow-wrap:anywhere}
+.mark{display:grid;min-height:0;place-items:center;color:var(--stamp);font-size:clamp(16px,min(10vw,6.6dvh),65px);line-height:1;font-weight:850;font-family:Georgia,serif}
 .paper{
  background:#fff6dd;color:#45362c;display:grid;place-items:center;
  width:1.25em;height:1.52em;border-radius:.13em;box-shadow:2px 3px #21182a3b;
@@ -57,10 +59,10 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .hearts{--surface:#9c3d53;--text:#fff6e6;--stamp:#ffcec3}
 .hearts .paper{color:#a43552}
 .uno{--surface:#4c3273;--text:#fff0c8;--stamp:#ffcb52}
-.uno .mark{font-family:system-ui,sans-serif;font-size:clamp(19px,min(7vw,6dvh),52px);font-style:italic;transform:rotate(-10deg);text-shadow:2px 2px #bd3f56}
+.uno .mark{font-family:system-ui,sans-serif;font-size:clamp(16px,min(8vw,6dvh),52px);font-style:italic;transform:rotate(-10deg);text-shadow:2px 2px #bd3f56}
 .guess{--surface:#d5b894;--text:#2a2821;--stamp:#7a3130}
 .guess .paper{aspect-ratio:1;height:1.25em;font-style:italic}
-.scrabble{--surface:#c98b69;--text:#2c221e;--stamp:#4f3023}
+.scrabble{--surface:#d79c77;--text:#241913;--stamp:#4f3023}
 .scrabble .paper{height:1.22em;transform:rotate(0);position:relative}
 .scrabble small{position:absolute;font:700 .28em system-ui,sans-serif;bottom:.13em;right:.16em}
 .duet{--surface:#22605b;--text:#fff0d7;--stamp:#b7e1bf}
@@ -70,8 +72,6 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .dot-mark i{width:.13em;height:.13em;border-radius:50%;background:currentColor}
 .mahjong{--surface:#d8dec0;--text:#2e3a2e;--stamp:#235f4f}
 .mahjong .paper{color:#266451}
-.game.mini{grid-column:span 3}
-.game.mini strong{font-size:clamp(10px,2.9vw,17px)}
 .changed{--surface:#cfe1a5;--text:#253321;--stamp:#395130}
 .draw{--surface:#ddbaea;--text:#32253d;--stamp:#663778}
 .warmer{--surface:#f4a97e;--text:#411f20;--stamp:#8c3629}
@@ -79,11 +79,12 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .quick-draw{--surface:#fbc5a2;--text:#392b38;--stamp:#773b69}
 .hide-dot{--surface:#94d9d4;--text:#1b383b;--stamp:#226167}
 @media (min-width:700px){main{padding-inline:30px}.game{padding:15px}}
-@media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.game::after{font-size:9px}.mark{font-size:clamp(18px,6.5dvh,33px)}}
-@media (orientation:landscape) and (max-height:520px){
- .shelf{grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
- .game,.game.mini{grid-column:span 1}
- .game strong,.game.mini strong{font-size:clamp(11px,2vw,17px)}
+@media (max-height:490px){main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}h1{font-size:36px}header p{margin-top:2px}.mark{font-size:clamp(16px,5.5dvh,33px)}}
+@media (orientation:landscape) and (min-width:560px){
+ .shelf{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+ .game{padding:5px}
+ .game strong{font-size:clamp(11px,min(2.65vw,4.2dvh),21px)}
+ .mark{font-size:clamp(16px,8dvh,55px)}
 }
 /* Give the iPhone status bar extra clearance without growing the page. */
 @media (max-width:620px) and (orientation:portrait){
@@ -108,12 +109,12 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game duet" href="/duet/"><span class="mark" aria-hidden="true">••</span><strong>Codenames Duet</strong></a>
   <a class="game dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
   <a class="game mahjong" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
-  <a class="game mini changed" href="/mini/?game=what-changed"><span class="mark" aria-hidden="true">◫</span><strong>What Changed?</strong></a>
-  <a class="game mini draw" href="/mini/?game=draw-together"><span class="mark" aria-hidden="true">〰</span><strong>Draw Together</strong></a>
-  <a class="game mini warmer" href="/mini/?game=warmer"><span class="mark" aria-hidden="true">◉</span><strong>Warmer</strong></a>
-  <a class="game mini hide-dot" href="/mini/?game=hide-a-dot"><span class="mark" aria-hidden="true">⊙</span><strong>Hide a Dot</strong></a>
-  <a class="game mini quick-draw" href="/sketch/"><span class="mark" aria-hidden="true">✎</span><strong>Quick Draw</strong></a>
-  <a class="game mini same-word" href="/same-word/"><span class="mark" aria-hidden="true">≈</span><strong>Same Word</strong></a>
+  <a class="game changed" href="/mini/?game=what-changed"><span class="mark" aria-hidden="true">◫</span><strong>What Changed?</strong></a>
+  <a class="game warmer" href="/mini/?game=warmer"><span class="mark" aria-hidden="true">◉</span><strong>Warmer</strong></a>
+  <a class="game hide-dot" href="/mini/?game=hide-a-dot"><span class="mark" aria-hidden="true">⊙</span><strong>Hide a Dot</strong></a>
+  <a class="game draw" href="/mini/?game=draw-together"><span class="mark" aria-hidden="true">〰</span><strong>Draw Together</strong></a>
+  <a class="game quick-draw" href="/sketch/"><span class="mark" aria-hidden="true">✎</span><strong>Quick Draw</strong></a>
+  <a class="game same-word" href="/same-word/"><span class="mark" aria-hidden="true">≈</span><strong>Same Word</strong></a>
  </nav>
 </main>
 <script>

@@ -4,8 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#15171b">
-<meta name="description" content="Pick a game at Central. Nine tables for two players or solo practice.">
-<title>Central · Game Shelf</title>
+<meta name="description" content="Pick a game at Your Move. Play with a friend or take a solo turn.">
+<title>Your Move · Games</title>
+<meta name="apple-mobile-web-app-title" content="Your Move">
+<link rel="manifest" href="/your-move.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/your-move-assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/your-move-assets/icon-192.png">
 <style>
 :root{color-scheme:dark;--ink:#f8f1de;--dim:#c6bba8;--table:#15171b}
 *{box-sizing:border-box}
@@ -19,7 +23,13 @@ main{
 header{display:flex;align-items:end;justify-content:space-between;gap:9px}
 h1{margin:0;font:700 clamp(39px,10vw,76px)/.93 Georgia,serif;letter-spacing:-.064em}
 header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
-.count{color:#f1cc85;border:1px solid #f1cc854d;border-radius:999px;padding:5px 8px;font-size:10px;white-space:nowrap;margin-bottom:1px}
+.period{color:#ffd273}.shuffle{
+ color:#ffe3a9;background:#48364b;border:1px solid #ffda8f66;border-radius:999px;
+ padding:7px 10px;min-height:44px;font:650 clamp(10px,3vw,13px) system-ui,sans-serif;
+ white-space:nowrap;cursor:pointer;flex:none;
+}
+.shuffle:focus-visible,.shuffle:hover{outline:2px solid #ffe3a9;outline-offset:2px}
+@media(max-width:359px){header h1{font-size:36px}.shuffle{padding-inline:7px}}
 .shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));min-height:0;gap:clamp(6px,2vw,12px);max-height:635px}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
@@ -72,8 +82,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 <body>
 <main>
  <header>
-  <div><h1>Central</h1><p>Pick a game</p></div>
-  <span class="count">9 games</span>
+  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game</p></div>
+  <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
   <a class="game pounce" href="/Pounce/"><span class="mark" aria-hidden="true"><span class="paper double">♣</span></span><strong>Pounce</strong></a>
@@ -87,5 +97,12 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game mahjong" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
  </nav>
 </main>
+<script>
+const gameLinks=[...document.querySelectorAll('.shelf a')];
+document.querySelector('.shuffle').addEventListener('click',()=>{
+ const game=gameLinks[Math.floor(Math.random()*gameLinks.length)];
+ location.assign(game.href);
+});
+</script>
 </body>
 </html>

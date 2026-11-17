@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LPC Learning Studio · Interactive Training</title>
+<meta name="description" content="Prototype learning platform for counseling students, LPC Associates, and supervisors. Fictional data; not CE-approved.">
+<meta name="theme-color" content="#19362d">
+<style>:root{--ink:#19362d;--ink2:#2c4a3e;--green:#265744;--green2:#3d7a5f;--mint:#e8f2e9;--mint2:#d5e7d8;--cream:#f8f6ef;--paper:#fffdf8;--line:#e2e6dc;--muted:#66796d;--gold:#b78345;--gold2:#f3e6cf;--red:#a4473b;--red2:#f8e4e0;--amber:#9a6a18;--amber2:#fbf0d9;--blue:#3b6280;--blue2:#e3edf4;--r:14px;--shadow:0 1px 2px rgba(25,54,45,.05),0 4px 16px rgba(25,54,45,.05)}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+a{color:var(--green)}h1,h2,h3,.serif{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.3px}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.12;margin:0 0 8px}h2{font-size:24px;margin:0 0 6px}h3{font-size:19px;margin:0 0 6px}h4{margin:0 0 6px;font-size:14px}
+p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.tiny{font-size:11.5px}.eyebrow{text-transform:uppercase;letter-spacing:1.6px;font-size:11px;font-weight:700;color:var(--green2);margin-bottom:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.topbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:10px max(16px,calc((100vw - 1320px)/2));min-height:60px}
+.brand{font:22px Georgia,serif;letter-spacing:-.5px;color:var(--ink);text-decoration:none;white-space:nowrap}.brand b{color:var(--gold);font-weight:400}
+.brand small{display:block;font:600 9.5px/1 Inter,system-ui,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.topbar .spacer{flex:1}
+.rolesel{display:flex;align-items:center;gap:8px;background:var(--mint);border:1px solid var(--mint2);border-radius:999px;padding:4px 6px 4px 12px;font-size:12px;color:var(--ink2)}
+.rolesel select{border:0;background:#fff;border-radius:999px;padding:6px 10px;font-size:13px;max-width:230px}
+.demo-pill{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:var(--gold2);color:#7b5523;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.app{display:grid;grid-template-columns:232px 1fr;max-width:1320px;margin:0 auto;min-height:calc(100vh - 60px)}
+.side{border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:60px;height:calc(100vh - 60px);overflow:auto}
+.side .who{display:flex;gap:10px;align-items:center;padding:6px 8px 18px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.navlink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--ink2);text-decoration:none;font-size:14px;margin-bottom:2px}
+.navlink:hover{background:#fff}.navlink.on{background:var(--green);color:#fff}
+.navlink .ic{width:18px;text-align:center;opacity:.85}.navlink .count{margin-left:auto;background:var(--gold);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 7px}
+.navlink.on .count{background:#fff;color:var(--green)}
+.navsec{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 10px 6px}
+main.view{padding:26px 28px 90px;min-width:0}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:8px}.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--green)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.card.flat{box-shadow:none}.card.tint{background:var(--mint);border-color:var(--mint2)}.card.cream{background:var(--paper)}
+.card h3{margin-bottom:10px}.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.cardhead h3{margin:0}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.kpi{padding:16px}.kpi .lbl{font-size:12px;color:var(--muted);font-weight:600}.kpi .val{font:30px/1.1 Georgia,serif;margin:6px 0 2px}.kpi .sub{font-size:12px;color:var(--muted)}
+.kpi.alert .val{color:var(--gold)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--green);color:#fff;border:1px solid var(--green);padding:10px 16px;border-radius:9px;font-weight:600;font-size:14px;text-decoration:none;line-height:1.2}
+.btn:hover{background:var(--ink2)}.btn.alt{background:#fff;color:var(--green);border-color:#c9d8cc}.btn.alt:hover{background:var(--mint)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--green)}.btn.ghost:hover{background:var(--mint)}
+.btn.sm{padding:7px 11px;font-size:13px}.btn.xs{padding:4px 8px;font-size:12px;border-radius:7px}.btn.danger{background:#fff;color:var(--red);border-color:#e7c4be}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:650;padding:3px 9px;border-radius:999px;background:var(--mint);color:var(--green);white-space:nowrap}
+.tag.gold{background:var(--gold2);color:#7b5523}.tag.red{background:var(--red2);color:var(--red)}.tag.gray{background:#eef0ec;color:#5b6a60}.tag.blue{background:var(--blue2);color:var(--blue)}.tag.amber{background:var(--amber2);color:var(--amber)}
+.tag.outline{background:#fff;border:1px solid var(--line);color:var(--muted)}
+.bar{height:7px;background:#e7ece5;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--green2);border-radius:99px;transition:width .3s}
+.bar.thin{height:5px}.bar.gold>i{background:var(--gold)}
+.ring{--p:0;width:86px;height:86px;border-radius:50%;background:conic-gradient(var(--green2) calc(var(--p)*1%),#e3e9e1 0);display:grid;place-items:center;flex-shrink:0}
+.ring>span{width:68px;height:68px;border-radius:50%;background:#fff;display:grid;place-items:center;font:20px Georgia,serif}
+.ring.sm{width:46px;height:46px}.ring.sm>span{width:36px;height:36px;font-size:12px;font-family:Inter,system-ui,sans-serif;font-weight:700}
+.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;background:var(--green2)}
+.avatar.lg{width:58px;height:58px;font-size:19px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.t{width:100%;border-collapse:collapse;font-size:14px}table.t th{text-align:left;font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t td{padding:11px 10px;border-bottom:1px solid #eef1ec;vertical-align:middle}table.t tr.click{cursor:pointer}table.t tr.click:hover td{background:#fafbf7}
+.person{display:flex;align-items:center;gap:10px}.person b{display:block;font-weight:600}.person span{font-size:12px;color:var(--muted)}
+label.f{display:block;font-size:12.5px;font-weight:650;color:var(--ink2);margin:0 0 5px}
+.input,select.input,textarea.input{width:100%;border:1px solid #d5ddd2;background:#fff;border-radius:9px;padding:9px 11px;font-size:14px}
+textarea.input{min-height:110px;resize:vertical;line-height:1.5}.input:focus{outline:2px solid var(--mint2);border-color:var(--green2)}
+.field{margin-bottom:14px}.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}.toggle input{width:18px;height:18px;accent-color:var(--green)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--green);border-color:var(--green);font-weight:650}
+.list{display:flex;flex-direction:column}.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #eef1ec}.li:last-child{border-bottom:0}
+.li .grow{flex:1;min-width:0}.dot{width:8px;height:8px;border-radius:50%;background:var(--green2);margin-top:7px;flex-shrink:0}.dot.gold{background:var(--gold)}.dot.red{background:var(--red)}.dot.blue{background:var(--blue)}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:12px;background:#fff}
+.notice{background:var(--amber2);border:1px solid #ecd8ad;color:#6b5124;border-radius:11px;padding:12px 14px;font-size:13px}
+.notice.green{background:var(--mint);border-color:var(--mint2);color:var(--ink2)}.notice.red{background:var(--red2);border-color:#efc9c2;color:#7a2f25}.notice.blue{background:var(--blue2);border-color:#c9dbe8;color:#2c4b63}
+.landing{max-width:1180px;margin:0 auto;padding:34px 20px 60px}
+.hero{background:linear-gradient(115deg,#173f31,#2f6a50);color:#fff;border-radius:22px;padding:44px;display:grid;grid-template-columns:1.25fr .75fr;gap:30px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-90px;top:-160px;width:360px;height:360px;border:1px solid #ffffff33;border-radius:50%}
+.hero h1{color:#fff;font-size:clamp(32px,5vw,54px)}.hero p{color:#dceadf;font-size:16.5px;max-width:600px}.hero .eyebrow{color:#e4c68b}
+.portalcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.portal{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px;text-align:left;box-shadow:var(--shadow)}
+.portal:hover{border-color:var(--green2)}.portal .ico{width:42px;height:42px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:20px}
+.coursecard{display:flex;flex-direction:column;gap:10px}
+.modrow{display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:10px}
+.modrow.locked{opacity:.6}.modnum{width:40px;height:40px;border-radius:11px;background:var(--mint);color:var(--green);display:grid;place-items:center;font:18px Georgia,serif;flex-shrink:0}
+.modrow.done .modnum{background:var(--green);color:#fff}
+.player{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px}
+.steps{position:sticky;top:80px;align-self:start}.step{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:9px 10px;border-radius:9px;font-size:13.5px;color:var(--ink2)}
+.step:hover{background:#fff}.step.on{background:#fff;box-shadow:var(--shadow);font-weight:650}
+.step .sdot{width:22px;height:22px;border-radius:50%;border:2px solid #cdd8cf;display:grid;place-items:center;font-size:11px;flex-shrink:0;background:#fff}
+.step.done .sdot{background:var(--green2);border-color:var(--green2);color:#fff}
+.stage{background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:var(--shadow);min-height:420px}
+.stage .lessonbody p,.stage .lessonbody li{font-size:15.5px;line-height:1.7}.stage .lessonbody ul{padding-left:20px}
+.keypoint{border-left:3px solid var(--gold);background:var(--paper);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0;font-size:14.5px}
+.video{aspect-ratio:16/9;background:linear-gradient(135deg,#1d4436,#3a7058);border-radius:14px;display:grid;place-items:center;color:#fff;text-align:center;position:relative;margin:6px 0 16px}
+.video .play{width:66px;height:66px;border-radius:50%;background:#ffffff26;border:1px solid #ffffff66;display:grid;place-items:center;font-size:24px;margin:0 auto 10px}
+.stagefoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chipbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:14px;text-align:left}
+.chipbtn.sel{border-color:var(--green);background:var(--mint);box-shadow:0 0 0 2px var(--mint2)}
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.bucket{border:1.5px dashed #c7d4c9;border-radius:12px;padding:12px;min-height:110px;background:#fbfcf9;text-align:left}
+.bucket.armed{border-color:var(--green);background:var(--mint)}.bucket h4{font-size:13px}
+.placed{display:block;width:100%;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-top:6px;text-align:left}
+.placed.ok{border-color:#9fc5aa;background:#f1f8f2}.placed.no{border-color:#e2b3ab;background:#fbf0ee}
+.seqitem{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;margin-bottom:8px}
+.seqitem .n{font:16px Georgia,serif;color:var(--gold);width:22px}.seqitem .grow{flex:1}
+.sim{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px}
+.bubble{max-width:85%;padding:12px 15px;border-radius:14px;margin:8px 0;font-size:15px;line-height:1.55}
+.bubble.client{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}.bubble.me{background:var(--green);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bubble.narr{max-width:100%;background:transparent;color:var(--muted);font-size:13.5px;font-style:italic;padding:4px 2px}
+.bubble.fb{max-width:100%;border-radius:11px;font-size:14px}.fb.good{background:#ecf6ee;border:1px solid #bcdbc4;color:#1f4f35}.fb.mixed{background:var(--amber2);border:1px solid #ecd8ad;color:#6b5124}.fb.poor{background:var(--red2);border:1px solid #efc9c2;color:#7a2f25}
+.choices{display:grid;gap:8px;margin-top:12px}.choice{text-align:left;border:1px solid #cfdccf;background:#fff;border-radius:11px;padding:12px 14px;font-size:14.5px}.choice:hover{border-color:var(--green);background:var(--mint)}
+.meter{display:flex;gap:4px;align-items:center}.meter i{width:26px;height:8px;border-radius:4px;background:#e1e6df}.meter i.on{background:var(--green2)}
+.qcard{border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px;background:#fff}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:1px solid #d9e2d8;background:#fff;border-radius:10px;padding:11px 13px;margin-top:8px;font-size:14.5px}
+.opt .l{font-weight:700;color:var(--green2);width:18px;flex-shrink:0}.opt.sel{border-color:var(--green);background:var(--mint)}
+.opt.right{border-color:#8fc19d;background:#eef7f0}.opt.wrong{border-color:#e0a99f;background:#fbefec}
+.explain{font-size:13.5px;margin-top:10px;padding:10px 12px;border-radius:9px;background:var(--paper);border:1px solid var(--line)}
+.thread{border-left:2px solid var(--mint2);padding-left:14px;margin-top:10px}.msg{margin-bottom:10px}.msg .meta{font-size:12px;color:var(--muted)}
+.quote{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:14.5px;white-space:pre-wrap}
+.chart svg{width:100%;height:auto;display:block}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.modal{position:fixed;inset:0;background:#163027a8;display:none;align-items:center;justify-content:center;z-index:60;padding:14px}.modal.show{display:flex}
+.modal .panel{background:#fff;border-radius:18px;width:min(620px,100%);max-height:92vh;overflow:auto;padding:24px;position:relative}
+.modal .x{position:absolute;right:14px;top:10px;border:0;background:none;font-size:26px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:11px;font-size:14px;opacity:0;transition:.25s;z-index:70;pointer-events:none;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.bottomnav{display:none}
+.footer{max-width:1320px;margin:0 auto;padding:18px 28px 100px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line)}
+.flex{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}.wrap{flex-wrap:wrap}.mt{margin-top:16px}.mt2{margin-top:24px}.mb{margin-bottom:16px}.right{text-align:right}
+.hr{height:1px;background:var(--line);margin:16px 0}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal .d{min-height:62px;border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:11px;background:#fff}.cal .d.today{border-color:var(--green2);box-shadow:inset 0 0 0 1px var(--green2)}
+.cal .d.other{background:#f7f8f4;color:#a2aea5}.cal .ev{display:block;background:var(--mint);color:var(--green);border-radius:4px;padding:1px 4px;margin-top:2px;font-size:10.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cal .ev.grp{background:var(--gold2);color:#7b5523}
+.cal .hd{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:4px}
+@media(max-width:1000px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.player{grid-template-columns:1fr}.steps{position:static;display:flex;overflow-x:auto;gap:4px;padding-bottom:4px}.step{width:auto;white-space:nowrap}.step .lbl{display:none}.step.on .lbl{display:inline}}
+@media(max-width:760px){
+.app{grid-template-columns:1fr}.side{display:none}main.view{padding:18px 14px 110px}
+.topbar{padding:8px 12px;gap:8px;flex-wrap:wrap}.rolesel{order:3;width:100%;justify-content:space-between}.rolesel select{max-width:none;flex:1}.demo-pill{display:none}
+.g2,.g3{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr;padding:28px 22px}.portalcards{grid-template-columns:1fr}
+.stage{padding:18px;border-radius:14px}.kpi .val{font-size:25px}
+.bottomnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:40;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.bottomnav a{flex:1;text-align:center;font-size:10.5px;color:var(--muted);text-decoration:none;padding:4px 2px;position:relative}.bottomnav a .ic{display:block;font-size:18px;line-height:1.3}
+.bottomnav a.on{color:var(--green);font-weight:700}.bottomnav a .count{position:absolute;top:0;right:18%;background:var(--gold);color:#fff;font-size:9.5px;border-radius:99px;padding:0 5px}
+table.t.stack thead{display:none}table.t.stack tr{display:block;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:6px 4px;background:#fff}table.t.stack td{display:flex;justify-content:space-between;gap:10px;border:0;padding:6px 10px}
+table.t.stack td:before{content:attr(data-l);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}table.t.stack td.nolabel:before{display:none}
+.cal .d{min-height:44px}.cal .ev{font-size:0;height:5px;padding:0}
+}
+@media print{.topbar,.side,.bottomnav,.btn{display:none!important}.app{display:block}}
+.split>.grid{align-content:start}.person b{white-space:nowrap}
+</style></head><body>
+<div id="root"></div>
+<div id="modal" class="modal" role="dialog" aria-modal="true"><div class="panel"><button class="x" data-a="close" aria-label="Close">×</button><div id="mbody"></div></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:20px">This prototype requires JavaScript.</p></noscript>
+<script>
+const SEED_MODULES = [
+{id:'m1',courseId:'c1',num:1,title:'Ethics & Professional Boundaries',category:'Professional ethics',minutes:120,prereq:null,
+summary:'Apply a structured ethical decision-making model to everyday dilemmas around consent, confidentiality, and boundaries.',
+objectives:['Apply a step-by-step ethical decision-making model','Explain informed consent as an ongoing process, not a form','Identify common limits of confidentiality and when to consult','Distinguish boundary crossings from boundary violations','Evaluate multiple-relationship risks in small communities and online'],
+lessons:[
+{type:'text',title:'A decision-making model you can actually use',html:`
+<p>Most ethical problems in counseling don’t announce themselves. They show up as a late-night message, a gift at termination, or a request from a family member. A consistent model slows you down just enough to think clearly.</p>
+<ol><li><b>Name the problem.</b> What exactly is the conflict, and whose interests are involved?</li>
+<li><b>Check the standards.</b> Review the ACA Code of Ethics, your state board rules (in Texas, 22 TAC Chapter 681), agency policy, and relevant law.</li>
+<li><b>Identify the principles in tension.</b> Autonomy, nonmaleficence, beneficence, justice, fidelity, and veracity often pull in different directions.</li>
+<li><b>Generate options.</b> Aim for at least three, including "do nothing yet."</li>
+<li><b>Consider consequences</b> for the client, the relationship, you, and the profession.</li>
+<li><b>Consult.</b> Bring it to your supervisor or a trusted colleague, and document that you did.</li>
+<li><b>Act, document, and reflect.</b> Record your reasoning, not just your decision.</li></ol>
+<div class="keypoint"><b>Key idea:</b> A defensible decision is one you can explain step by step. "It felt right" is not documentation.</div>`},
+{type:'video',title:'Informed consent is a process',duration:'8 min',html:`
+<p><b>Video summary.</b> Informed consent begins before the first session and continues throughout treatment. Clients should understand:</p>
+<ul><li>The nature, goals, and likely length of services, and the client’s right to decline or stop</li>
+<li>Fees, cancellation policy, and how to reach you (and how <i>not</i> to reach you)</li>
+<li>Limits of confidentiality, explained in plain language</li>
+<li>Your credentials. An LPC Associate practices under supervision, and the client should know that and know who the supervisor is.</li>
+<li>How technology, records, and telehealth are handled</li></ul>
+<div class="keypoint">Revisit consent whenever something changes: a new modality, a change in fees, a family member joining sessions, or a move to telehealth.</div>`},
+{type:'text',title:'Confidentiality and its limits',html:`
+<p>Confidentiality is the default. Exceptions are narrow, and they’re defined by law, rules, and policy rather than by your judgment alone. Common categories include:</p>
+<ul><li>Imminent risk of harm to self or others, handled according to law and your setting’s procedures</li>
+<li>Mandated reporting of suspected abuse or neglect of a child, an elderly person, or a person with a disability</li>
+<li>Valid court orders, and other disclosures required by law</li>
+<li>Disclosures the client authorizes in writing</li></ul>
+<p>When a disclosure is required, share the <b>minimum necessary</b> information. When you’re unsure, consult before you disclose.</p>
+<div class="keypoint"><b>Practice habit:</b> Explain the limits at intake in plain language, then check that the client actually understood them.</div>`},
+{type:'sort',title:'Exercise: Crossing or violation?',intro:'Select a statement, then select the category where it belongs. A boundary <b>crossing</b> can be acceptable when it’s purposeful, client-centered, and discussed. A <b>violation</b> exploits the relationship or puts the client at risk.',
+buckets:['Boundary crossing: evaluate, consult & document','Boundary violation: avoid'],
+items:[
+{t:'Accepting a small handmade card at the final session',b:0},
+{t:'Attending a client\'s graduation at their request, after discussing it in supervision',b:0},
+{t:'Going into business with a current client',b:1},
+{t:'Sending a friend request to a client on a personal social account',b:1},
+{t:'Brief self-disclosure that serves a clear therapeutic purpose',b:0},
+{t:'Telling a client about your own divorce at length because you needed to talk',b:1}]},
+{type:'worksheet',title:'Worksheet: Ethical decision-making',fileName:'Ethical-Decision-Making-Worksheet',intro:'A one-page template to use with any dilemma. Bring it to supervision.',
+sections:[{h:'1. The problem',p:['What is the dilemma, in one sentence?','Who is affected?']},{h:'2. Standards',p:['Relevant ACA Code sections','Relevant board rules or law','Agency policy']},{h:'3. Principles in tension',p:['Which principles conflict?']},{h:'4. Options & consequences',p:['Option A:','Option B:','Option C:']},{h:'5. Consultation',p:['Who did I consult, and when?','What did they recommend?']},{h:'6. Decision & documentation',p:['What I will do and why:','Follow-up date:']}]}
+],
+scenario:{title:'The late-night message',client:'Dana',setup:'Dana (a fictional client, age 34) has seen you for eight sessions to work on anxiety and a recent breakup. At 10:40 p.m. you get a direct message on your <b>personal</b> social media account.',
+start:'a',nodes:{
+a:{lines:[{w:'client',t:'"Hey, I know this is weird but I really need to talk. Are you around?"'},{w:'narr',t:'You aren\'t on call. Your agency has a written after-hours procedure, and you reviewed it with Dana at intake.'}],
+choices:[
+{t:'Reply in the DM to check in and see what\'s going on.',q:'mixed',fb:'You care about Dana, and checking in feels kind. But replying on a personal account blurs the professional frame, uses an unsecured channel, and sets an expectation that you’re available after hours.',next:'b'},
+{t:'Don\'t reply from the personal account. Follow the agency\'s after-hours procedure: send the approved message with crisis resources (call or text 988, or 911 in an emergency) and the next available contact.',q:'good',fb:'Good. You stay inside the professional frame and still respond to a possible need. Dana gets immediate resources plus a clear path to care, through an approved channel.',next:'b'},
+{t:'Ignore it and raise it at the next session.',q:'poor',fb:'Ignoring it avoids the boundary problem but leaves a possible safety need unaddressed. Your procedure exists precisely for this situation.',next:'b'}]},
+b:{lines:[{w:'narr',t:'Two days later, at your scheduled session.'},{w:'client',t:'"Honestly, I felt kind of hurt about the other night. I thought we had a real connection."'}],
+choices:[
+{t:'"It\'s against policy, so I can\'t do that." Then move on to the agenda.',q:'mixed',fb:'It’s accurate but defensive. Dana may hear rejection rather than care, and you miss a chance to strengthen the relationship.',next:'c'},
+{t:'Validate the feeling, revisit the communication part of informed consent, and work with Dana on an after-hours support plan.',q:'good',fb:'Excellent. You treat the rupture as clinical material, clarify the boundary warmly, and leave Dana with a usable plan for hard nights.',next:'c'},
+{t:'Apologize and give Dana your personal cell number "just for emergencies."',q:'poor',fb:'This is a boundary violation in the making. It creates dual expectations, privacy risks, and dependence, and it doesn’t meet a true emergency any better than 988 or 911 would.',next:'c'}]},
+c:{lines:[{w:'narr',t:'After the session you consider what to do next.'}],
+choices:[
+{t:'Write a factual note (the message, your response, and the plan you made) and bring it to supervision this week.',q:'good',fb:'Right. Documenting facts and consulting protects Dana, you, and the continuity of care.',next:null},
+{t:'Nothing really happened, so there\'s no need to document it.',q:'poor',fb:'Boundary-relevant contact, and the plan that followed it, belongs in the record. Undocumented events are the hardest to defend later.',next:null}]}
+}},
+quiz:[
+{q:'Which step comes first in most ethical decision-making models?',o:['Consult a colleague','Identify and define the problem','Choose the least risky option','Document the decision'],a:1,why:'You can\'t check standards or generate options until you\'ve clearly named the problem and who it affects.'},
+{q:'An LPC Associate begins seeing a new client. Which disclosure is most important to include in informed consent?',o:['The associate\'s personal hobbies','That the associate practices under supervision, and who the supervisor is','The associate\'s graduate GPA','Nothing extra; it\'s the same as for a fully licensed counselor'],a:1,why:'Clients have a right to know their counselor\'s credential and supervision status, including who the supervisor is.'},
+{q:'A disclosure is legally required. How much information should you share?',o:['The full clinical record','Only the minimum necessary for the purpose','Whatever the requester asks for','Nothing without a second release'],a:1,why:'The minimum-necessary standard limits disclosures to what the specific purpose requires.'},
+{q:'Which situation is best described as a boundary crossing rather than a violation?',o:['Borrowing money from a client','A romantic relationship with a former client one month after termination','Accepting a small handmade card at termination','Hiring a current client to do work at your home'],a:2,why:'A small, symbolic gift at termination can be acceptable when considered thoughtfully. The others exploit or risk exploiting the relationship.'},
+{q:'After resolving a boundary concern, what best supports good practice?',o:['Delete any messages involved','Document the facts and your reasoning, and consult as needed','Tell other clients what happened as a teaching moment','Refer the client out right away'],a:1,why:'Documentation and consultation show sound reasoning and support continuity of care.'}],
+reflection:'Describe a boundary situation you have faced or expect to face in your setting. <b>Keep it de-identified.</b> Which ethical principles were in tension, what options did you consider, and who would you consult?'},
+{id:'m2',courseId:'c1',num:2,title:'Clinical Documentation',category:'Daily practice',minutes:120,prereq:null,
+summary:'Write clear, objective, timely notes using SOAP or DAP structure while protecting client privacy.',
+objectives:['Explain the clinical, legal, and continuity purposes of documentation','Separate observations, client report, and clinical interpretation','Write progress notes in SOAP and DAP formats','Apply privacy and minimum-necessary principles to records','Avoid common documentation pitfalls such as cloned and late notes'],
+lessons:[
+{type:'text',title:'Why we document',html:`
+<p>Notes do three jobs. They support <b>continuity of care</b>, so the next clinician (or you, six months from now) can understand what happened. They show <b>clinical reasoning</b> by linking interventions to the treatment plan. And they are a <b>legal and professional record</b> that supervisors, auditors, payers, and sometimes courts may read.</p>
+<div class="keypoint">Write every note as if your client will read it someday. Many will have the right to.</div>
+<p>Good notes are <b>accurate, timely, relevant, and concise</b>. They record what’s needed and leave out what isn’t. Gossip, speculation, and unnecessary third-party details don’t belong in them.</p>`},
+{type:'sort',title:'Exercise: Observation, report, or interpretation?',intro:'Sort each statement. Objective observations and client reports belong in notes. Unsupported interpretations should be rewritten.',
+buckets:['Objective observation','Client report (subjective)','Unsupported interpretation: rewrite'],
+items:[
+{t:'Client arrived 15 minutes late and sat near the door.',b:0},
+{t:'Client stated, "I haven\'t slept more than four hours a night this week."',b:1},
+{t:'Client was being manipulative.',b:2},
+{t:'PHQ-9 score of 14, up from 9 at intake.',b:0},
+{t:'Client described feeling "on edge all the time" at work.',b:1},
+{t:'Client seems lazy about homework.',b:2},
+{t:'Client was tearful when discussing a parent\'s illness.',b:0}]},
+{type:'text',title:'SOAP and DAP formats',html:`
+<p><b>SOAP</b>: <i>Subjective</i> (the client’s report), <i>Objective</i> (observations and measures), <i>Assessment</i> (your clinical impression and progress toward goals), <i>Plan</i> (next steps).</p>
+<p><b>DAP</b>: <i>Data</i> (subjective and objective together), <i>Assessment</i>, <i>Plan</i>. It’s more compact and common in outpatient settings.</p>
+<div class="keypoint"><b>Fictional example (DAP).</b><br><b>D:</b> Client reported increased conflict with supervisor and 3 panic episodes this week. Appeared restless; GAD-7 = 13 (prior 15). Practiced paced breathing in session.<br><b>A:</b> Modest symptom reduction; skills use emerging but inconsistent under work stress. Progressing toward Goal 1.<br><b>P:</b> Assigned daily breathing log; will introduce cognitive restructuring next session; reassess GAD-7 in 2 weeks.</div>`},
+{type:'rewrite',title:'Exercise: Rewrite a weak note',prompt:'Rewrite this note so it’s objective, linked to treatment goals, and useful to another clinician. Then compare yours with the model.',
+poor:'Client was in a bad mood again and kind of difficult. We talked about stuff going on at home. She is obviously codependent. Will continue.',
+model:'D: Client reported ongoing arguments with her partner about finances (3 this week) and said she feels "worn down." Affect constricted; minimal eye contact early in session, improving by the end. Reviewed the conflict log assigned last session (completed 4 of 7 days).\nA: Stressors persist; client is engaging with between-session work. Partial progress toward Goal 2 (identify and communicate needs).\nP: Role-play an assertive request next session; continue the conflict log; discuss a couples referral option as requested by client.'},
+{type:'text',title:'Records, privacy & timeliness',html:`
+<ul><li><b>Write notes promptly</b>, ideally the same day, and always according to your agency policy. Late entries should be labeled as late, with the date written.</li>
+<li><b>Never clone notes.</b> Copy-pasting prior content misrepresents what happened in the session.</li>
+<li><b>Corrections</b> are made by addendum. Don’t delete or overwrite.</li>
+<li><b>Minimum necessary:</b> share only what the purpose requires, and only with authorization or legal basis.</li>
+<li><b>Retention:</b> follow your board’s rules, applicable law, and agency policy for how long records are kept. Verify the current requirement rather than relying on memory.</li>
+<li><b>Client access:</b> clients generally have rights to access their records, so know your setting’s process.</li></ul>`},
+{type:'worksheet',title:'Worksheet: Progress note checklist',fileName:'Progress-Note-Checklist',intro:'A quick self-audit for any note before you sign it.',
+sections:[{h:'Content',p:['Linked to a treatment-plan goal?','Interventions named?','Client response described?','Risk addressed if relevant?']},{h:'Language',p:['Observations separated from interpretations?','Quotes used for key client statements?','Free of jargon, judgments, and unneeded third-party details?']},{h:'Compliance',p:['Written within policy timeframe?','Signed with correct credential (e.g., LPC Associate, supervised by ___)?','Late entry labeled if applicable?']}]}
+],
+scenario:{title:'Friday at 5:45 p.m.',client:'Records',setup:'It\'s Friday evening. You have three unwritten notes from this week, your supervisor has asked for one of them by Monday for a chart review, and a colleague is waiting by the door.',
+start:'a',nodes:{
+a:{lines:[{w:'narr',t:'You open your documentation queue. You remember the sessions reasonably well, but the details are fading.'}],
+choices:[
+{t:'Copy last week\'s note for each client and update the date.',q:'poor',fb:'Cloned notes misrepresent care and are a serious documentation and billing integrity problem.',next:'b'},
+{t:'Write the notes now from your session jottings, recording only what you can accurately recall.',q:'good',fb:'Good. Writing promptly, and only what’s accurate, protects the record\'s integrity.',next:'b'},
+{t:'Wait until Monday morning to write all three.',q:'mixed',fb:'Possibly within policy, but accuracy drops with time. If you write them later, label them as late entries.',next:'b'}]},
+b:{lines:[{w:'narr',t:'Your colleague leans in.'},{w:'client',t:'"Hey, you see Mr. R., right? He\'s my neighbor\'s brother. Is he doing okay?"'}],
+choices:[
+{t:'"I can\'t confirm or discuss who I see. Have a good weekend!"',q:'good',fb:'Exactly right. You can’t even confirm that someone is a client without a legitimate need to know or authorization.',next:'c'},
+{t:'"He\'s doing a little better, but keep that between us."',q:'poor',fb:'This is a confidentiality breach, however well-intended.',next:'c'},
+{t:'Change the subject without answering.',q:'mixed',fb:'You avoided disclosing, but a brief, clear statement reinforces the norm for everyone.',next:'c'}]},
+c:{lines:[{w:'narr',t:'On Monday, a different client asks for a copy of their records.'}],
+choices:[
+{t:'Follow the agency\'s records-request procedure and tell your supervisor.',q:'good',fb:'Correct. Records requests follow a defined process, and your supervisor should know.',next:null},
+{t:'Edit your old notes first so they sound kinder, then print them.',q:'poor',fb:'Altering records is never acceptable. Corrections are made only by dated addendum.',next:null}]}
+}},
+quiz:[
+{q:'Which statement is the most objective?',o:['Client was hostile.','Client raised voice and left the session 10 minutes early.','Client clearly hates authority.','Client was in a mood.'],a:1,why:'It describes observable behavior without imputing motive.'},
+{q:'In SOAP notes, where does a PHQ-9 score belong?',o:['Subjective','Objective','Assessment','Plan'],a:1,why:'Standardized measure scores are objective data. Your interpretation of them goes in Assessment.'},
+{q:'You discover an error in a signed note from last week. What should you do?',o:['Delete it and rewrite it','Add a dated addendum correcting the error','Leave it, since it\'s already signed','Ask the client what they remember'],a:1,why:'Corrections are made by dated addendum, preserving the original entry.'},
+{q:'What is "note cloning"?',o:['Saving a backup copy of notes','Copying prior note content as if it were new documentation','Writing notes in group sessions','Using a template'],a:1,why:'Cloning presents copied content as new, which misrepresents what happened in the session.'},
+{q:'A colleague without a treatment role asks whether a person is your client. You should:',o:['Confirm but share nothing else','Neither confirm nor deny','Share only the diagnosis','Ask the client next session if it\'s okay'],a:1,why:'Even confirming that someone is a client is a disclosure.'}],
+reflection:'Pick one documentation habit you want to strengthen. What gets in the way of it now, and what specific change will you try for the next two weeks? <b>Don\'t include identifying client details.</b>'},
+{id:'m3',courseId:'c1',num:3,title:'Supervision & Consultation',category:'Professional development',minutes:120,prereq:null,
+summary:'Prepare focused case presentations, use feedback non-defensively, and follow through on recommendations.',
+objectives:['Describe the purpose and structure of clinical supervision for LPC Associates','Prepare a de-identified, focused case presentation','Use a simple case formulation framework (5 Ps)','Receive and integrate feedback non-defensively','Distinguish consultation from supervision'],
+lessons:[
+{type:'text',title:'What supervision is for',html:`
+<p>Clinical supervision protects clients, supports your development, and serves a gatekeeping function for the profession. In Texas, LPC Associates practice under a Council-approved LPC Supervisor (LPC-S), and board rules set minimums for supervision frequency and record-keeping. Your supervisor holds real responsibility for your work.</p>
+<div class="keypoint">Supervision works best when you set the agenda. Bring questions, not just updates.</div>
+<p>Supervision differs from <b>consultation</b>. Consultation is a voluntary, collegial exchange in which the consultant usually holds no evaluative authority or responsibility for the case.</p>`},
+{type:'sequence',title:'Exercise: Build a case presentation',intro:'Put these elements of a focused case presentation in a logical order. Use the arrows to move items.',
+items:['Your specific question for supervision','De-identified background (age range, setting, presenting concern)','Relevant history and current functioning','Your working formulation','What you\'ve tried and how the client responded','What you\'re unsure about'],
+order:[0,1,2,3,4,5],explain:'Leading with your question focuses everyone\u2019s listening. Then give just enough background, history and formulation to answer it, followed by what you\u2019ve tried and where you\u2019re stuck.'},
+{type:'text',title:'Case formulation with the 5 Ps',html:`
+<ul><li><b>Presenting:</b> what brings the client in now</li>
+<li><b>Predisposing:</b> longer-standing vulnerabilities (biological, psychological, social)</li>
+<li><b>Precipitating:</b> recent triggers</li>
+<li><b>Perpetuating:</b> what keeps the problem going</li>
+<li><b>Protective:</b> strengths and supports to build on</li></ul>
+<div class="keypoint">A formulation is a <i>hypothesis</i>. Bring it to supervision so it can be tested, not defended.</div>`},
+{type:'video',title:'Receiving feedback without getting defensive',duration:'6 min',html:`
+<p><b>Video summary.</b> Defensiveness is normal. Supervision touches your sense of competence. Try this sequence:</p>
+<ol><li><b>Pause</b> before responding.</li><li><b>Paraphrase</b> what you heard: "So you’re noticing I tend to rescue when she gets tearful?"</li>
+<li><b>Get curious</b>: "What did you see that made you think that?"</li><li><b>Commit to one experiment</b> for next session.</li><li><b>Report back</b> next supervision.</li></ol>`},
+{type:'worksheet',title:'Worksheet: Supervision prep sheet',fileName:'Supervision-Prep-Sheet',intro:'Fill this in before each supervision meeting.',
+sections:[{h:'Agenda',p:['Top question for today:','Cases to discuss (de-identified initials or codes only):']},{h:'Risk & ethics check',p:['Any safety concerns this week?','Any ethical or boundary questions?']},{h:'Follow-up',p:['Recommendations from last meeting:','What I tried and what happened:']},{h:'Development',p:['A skill I want feedback on:']}]}
+],
+scenario:{title:'Hard feedback',client:'Supervisor',setup:'In supervision you present a client you\'ve seen for six weeks. Your supervisor (fictional) watched a segment of a recorded session, with the client\'s consent.',
+start:'a',nodes:{
+a:{lines:[{w:'client',t:'"I noticed that whenever she gets tearful, you jump in with reassurance or a solution. I wonder whether that\'s getting in the way of her sitting with the feeling."'}],
+choices:[
+{t:'"I don\'t think that\'s fair. She needs support right now."',q:'poor',fb:'This is a defensive reaction. It closes off the feedback before you’ve had a chance to explore it.',next:'b'},
+{t:'"Hm, I hadn\'t noticed. What did you see that made you think that?"',q:'good',fb:'Curiosity keeps the learning open and invites specifics.',next:'b'},
+{t:'"You\'re right, I\'ll stop doing that."',q:'mixed',fb:'You’re agreeable, but you skip the understanding part. Quick agreement can mask confusion.',next:'b'}]},
+b:{lines:[{w:'client',t:'"What could you try next session?"'}],
+choices:[
+{t:'Agree on one specific experiment: when she becomes tearful, pause and reflect the feeling before offering anything else. Then report back next week.',q:'good',fb:'Specific, observable, and testable. You’ll both know whether it helped.',next:'c'},
+{t:'"I\'ll try to be more aware of it."',q:'mixed',fb:'It’s well-meant but vague. Make it specific enough that you’ll know whether you did it.',next:'c'}]},
+c:{lines:[{w:'narr',t:'Next supervision meeting.'}],
+choices:[
+{t:'Open by reporting what happened when you tried the experiment, including what felt awkward.',q:'good',fb:'Excellent. Closing the loop is what turns feedback into growth.',next:null},
+{t:'Start with a new case and hope it doesn\'t come up.',q:'poor',fb:'Avoiding follow-up wastes the learning opportunity and can erode trust.',next:null}]}
+}},
+quiz:[
+{q:'In Texas, who supervises an LPC Associate\'s clinical experience?',o:['Any licensed mental health professional','A Council-approved LPC Supervisor (LPC-S)','The associate\'s graduate professor','A peer consultation group'],a:1,why:'LPC Associates must practice under a Council-approved LPC-S.'},
+{q:'How does consultation usually differ from supervision?',o:['Consultation always carries legal responsibility for the case','Consultation is collegial, and the consultant usually holds no evaluative authority over the case','Consultation is only for licensed supervisors','They are identical'],a:1,why:'Supervisors carry evaluative and oversight responsibility; consultants typically do not.'},
+{q:'Which of the 5 Ps describes what keeps a problem going?',o:['Predisposing','Precipitating','Perpetuating','Protective'],a:2,why:'Perpetuating factors maintain the problem over time.'},
+{q:'What makes a supervision question most productive?',o:['"Did I do okay?"','"What alternative responses could I try when the client shuts down after talking about work?"','"Can we skip this case?"','"Can you just tell me the diagnosis?"'],a:1,why:'Specific, behavior-focused questions lead to usable guidance.'},
+{q:'What is the best way to present case information in supervision?',o:['Full name and date of birth for accuracy','De-identified, with only the details relevant to the question','No details at all','Whatever the client posted publicly'],a:1,why:'Share what\'s needed for the question while minimizing identifying information.'}],
+reflection:'Think about a recent piece of feedback (from supervision, school, or work). What was your first internal reaction, what did you do with the feedback, and what would you do differently now?'},
+{id:'m4',courseId:'c1',num:4,title:'Assessment & Treatment Planning',category:'Clinical foundations',minutes:120,prereq:null,
+summary:'Turn intake information into collaborative, measurable goals and revise plans using progress data.',
+objectives:['Conduct a comprehensive biopsychosocial intake','Write collaborative, measurable treatment goals and objectives','Select interventions based on evidence, client preference, and competence','Use measurement-based care to monitor progress','Revise treatment plans when progress stalls'],
+lessons:[
+{type:'text',title:'The intake as a foundation',html:`
+<p>A biopsychosocial assessment gathers the presenting concern, history, current functioning, health, substance use, relationships, culture and identity, strengths, and safety. Its job is to generate <b>hypotheses</b>, not to confirm the first one you form.</p>
+<div class="keypoint">Ask what the client hopes will be different. Their answer is the seed of every goal.</div>
+<p>Use standardized measures as your setting allows (for example, the PHQ-9 for depressive symptoms or the GAD-7 for anxiety) to establish a baseline you can track over time.</p>`},
+{type:'sort',title:'Exercise: Is this objective measurable?',intro:'Sort each draft treatment objective.',
+buckets:['Measurable & specific','Too vague: rewrite'],
+items:[
+{t:'Client will feel better.',b:1},
+{t:'Client will use a grounding skill in at least 3 of 4 reported panic episodes within 6 weeks.',b:0},
+{t:'Client will improve self-esteem.',b:1},
+{t:'Client will reduce PHQ-9 score from 16 to below 10 within 12 weeks.',b:0},
+{t:'Client will attend weekly sessions and complete a daily mood log 5 days per week.',b:0},
+{t:'Client will work on relationship issues.',b:1}]},
+{type:'text',title:'Collaborative goals & choosing interventions',html:`
+<p>Goals belong to the client. Use the client’s own words for the broad goal, then build <b>SMART</b> objectives (specific, measurable, achievable, relevant, time-bound) together.</p>
+<p>When selecting interventions, weigh three things together: the <b>research evidence</b> for this concern, the <b>client’s preferences and culture</b>, and your <b>own competence</b>. Where you’re outside your training, that’s a supervision and referral conversation.</p>`},
+{type:'video',title:'Measurement-based care in practice',duration:'7 min',html:`
+<p><b>Video summary.</b> Routinely collecting brief measures and <i>reviewing them with the client</i> helps you catch stalled progress early. Practical tips:</p>
+<ul><li>Pick one or two measures that match the goals.</li><li>Administer them on a consistent schedule.</li><li>Graph the scores, and show the client.</li><li>Treat a plateau as information, not failure.</li></ul>`},
+{type:'worksheet',title:'Worksheet: Treatment plan builder',fileName:'Treatment-Plan-Builder',intro:'A simple structure for drafting a plan with a client.',
+sections:[{h:'Problem (client\'s words)',p:['']},{h:'Goal',p:['Broad goal:']},{h:'Objectives (SMART)',p:['1.','2.','3.']},{h:'Interventions',p:['Intervention / rationale:']},{h:'Measures & review',p:['Measure:','Review date:']}]}
+],
+scenario:{title:'Too many priorities',client:'Ana',setup:'Ana (fictional, age 41) arrives at intake describing work stress, poor sleep, and conflict with her teenage son. She says, "I just need everything to calm down."',
+start:'a',nodes:{
+a:{lines:[{w:'client',t:'"Honestly, it\'s all of it. I don\'t even know where to start."'}],
+choices:[
+{t:'Ask what would make the biggest difference to her day-to-day life if it improved first.',q:'good',fb:'Good. Letting Ana prioritize builds collaboration and motivation.',next:'b'},
+{t:'Tell her to start with sleep, because that\'s usually the root cause.',q:'mixed',fb:'Sleep may matter a lot, but deciding for her undercuts collaboration. Offer it as an option instead.',next:'b'},
+{t:'Write goals for all three areas on her behalf so nothing is missed.',q:'poor',fb:'A plan she didn’t help build is unlikely to be one she follows.',next:'b'}]},
+b:{lines:[{w:'narr',t:'You agree on sleep and work stress first, with PHQ-9 and a sleep diary as measures. Six weeks later, the scores haven\'t moved.'},{w:'client',t:'"I\'m doing the exercises, mostly. I don\'t know why it isn\'t working."'}],
+choices:[
+{t:'Review the data together, explore barriers, and revise the plan (for example, adjust the intervention or consider a medical referral for sleep). Bring it to supervision.',q:'good',fb:'Excellent. Plateaus prompt a collaborative review rather than more of the same.',next:'c'},
+{t:'Keep going with the same plan. Change takes time.',q:'mixed',fb:'Sometimes patience is right, but six flat weeks call for at least a structured review.',next:'c'},
+{t:'Tell Ana she probably isn\'t trying hard enough.',q:'poor',fb:'Blaming the client damages the alliance and overlooks real barriers.',next:'c'}]},
+c:{lines:[{w:'narr',t:'You update the plan.'}],
+choices:[
+{t:'Document the revision, the rationale, and a new review date, and make sure Ana has a copy of the updated goals.',q:'good',fb:'The plan stays a living, shared document.',next:null},
+{t:'Make the change informally and update the paperwork at the annual review.',q:'poor',fb:'Plan revisions should be documented when they happen.',next:null}]}
+}},
+quiz:[
+{q:'Which objective is best written?',o:['Client will be less anxious.','Client will practice paced breathing daily and report a 2-point drop on the GAD-7 within 8 weeks.','Client will work on anxiety.','Client will try harder.'],a:1,why:'It\'s specific, measurable, and time-bound.'},
+{q:'What is the primary purpose of a biopsychosocial intake?',o:['To confirm the first diagnosis you suspect','To gather a broad picture and generate hypotheses','To satisfy billing only','To decide whether to refer'],a:1,why:'A broad assessment informs hypotheses and planning.'},
+{q:'Evidence-based practice integrates research evidence with:',o:['Only the counselor\'s favorite approach','Client characteristics and preferences, and clinician expertise','Insurance requirements only','Whatever the last workshop taught'],a:1,why:'All three components inform the choice of intervention.'},
+{q:'Progress has been flat for several weeks. The best first step is to:',o:['Terminate services','Review the data with the client and explore barriers','Ignore the measures','Add three new goals'],a:1,why:'A collaborative review identifies what needs to change.'},
+{q:'Who should be involved in setting treatment goals?',o:['The counselor alone','The client and counselor together','Only the supervisor','The insurance company'],a:1,why:'Collaborative goal-setting improves engagement and outcomes.'}],
+reflection:'Describe how you currently invite clients into goal-setting (or how you plan to). What is one way you could make progress data more visible and meaningful to clients?'},
+{id:'m5',courseId:'c1',num:5,title:'Risk Assessment & Referrals',category:'Client safety',minutes:120,prereq:'m1',
+summary:'Recognize safety concerns, use your setting\'s procedures, consult promptly, and plan referrals that preserve continuity of care.',
+objectives:['Recognize warning signs and risk and protective factors','Follow your setting\'s screening and consultation procedures','Describe collaborative safety planning at a conceptual level','Make referral decisions based on level of care and fit','Maintain continuity of care through transitions'],
+lessons:[
+{type:'text',title:'Recognizing safety concerns',html:`
+<p>Risk assessment is a structured clinical process, not a single question. It combines what the client tells you, what you observe, history, and context, and it is always conducted within your setting’s procedures and your competence.</p>
+<p>Settings commonly use standardized screening tools (for example, the Columbia Suicide Severity Rating Scale) alongside clinical interview. Know which tools your setting uses and what happens after a positive screen.</p>
+<div class="keypoint"><b>Asking directly about suicidal thoughts does not increase risk.</b> It opens the door to help.</div>
+<p>If someone is in immediate danger, call 911. The 988 Suicide &amp; Crisis Lifeline (call or text 988) is available 24/7 in the U.S.</p>`},
+{type:'sort',title:'Exercise: Risk or protective factor?',intro:'Sort each item. Real assessment weighs these together. No single factor decides risk.',
+buckets:['Risk factor','Protective factor'],
+items:[
+{t:'Strong sense of responsibility to children or family',b:1},
+{t:'Recent job loss',b:0},
+{t:'History of a previous suicide attempt',b:0},
+{t:'Active engagement in treatment',b:1},
+{t:'Access to lethal means',b:0},
+{t:'Supportive friendships and community connection',b:1},
+{t:'Recent loss or major relationship rupture',b:0}]},
+{type:'text',title:'Consultation & safety planning',html:`
+<ul><li><b>Consult early.</b> LPC Associates should involve their supervisor according to the supervision agreement and setting policy, often the same day for elevated concerns.</li>
+<li><b>Safety planning</b> is collaborative. It typically identifies warning signs, internal coping strategies, people and places for distraction, people to ask for help, professional and crisis contacts, and steps to make the environment safer (for example, reducing access to lethal means).</li>
+<li><b>Document</b> what you assessed, your clinical reasoning, the consultation, and the plan.</li></ul>
+<div class="keypoint">Never promise confidentiality you can’t keep. Clients should know the limits from intake onward.</div>`},
+{type:'video',title:'Referrals and continuity of care',duration:'7 min',html:`
+<p><b>Video summary.</b> Referral decisions consider level of care (outpatient, intensive outpatient, partial hospitalization, inpatient), specialty fit, access, cost, and client preference.</p>
+<ul><li>Use <b>warm handoffs</b> when possible, with client authorization.</li><li>Don’t end services abruptly. That risks abandonment.</li><li>Follow up to confirm the connection happened.</li><li>Document each step.</li></ul>`},
+{type:'worksheet',title:'Worksheet: Referral & continuity checklist',fileName:'Referral-Continuity-Checklist',intro:'Use it alongside, never in place of, your setting\'s procedures.',
+sections:[{h:'Need',p:['Reason for referral:','Level of care indicated:']},{h:'Fit & access',p:['Provider/program:','Insurance/cost:','Client preference discussed?']},{h:'Handoff',p:['Release signed?','Warm handoff completed?','Records sent (minimum necessary)?']},{h:'Follow-up',p:['Date connection confirmed:','Supervisor informed:']}]}
+],
+scenario:{title:'"Better off without me"',client:'Marcus',setup:'Marcus (fictional, age 52) has been in counseling for depression after a layoff. Near the end of a session, he says something that shifts the conversation.',
+start:'a',nodes:{
+a:{lines:[{w:'client',t:'"Sometimes I think my family would be better off without me."'}],
+choices:[
+{t:'Note it and return to the planned topic. You\'re almost out of time.',q:'poor',fb:'A statement like this calls for a direct follow-up, even if the session runs over.',next:'b'},
+{t:'Ask directly and calmly whether he\'s having thoughts of suicide, then follow your setting\'s screening procedure.',q:'good',fb:'Correct. Asking directly is supportive, and it is the start of a structured assessment.',next:'b'},
+{t:'Call 911 immediately without asking anything further.',q:'mixed',fb:'If danger is imminent, emergency services are right. Here you don\'t yet know the level of risk. Assess first, within your procedures.',next:'b'}]},
+b:{lines:[{w:'client',t:'"I\'ve thought about not waking up. I don\'t have a plan. I wouldn\'t do that to my daughter."'},{w:'narr',t:'Your screening and interview suggest passive ideation with no plan or intent, along with meaningful protective factors.'}],
+choices:[
+{t:'Build a collaborative safety plan with him, consult your supervisor the same day, and document your assessment and reasoning.',q:'good',fb:'Excellent. Collaborative planning, prompt consultation, and documentation are all in place.',next:'c'},
+{t:'Promise you won\'t tell anyone so he keeps trusting you.',q:'poor',fb:'Never promise confidentiality you may not be able to keep. Return to the limits you discussed at intake.',next:'c'},
+{t:'Tell him he needs a higher level of care and end your services today.',q:'poor',fb:'Ending services abruptly risks abandonment. If a referral is needed, it should be planned, with continuity.',next:'c'}]},
+c:{lines:[{w:'narr',t:'Your supervisor agrees with the plan and recommends adding a psychiatric evaluation referral.'}],
+choices:[
+{t:'Discuss the referral with Marcus, get his authorization, make a warm handoff, keep seeing him, and confirm the connection at the next session.',q:'good',fb:'This is good continuity of care. The referral adds support rather than replacing you.',next:null},
+{t:'Give him a phone number and leave the rest to him.',q:'mixed',fb:'It’s better than nothing, but a warm handoff and follow-up make the connection much more likely.',next:null}]}
+}},
+quiz:[
+{q:'Asking a client directly about suicidal thoughts:',o:['Increases risk by planting the idea','Does not increase risk and opens the door to help','Should be avoided with new clients','Is only for psychiatrists'],a:1,why:'Research and practice guidance support asking directly.'},
+{q:'Which is a protective factor?',o:['Recent job loss','Access to lethal means','Strong connection to family','Previous attempt'],a:2,why:'Connectedness and a sense of responsibility to others are protective.'},
+{q:'An LPC Associate identifies elevated risk. A key step is to:',o:['Handle it alone to show competence','Consult the supervisor according to the supervision agreement and setting policy','Wait for the next supervision meeting next month','Post about it in a professional forum'],a:1,why:'Prompt consultation is essential, and associates practice under supervision.'},
+{q:'What does a "warm handoff" mean?',o:['Faxing records with no contact','A direct, authorized introduction to the new provider, with follow-up','Ending services kindly','Recommending a website'],a:1,why:'Warm handoffs increase the chance of a successful connection.'},
+{q:'What number reaches the 988 Suicide & Crisis Lifeline?',o:['311','411','988','211'],a:2,why:'Call or text 988, available 24/7 in the U.S.'}],
+reflection:'What does your setting\'s procedure look like when a client discloses safety concerns? (If you don\'t know yet, write down what you need to ask your supervisor.) What feels most uncertain to you about this part of practice?'}
+];
+const SEED_DRAFT_MODULES=[
+{id:'m6',courseId:'c2',num:1,title:'Telehealth Readiness',category:'Telehealth',minutes:60,prereq:null,summary:'Setting up a private, accessible telehealth practice.',objectives:['Assess client suitability for telehealth','Address privacy and emergency planning for remote sessions'],
+lessons:[{type:'text',title:'Is telehealth a fit?',html:'<p>Draft lesson. Consider client preference, technology access, privacy at the client\'s location, and emergency planning for the client\'s physical location.</p>'},{type:'video',title:'Platform walkthrough',duration:'TBD',html:'<p>Video not yet uploaded.</p>'}],
+scenario:null,quiz:[{q:'Before a telehealth session begins, you should confirm:',o:['The client\'s favorite color','The client\'s current physical location','The weather','Nothing extra'],a:1,why:'Location matters for emergency planning and jurisdiction.'}],reflection:'What concerns do you have about providing telehealth?'},
+{id:'m7',courseId:'c2',num:2,title:'Emergency Planning for Remote Sessions',category:'Telehealth',minutes:60,prereq:'m6',summary:'Draft module: local emergency resources and contingency plans.',objectives:['Create a remote-session emergency plan'],lessons:[{type:'text',title:'Building the plan',html:'<p>Draft content goes here.</p>'}],scenario:null,quiz:[],reflection:'Draft reflection prompt.'}
+];
+const KEY='lpcls-demo-v2', UIKEY='lpcls-ui-v2', DAY=864e5;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+Math.random().toString(36).slice(2,9);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pctf=(a,b)=>b?Math.round(a/b*100):0;
+const fmtD=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const fmtDY=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+const fmtDT=t=>new Date(t).toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const fmtT=t=>new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+function rel(t){const d=Date.now()-t,m=Math.round(d/6e4);if(Math.abs(m)<1)return'just now';if(d<0){const dd=Math.round(-d/DAY);return dd<1?'today':dd===1?'tomorrow':'in '+dd+' days'}if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';const dd=Math.round(h/24);return dd===1?'yesterday':dd+'d ago'}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function load(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function seed(){
+const N=Date.now(), d=n=>N-n*DAY, at=(n,h,m)=>{const x=new Date(N+n*DAY);x.setHours(h,m||0,0,0);return +x};
+const users=[
+{id:'a1',name:'Casey Whitfield',role:'admin',credential:'Platform Administrator',email:'casey.admin@example.org',color:'#7b5523',joined:d(120)},
+{id:'i1',name:'Dr. Elena Morris',role:'instructor',credential:'LPC-S (fictional)',email:'elena.morris@example.org',color:'#265744',joined:d(110),bio:'Supervisor & lead instructor'},
+{id:'i2',name:'Dr. Hannah Cole',role:'instructor',credential:'LPC-S (fictional)',email:'hannah.cole@example.org',color:'#3b6280',joined:d(90),bio:'Instructor'},
+{id:'s1',name:'Mia Torres',role:'student',credential:'LPC Associate',email:'mia.torres@example.org',color:'#3d7a5f',joined:d(62),supervisorId:'i1',setting:'Community mental health agency',stage:'Month 7 of supervised experience'},
+{id:'s2',name:'Jordan Patel',role:'student',credential:'LPC Associate',email:'jordan.patel@example.org',color:'#9a6a18',joined:d(55),supervisorId:'i1',setting:'Group private practice',stage:'Month 3 of supervised experience'},
+{id:'s3',name:'Lauren Kim',role:'student',credential:'Graduate practicum student',email:'lauren.kim@example.org',color:'#6a5a8c',joined:d(70),supervisorId:'i1',setting:'University counseling center practicum',stage:'Practicum, final semester'},
+{id:'s4',name:'Caleb Brooks',role:'student',credential:'LPC Associate',email:'caleb.brooks@example.org',color:'#a4473b',joined:d(48),supervisorId:'i1',setting:'Integrated primary care clinic',stage:'Month 2 of supervised experience'},
+{id:'s5',name:'Nina Shah',role:'student',credential:'LPC Associate',email:'nina.shah@example.org',color:'#3b6280',joined:d(3),supervisorId:'i1',setting:'Telehealth practice',stage:'Month 1 of supervised experience'},
+{id:'s6',name:'Owen Grant',role:'student',credential:'LPC Associate',email:'owen.grant@example.org',color:'#557a3d',joined:d(30),supervisorId:'i2',setting:'School-based services',stage:'Month 4 of supervised experience'},
+{id:'s7',name:'Priya Das',role:'student',credential:'LPC',email:'priya.das@example.org',color:'#8c5a6a',joined:d(20),supervisorId:'i2',setting:'Private practice',stage:'Licensed, professional development'}];
+const modules={};[...SEED_MODULES,...SEED_DRAFT_MODULES].forEach(m=>modules[m.id]=clone(m));
+const courses=[
+{id:'c1',title:'Clinical Foundations Pathway',desc:'Five case-based modules covering ethics, documentation, supervision, treatment planning, and risk. Designed for counseling students and LPC Associates.',status:'published',passScore:80,moduleIds:['m1','m2','m3','m4','m5'],instructorIds:['i1','i2'],approval:'not_approved',hoursLabel:'~10 hrs (estimated, not verified)',price:149,createdAt:d(100)},
+{id:'c2',title:'Telehealth Practice Essentials',desc:'Draft course: telehealth readiness, privacy, and emergency planning for remote sessions.',status:'draft',passScore:80,moduleIds:['m6','m7'],instructorIds:['i1'],approval:'not_approved',hoursLabel:'~2 hrs (estimated)',price:39,createdAt:d(8)}];
+const db={v:2,seededAt:N,users,courses,modules,enrollments:[],progress:{},reflections:[],notes:[],meetings:[],activity:[],
+settings:{brand:'LPC Learning Studio',tagline:'Interactive counselor education'},
+plans:[{id:'p1',name:'Single course',price:149,interval:'one-time',active:true},{id:'p2',name:'Foundations bundle (all courses)',price:249,interval:'one-time',active:true},{id:'p3',name:'Monthly membership',price:29,interval:'month',active:false}]};
+['s1','s2','s3','s4','s5','s6','s7'].forEach((s,i)=>db.enrollments.push({id:uid('e'),userId:s,courseId:'c1',moduleIds:null,assignedBy:users.find(u=>u.id===s).supervisorId,at:d([60,54,68,46,3,28,18][i]),due:N+[21,14,10,7,45,30,40][i]*DAY}));
+const P=(u,m)=>{db.progress[u]=db.progress[u]||{};return db.progress[u][m]=db.progress[u][m]||{done:{},pos:0,sim:null,attempts:[],ex:{},touched:0}};
+const finish=(u,mid,o)=>{const m=modules[mid],p=P(u,mid);stepsOf(m).forEach(s=>{if(s.key!=='quiz'&&s.key!=='ref')p.done[s.key]=true});
+p.sim={path:[],done:true,score:o.sim??5,max:6};(o.att||[100]).forEach((sc,i)=>p.attempts.push({score:sc,at:o.t-DAY*(o.att.length-i)/2,answers:[],reviewed:true}));
+if(Math.max(...(o.att||[100]))>=80)p.done.quiz=true;p.touched=o.t;p.pos=stepsOf(m).length-1;
+if(o.ref){const r={id:uid('r'),userId:u,moduleId:mid,text:o.ref,at:o.t,status:o.rs||'awaiting',thread:o.th||[],unread:!!o.unread};db.reflections.push(r);p.done.ref=true;p.reflId=r.id;if(r.status!=='awaiting'||true)p.completedAt=o.t}};
+const partial=(u,mid,n,t,extra)=>{const m=modules[mid],p=P(u,mid),st=stepsOf(m);st.slice(0,n).forEach(s=>p.done[s.key]=true);p.pos=Math.min(n,st.length-1);p.touched=t;Object.assign(p,extra||{})};
+// Mia: strong
+finish('s1','m1',{t:d(40),att:[100],sim:6,ref:'In my agency, clients sometimes see me at the local grocery store. I’m in tension between autonomy (letting them decide whether to greet me) and fidelity to confidentiality. I now mention this at intake and let clients choose. I’d consult my supervisor if a client asked to meet socially.',rs:'reviewed',th:[{by:'i1',text:'Thoughtful. Raising chance encounters at intake is exactly the kind of proactive consent conversation that prevents ruptures. Let’s add this to your informed consent script.',at:d(38)}]});
+finish('s1','m2',{t:d(6),att:[80,100],sim:5,ref:'I want to stop writing notes at the end of the day from memory. I’m going to block 10 minutes after each session for two weeks and use the DAP template. The barrier is back-to-back scheduling.',rs:'awaiting'});
+partial('s1','m3',3,d(1));
+// Jordan: struggling on documentation quiz
+finish('s2','m1',{t:d(30),att:[60,80],sim:4,ref:'A client offered me concert tickets they couldn’t use. I declined kindly and we explored what the offer meant. Principles in tension were beneficence and avoiding a dual relationship.',rs:'reviewed',th:[{by:'i1',text:'Good handling. Next time, also document the offer and your response. Please add a one-line addendum to the note.',at:d(28)},{by:'s2',text:'Done. I added the addendum. Thanks!',at:d(27)}]});
+partial('s2','m2',6,d(4),{attempts:[{score:60,at:d(9),answers:[0,1,0,1,0],reviewed:false},{score:60,at:d(4),answers:[1,2,1,1,0],reviewed:false}]});
+// Lauren: nearly done
+finish('s3','m1',{t:d(60),att:[100],sim:6,ref:'Practicum boundaries: a former classmate is now a client at the center. I disclosed this to my site supervisor and the case was reassigned.',rs:'reviewed',th:[{by:'i1',text:'Exactly the right call, and well documented.',at:d(59)}]});
+finish('s3','m2',{t:d(45),att:[100],sim:6,ref:'Strengthening objective language: I’m replacing adjectives with observable behaviors.',rs:'reviewed',th:[{by:'i1',text:'Great specific habit.',at:d(44)}]});
+finish('s3','m3',{t:d(30),att:[80],sim:5,ref:'My first reaction to feedback is to over-explain. I’m practicing paraphrasing first.',rs:'reviewed',th:[{by:'i1',text:'I’ve noticed the change in our meetings. Keep going.',at:d(29)}]});
+finish('s3','m4',{t:d(15),att:[100],sim:6,ref:'I’ll start graphing GAD-7 scores and reviewing them with clients monthly.',rs:'reviewed',th:[{by:'i1',text:'Love this. Bring a sample (de-identified) graph to group.',at:d(14)}]});
+finish('s3','m5',{t:d(2),att:[80],sim:6,ref:'At my practicum site, any positive screen means I page the on-call supervisor before the client leaves. What feels uncertain is how to phrase the follow-up questions naturally.',rs:'awaiting'});
+// Caleb: inactive
+partial('s4','m1',2,d(18));
+// Nina: new
+partial('s5','m1',1,d(1));
+// Owen & Priya (other supervisor)
+finish('s6','m1',{t:d(10),att:[80],sim:4,ref:'School settings make dual relationships common, since I see families at events.',rs:'awaiting'});
+partial('s7','m1',4,d(2));
+db.reflections.find(r=>r.userId==='s1'&&r.moduleId==='m1').unread=false;
+db.reflections.find(r=>r.userId==='s2'&&r.moduleId==='m1').unread=false;
+// notes
+db.notes.push({id:uid('n'),to:'s1',from:'i1',text:'Nice work on Documentation. For our Thursday meeting, bring one de-identified note you’d like feedback on.',at:d(5),read:false});
+db.notes.push({id:uid('n'),to:'s4',from:'i1',text:'Checking in. I noticed you haven’t logged in for a couple of weeks. Let’s talk about your schedule at our next meeting.',at:d(4),read:false});
+// meetings
+const mt=(att,type,t,mins,status,agenda,notes,approved)=>db.meetings.push({id:uid('mt'),supervisorId:'i1',attendees:att,type,at:t,mins,status,agenda,notes:notes||'',approved:!!approved});
+mt(['s1'],'individual',at(2,15),60,'scheduled','Review documentation sample; case conceptualization (de-identified).');
+mt(['s2'],'individual',at(3,10),60,'scheduled','Documentation remediation plan; quiz review.');
+mt(['s1','s3','s5'],'group',at(6,13),120,'scheduled','Group: ethical decision-making case discussion.');
+mt(['s4'],'individual',at(8,11),60,'scheduled','Re-engagement and scheduling.');
+mt(['s1'],'individual',at(-5,15),60,'completed','Boundaries with chance encounters.','Discussed informed consent language for chance encounters. Associate to update consent script.',true);
+mt(['s2'],'individual',at(-6,10),60,'completed','Gift offers; documentation.','Reviewed gift-offer handling. Recommended addendum. Discussed note timeliness.',true);
+mt(['s1','s3','s5'],'group',at(-8,13),120,'completed','Group: risk screening procedures.','Reviewed agency screening workflow and consultation pathways (no identifying information).',false);
+mt(['s3'],'individual',at(-12,9),60,'completed','Practicum wrap-up planning.','Planned final practicum evaluation.',true);
+mt(['s4'],'individual',at(-20,11),60,'completed','Onboarding.','Reviewed supervision agreement and expectations.',true);
+db.meetings.push({id:uid('mt'),supervisorId:'i2',attendees:['s6'],type:'individual',at:at(4,14),mins:60,status:'scheduled',agenda:'School-setting boundaries.',notes:'',approved:false});
+// activity
+const A=(t,u,text,type)=>db.activity.push({at:t,uid:u,text,type});
+A(d(.05),'s1','opened Module 3, Supervision & Consultation','progress');A(d(1),'s5','started Module 1, Ethics & Professional Boundaries','progress');
+A(d(2),'s3','submitted a reflection for Module 5','reflection');A(d(2.1),'s3','passed the Module 5 knowledge check (80%)','quiz');
+A(d(4),'s2','scored 60% on the Module 2 knowledge check (attempt 2)','quiz');A(d(4.1),'i1','sent a check-in note to Caleb Brooks','feedback');
+A(d(6),'s1','submitted a reflection for Module 2','reflection');A(d(6.1),'s1','passed the Module 2 knowledge check (100%)','quiz');
+A(d(9),'s2','scored 60% on the Module 2 knowledge check (attempt 1)','quiz');A(d(10),'s6','submitted a reflection for Module 1','reflection');A(d(14),'i1','gave feedback on Lauren Kim’s Module 4 reflection','feedback');
+db.activity.sort((a,b)=>b.at-a.at);
+// touched for last-active
+users.forEach(u=>u.lastActive=u.role==='student'?Math.max(0,...Object.values(db.progress[u.id]||{}).map(p=>p.touched||0))||u.joined:d(.02));
+return db}
+let db=load(KEY); if(!db||db.v!==2){db=seed();store(KEY,db)}
+let ui=Object.assign({as:'s1',supAs:'i1',ex:{},quiz:{},tab:{},filter:'',cal:0},load(UIKEY)||{});ui.ex={};ui.quiz={};
+const save=()=>{store(KEY,db);store(UIKEY,{as:ui.as,supAs:ui.supAs,role:ui.role,cal:ui.cal})};
+const U=id=>db.users.find(u=>u.id===id);
+const C=id=>db.courses.find(c=>c.id===id);
+const M=id=>db.modules[id];
+function role(){return ui.role||'public'}
+function me(){return role()==='student'?U(ui.as):role()==='instructor'?U(ui.supAs):role()==='admin'?U('a1'):null}
+function log(text,type,u){db.activity.unshift({at:Date.now(),uid:u||me().id,text,type})}
+function initials(n){return n.replace(/^Dr\.\s*/,'').split(/\s+/).map(x=>x[0]).slice(0,2).join('')}
+function av(u,cls){return `<span class="avatar ${cls||''}" style="background:${u.color||'#3d7a5f'}">${esc(initials(u.name))}</span>`}
+function person(u,sub){return `<div class="person">${av(u)}<div><b>${esc(u.name)}</b><span>${esc(sub??u.credential)}</span></div></div>`}
+function stepsOf(m){const s=[{key:'ov',label:'Overview',kind:'ov'}];m.lessons.forEach((l,i)=>s.push({key:'l'+i,label:l.title,kind:'lesson',i}));
+if(m.scenario)s.push({key:'sim',label:'Case simulation',kind:'sim'});if(m.quiz&&m.quiz.length)s.push({key:'quiz',label:'Knowledge check',kind:'quiz'});s.push({key:'ref',label:'Reflection',kind:'ref'});return s}
+function prog(u,mid,create){if(!db.progress[u]){if(!create)return null;db.progress[u]={}}let p=db.progress[u][mid];if(!p&&create)p=db.progress[u][mid]={done:{},pos:0,sim:null,attempts:[],ex:{},touched:0};return p||null}
+const best=p=>p&&p.attempts.length?Math.max(...p.attempts.map(a=>a.score)):null;
+function passOf(mid){const m=M(mid);return (C(m.courseId)||{}).passScore||80}
+function modPct(u,mid){const p=prog(u,mid),st=stepsOf(M(mid));if(!p)return 0;return pctf(st.filter(s=>p.done[s.key]).length,st.length)}
+function modStatus(u,mid){const m=M(mid);if(m.prereq&&modStatus(u,m.prereq)!=='done')return 'locked';const pc=modPct(u,mid);return pc>=100?'done':pc>0?'in':'not'}
+function enrolledMods(u,cid){const e=db.enrollments.find(e=>e.userId===u&&e.courseId===cid);if(!e)return[];const c=C(cid);return (e.moduleIds&&e.moduleIds.length?c.moduleIds.filter(x=>e.moduleIds.includes(x)):c.moduleIds).filter(id=>M(id))}
+function coursePct(u,cid){const ms=enrolledMods(u,cid);return ms.length?Math.round(ms.reduce((a,m)=>a+modPct(u,m),0)/ms.length):0}
+function coursesOf(u){return db.enrollments.filter(e=>e.userId===u).map(e=>C(e.courseId)).filter(c=>c&&(c.status==='published'))}
+function allAttempts(u){const out=[];Object.entries(db.progress[u]||{}).forEach(([mid,p])=>p.attempts.forEach(a=>out.push({...a,mid})));return out}
+function avgQuiz(u){const b=Object.entries(db.progress[u]||{}).map(([m,p])=>best(p)).filter(x=>x!==null);return b.length?Math.round(b.reduce((a,x)=>a+x,0)/b.length):null}
+function lastActive(u){const t=Math.max(U(u).lastActive||0,...Object.values(db.progress[u]||{}).map(p=>p.touched||0));return t}
+function flags(u){const f=[];const la=lastActive(u);if(Date.now()-la>10*DAY)f.push({t:'Inactive '+Math.round((Date.now()-la)/DAY)+'d',c:'red'});
+Object.entries(db.progress[u]||{}).forEach(([mid,p])=>{const fails=p.attempts.filter(a=>a.score<passOf(mid)).length;if(fails>=2&&!p.done.quiz)f.push({t:'2+ failed attempts · M'+M(mid).num,c:'gold'})});
+db.enrollments.filter(e=>e.userId===u).forEach(e=>{if(e.due<Date.now()&&coursePct(u,e.courseId)<100)f.push({t:'Overdue',c:'red'})});return f}
+function studentsFor(viewer){return db.users.filter(u=>u.role==='student'&&(viewer.role==='admin'||u.supervisorId===viewer.id))}
+function pendingRefl(viewer){const ids=studentsFor(viewer).map(s=>s.id);return db.reflections.filter(r=>ids.includes(r.userId)&&r.status==='awaiting')}
+function pendingQuiz(viewer){const out=[];studentsFor(viewer).forEach(s=>Object.entries(db.progress[s.id]||{}).forEach(([mid,p])=>{const un=p.attempts.filter(a=>!a.reviewed&&a.score<passOf(mid));if(un.length)out.push({s,mid,p,un})}));return out}
+function unreadFor(u){return db.reflections.filter(r=>r.userId===u&&r.unread).length+db.notes.filter(n=>n.to===u&&!n.read).length}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
+function modal(html){$('#mbody').innerHTML=html;$('#modal').classList.add('show');setTimeout(()=>{const f=$('#mbody input,#mbody textarea,#mbody select');f&&f.focus()},50)}
+function closeModal(){$('#modal').classList.remove('show')}
+function bar(p,cls){return `<div class="bar ${cls||''}"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></div>`}
+function ring(p,sm){return `<div class="ring ${sm?'sm':''}" style="--p:${p}"><span>${p}%</span></div>`}
+function statusTag(s){return {done:'<span class="tag">Complete</span>',in:'<span class="tag blue">In progress</span>',not:'<span class="tag gray">Not started</span>',locked:'<span class="tag outline">🔒 Locked</span>'}[s]}
+function download(name,content,type){try{const b=new Blob([content],{type:type||'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('Downloaded '+name)}catch(e){toast('Download blocked in this preview')}}
+function csv(rows){return rows.map(r=>r.map(c=>{c=String(c??'');return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')).join('\n')}
+function hbars(rows,max){max=max||100;const h=rows.length*34+6;return `<div class="chart"><svg viewBox="0 0 520 ${h}" role="img">${rows.map((r,i)=>{const y=i*34+4,w=Math.max(2,(r.v/max)*300);return `<text x="0" y="${y+17}" font-size="12.5" fill="#2c4a3e">${esc(r.l.length>26?r.l.slice(0,25)+'…':r.l)}</text><rect x="178" y="${y+5}" width="300" height="16" rx="8" fill="#e7ece5"/><rect x="178" y="${y+5}" width="${w}" height="16" rx="8" fill="${r.c||'#3d7a5f'}"/><text x="${w>230?178+w-8:178+w+6}" y="${y+17}" font-size="12" fill="${w>230?'#fff':'#19362d'}" font-weight="600" ${w>230?'text-anchor="end"':''}>${esc(r.t??r.v+'%')}</text>`}).join('')}</svg></div>`}
+function cols(rows){const max=Math.max(1,...rows.map(r=>r.v));const W=520,H=170,bw=(W-20)/rows.length;return `<div class="chart"><svg viewBox="0 0 ${W} ${H+24}">${rows.map((r,i)=>{const h=Math.round(r.v/max*(H-24)),x=10+i*bw;return `<rect x="${x+bw*.18}" y="${H-h}" width="${bw*.64}" height="${h}" rx="6" fill="${r.c||'#3d7a5f'}"/><text x="${x+bw/2}" y="${H-h-6}" text-anchor="middle" font-size="12" font-weight="600" fill="#19362d">${r.v}</text><text x="${x+bw/2}" y="${H+16}" text-anchor="middle" font-size="11.5" fill="#66796d">${esc(r.l)}</text>`}).join('')}<line x1="6" x2="${W-6}" y1="${H}" y2="${H}" stroke="#dfe7df"/></svg></div>`}
+function piiCheck(t){const hard=[],soft=[];
+if(/\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/.test(t))hard.push('a number that looks like a Social Security number');
+if(/(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]\d{4})/.test(t))hard.push('a phone number');
+if(/[\w.+-]+@[\w-]+\.[\w.]+/.test(t))hard.push('an email address');
+if(/\b(dob|date of birth|born on)\b/i.test(t)||/\b\d{1,2}\/\d{1,2}\/(19|20)\d{2}\b/.test(t))hard.push('a date of birth or full date');
+if(/\b(Mr|Mrs|Ms|Miss)\.?\s+[A-Z][a-z]+/.test(t)||/\bclient(?:'s)? name(?:d| is)\s+[A-Z]/i.test(t))soft.push('what may be a client name');
+if(/\b\d{1,5}\s+\w+\s+(St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|Lane)\b/i.test(t))hard.push('a street address');
+return {hard,soft}}
+function sHome(){const u=me();const cs=coursesOf(u.id);const unread=unreadFor(u.id);
+// continue where you left off
+let last=null;Object.entries(db.progress[u.id]||{}).forEach(([mid,p])=>{if(M(mid)&&modPct(u.id,mid)<100&&(!last||p.touched>last.p.touched))last={mid,p}});
+if(!last){for(const c of cs){const nx=enrolledMods(u.id,c.id).find(m=>modStatus(u.id,m)!=='done'&&modStatus(u.id,m)!=='locked');if(nx){last={mid:nx,p:prog(u.id,nx)||{pos:0}};break}}}
+const meets=db.meetings.filter(m=>m.attendees.includes(u.id)&&m.status==='scheduled'&&m.at>Date.now()).sort((a,b)=>a.at-b.at);
+const fb=[...db.reflections.filter(r=>r.userId===u.id&&r.thread.some(t=>t.by!==u.id)).map(r=>({at:r.thread.filter(t=>t.by!==u.id).slice(-1)[0].at,from:r.thread.filter(t=>t.by!==u.id).slice(-1)[0].by,text:r.thread.filter(t=>t.by!==u.id).slice(-1)[0].text,ctx:'Reflection · M'+M(r.moduleId).num,unread:r.unread,link:'#/student/journal'})),...db.notes.filter(n=>n.to===u.id).map(n=>({at:n.at,from:n.from,text:n.text,ctx:'Note',unread:!n.read,link:'#/student/journal'}))].sort((a,b)=>b.at-a.at).slice(0,4);
+const allMods=cs.flatMap(c=>enrolledMods(u.id,c.id));const done=allMods.filter(m=>modStatus(u.id,m)==='done').length;const overall=allMods.length?Math.round(allMods.reduce((a,m)=>a+modPct(u.id,m),0)/allMods.length):0;
+return `<div class="pagehead"><div><div class="eyebrow">Welcome back</div><h1>Good to see you, ${esc(u.name.split(' ')[0])}.</h1><p class="muted" style="margin:0">${esc(u.credential)} · ${esc(u.setting||'')}</p></div></div>
+<div class="split">
+<div class="grid">
+${last?`<div class="card" style="background:linear-gradient(115deg,#1d4436,#336e54);color:#fff;border:0"><div class="eyebrow" style="color:#e4c68b">Continue where you left off</div>
+<h2 style="color:#fff">${esc(M(last.mid).title)}</h2><p style="color:#d6e6da;margin-bottom:12px">Next: ${esc(stepsOf(M(last.mid))[Math.min(last.p.pos||0,stepsOf(M(last.mid)).length-1)].label)}</p>
+<div class="bar" style="background:#ffffff30;margin-bottom:14px"><i style="width:${modPct(u.id,last.mid)}%;background:#e4c68b"></i></div>
+<a class="btn" style="background:#fff;color:var(--green);border-color:#fff" href="#/student/module/${last.mid}">Resume module →</a></div>`:`<div class="card tint"><h3>You’re all caught up</h3><p class="muted">No modules in progress. Check with your supervisor about your next assignment.</p></div>`}
+<div class="card"><div class="cardhead"><h3>My courses</h3></div>
+${cs.length?cs.map(c=>{const p=coursePct(u.id,c.id),e=db.enrollments.find(e=>e.userId===u.id&&e.courseId===c.id);return `<a href="#/student/course/${c.id}" style="text-decoration:none;color:inherit"><div class="modrow"><div class="modnum">${p===100?'✓':esc(c.title[0])}</div><div style="flex:1;min-width:0"><b>${esc(c.title)}</b><div class="small muted">${enrolledMods(u.id,c.id).length} modules · due ${fmtD(e.due)} · ${esc(c.hoursLabel)}</div><div class="mt" style="margin-top:8px">${bar(p)}</div></div><span class="small"><b>${p}%</b></span></div></a>`}).join(''):'<div class="empty">No courses assigned yet.</div>'}
+</div>
+</div>
+<div class="grid" style="align-content:start">
+<div class="card flex" style="gap:16px">${ring(overall)}<div><b>${done} of ${allMods.length} modules complete</b><div class="small muted">Average knowledge-check score: ${avgQuiz(u.id)??'—'}${avgQuiz(u.id)!==null?'%':''}</div><a class="small" href="#/student/progress">View my progress →</a></div></div>
+<div class="card"><div class="cardhead"><h3>Instructor feedback</h3>${unread?`<span class="tag gold">${unread} new</span>`:''}</div>
+${fb.length?`<div class="list">${fb.map(f=>`<a class="li" href="${f.link}" style="text-decoration:none;color:inherit"><span class="dot ${f.unread?'gold':''}"></span><div class="grow"><div class="small"><b>${esc(U(f.from).name)}</b> · <span class="muted">${esc(f.ctx)} · ${rel(f.at)}</span></div><div class="small" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(f.text)}</div></div></a>`).join('')}</div>`:'<div class="small muted">Feedback on your reflections will appear here.</div>'}
+</div>
+<div class="card"><div class="cardhead"><h3>Upcoming supervision</h3></div>
+${meets.length?`<div class="list">${meets.slice(0,3).map(m=>`<div class="li"><span class="dot ${m.type==='group'?'gold':''}"></span><div class="grow"><b class="small">${fmtDT(m.at)}</b><div class="small muted">${m.type==='group'?'Group':'Individual'} · ${m.mins} min · with ${esc(U(m.supervisorId).name)}</div><div class="small">${esc(m.agenda)}</div></div></div>`).join('')}</div>`:'<div class="small muted">No meetings scheduled.</div>'}
+<p class="tiny muted mt" style="margin-bottom:0">Supervision meetings are scheduled and recorded by your supervisor. Online course activity is never counted as supervision hours.</p>
+</div>
+</div>
+</div>`}
+function sCourse(cid){const u=me(),c=C(cid);if(!c||!db.enrollments.some(e=>e.userId===u.id&&e.courseId===cid))return denied('You are not enrolled in this course.');
+const mods=enrolledMods(u.id,cid);const p=coursePct(u.id,cid);
+return `<div class="crumbs"><a href="#/student">Home</a> / Course</div>
+<div class="pagehead"><div><div class="eyebrow">Course</div><h1>${esc(c.title)}</h1><p class="muted" style="max-width:640px;margin:0">${esc(c.desc)}</p></div>${ring(p)}</div>
+<div class="notice mb"><b>Educational demonstration.</b> ${esc(c.hoursLabel)}. This course is not approved for continuing education and does not count toward supervised clinical experience or practicum hours.</div>
+${mods.map(mid=>{const m=M(mid),s=modStatus(u.id,mid),pc=modPct(u.id,mid),pp=prog(u.id,mid);const b=best(pp);
+return `<div class="modrow ${s==='locked'?'locked':''} ${s==='done'?'done':''}"><div class="modnum">${s==='done'?'✓':m.num}</div><div style="flex:1;min-width:0"><div class="flex wrap" style="gap:8px"><b>${esc(m.title)}</b>${statusTag(s)}</div>
+<div class="small muted">${esc(m.summary)}</div><div class="small muted" style="margin-top:4px">${m.lessons.length} lessons${m.scenario?' · case simulation':''} · ${m.quiz.length}-question check${b!==null?' · best '+b+'%':''} · ~${m.minutes} min</div>
+${s==='locked'?`<div class="small" style="color:var(--amber);margin-top:4px">Prerequisite: complete “${esc(M(m.prereq).title)}” first.</div>`:`<div style="margin-top:8px;max-width:420px">${bar(pc)}</div>`}</div>
+${s==='locked'?'':`<a class="btn sm ${s==='done'?'alt':''}" href="#/student/module/${mid}">${s==='done'?'Review':s==='in'?'Resume':'Start'}</a>`}</div>`}).join('')}`}
+function sModule(mid,stepArg){const u=me(),m=M(mid);if(!m)return denied('Module not found.');
+const enrolled=db.enrollments.some(e=>e.userId===u.id&&enrolledMods(u.id,e.courseId).includes(mid));if(!enrolled)return denied('This module isn’t assigned to you.');
+if(modStatus(u.id,mid)==='locked')return denied('Complete the prerequisite module first: '+M(m.prereq).title);
+const p=prog(u.id,mid,true),st=stepsOf(m);let pos=stepArg!==undefined?+stepArg:p.pos||0;pos=Math.max(0,Math.min(pos,st.length-1));
+if(p.pos!==pos||!p.touched){p.pos=pos;p.touched=Date.now();save()}
+const s=st[pos];
+return `<div class="crumbs"><a href="#/student">Home</a> / <a href="#/student/course/${m.courseId}">${esc(C(m.courseId).title)}</a> / Module ${m.num}</div>
+<div class="pagehead"><div><div class="eyebrow">Module ${m.num} · ${esc(m.category)}</div><h1>${esc(m.title)}</h1></div><div style="min-width:200px"><div class="flex between small"><span class="muted">Module progress</span><b>${modPct(u.id,mid)}%</b></div>${bar(modPct(u.id,mid))}<div class="tiny muted" style="margin-top:4px">Saved automatically · resume anytime</div></div></div>
+<div class="player"><nav class="steps" aria-label="Module steps">${st.map((x,i)=>`<button class="step ${i===pos?'on':''} ${p.done[x.key]?'done':''}" data-a="goStep" data-m="${mid}" data-i="${i}"><span class="sdot">${p.done[x.key]?'✓':i+1}</span><span class="lbl">${esc(x.label)}</span></button>`).join('')}</nav>
+<section class="stage">${renderStep(u,m,p,s,pos,st)}</section></div>`}
+function stepFoot(m,pos,st,canNext,label){return `<div class="stagefoot"><button class="btn alt sm" data-a="goStep" data-m="${m.id}" data-i="${pos-1}" ${pos===0?'disabled':''}>← Back</button>
+${pos<st.length-1?`<button class="btn" data-a="complete" data-m="${m.id}" data-k="${st[pos].key}" ${canNext?'':'disabled'}>${label||'Mark complete & continue →'}</button>`:''}</div>`}
+function renderStep(u,m,p,s,pos,st){
+if(s.kind==='ov')return `<div class="eyebrow">Overview</div><h2>What you’ll learn</h2><p class="muted">${esc(m.summary)}</p>
+<ul class="lessonbody">${m.objectives.map(o=>`<li>${esc(o)}</li>`).join('')}</ul>
+<div class="grid g3 mt">${[['Lessons',m.lessons.length],['Case simulation',m.scenario?'1 branching':'—'],['Knowledge check',m.quiz.length+' questions · pass '+passOf(m.id)+'%']].map(x=>`<div class="card flat cream"><div class="small muted">${x[0]}</div><b>${x[1]}</b></div>`).join('')}</div>
+<div class="notice green mt">Estimated time ~${m.minutes} minutes (illustrative). Your progress saves automatically after each step, so you can stop and resume on any device using this browser.</div>
+${stepFoot(m,pos,st,true,'Begin module →')}`;
+if(s.kind==='lesson'){const l=m.lessons[s.i];return renderLesson(u,m,p,l,s,pos,st)}
+if(s.kind==='sim')return renderSim(u,m,p,pos,st);
+if(s.kind==='quiz')return renderQuiz(u,m,p,pos,st);
+if(s.kind==='ref')return renderRefl(u,m,p,pos,st)}
+function renderLesson(u,m,p,l,s,pos,st){const k=s.key,head=`<div class="eyebrow">Lesson ${s.i+1} of ${m.lessons.length}${l.type==='video'?' · Video':l.type==='sort'||l.type==='sequence'||l.type==='rewrite'?' · Interactive exercise':l.type==='worksheet'?' · Worksheet':l.type==='file'?' · Instructor resource':''}</div><h2>${esc(l.title)}</h2>`;
+if(l.type==='text')return head+`<div class="lessonbody">${l.html}</div>`+stepFoot(m,pos,st,true);
+if(l.type==='video')return head+`<div class="video"><div><div class="play">▶</div><b>Video placeholder</b><div class="small" style="opacity:.8">${esc(l.duration||'')} · ${l.fileName?esc(l.fileName)+' (uploaded in demo)':'Instructor video will stream here in production'}</div></div></div><div class="lessonbody">${l.html||''}</div>`+stepFoot(m,pos,st,true);
+if(l.type==='file')return head+`<div class="card flat cream flex"><div style="font-size:28px">📄</div><div class="grow"><b>${esc(l.fileName||'No file attached')}</b><div class="small muted">${l.fileSize?Math.round(l.fileSize/1024)+' KB · ':''}Uploaded by instructor. Demo stores the file name only.</div></div></div><div class="lessonbody mt">${l.html||''}</div>`+stepFoot(m,pos,st,true);
+if(l.type==='worksheet')return head+`<p class="muted">${esc(l.intro)}</p><div class="card flat cream">${l.sections.map(x=>`<h4>${esc(x.h)}</h4><ul class="small" style="margin-top:0">${x.p.filter(Boolean).map(q=>`<li>${esc(q)}</li>`).join('')}</ul>`).join('')}</div>
+<div class="btnrow mt"><button class="btn alt" data-a="worksheet" data-m="${m.id}" data-i="${s.i}">⬇ Download printable worksheet</button></div><p class="tiny muted mt">Don’t write identifying client information on worksheets.</p>`+stepFoot(m,pos,st,true);
+if(l.type==='sort'){const ex=ui.ex[m.id+k]=ui.ex[m.id+k]||{sel:null,placed:{},checked:false};const solved=p.done[k];
+const unplaced=l.items.map((x,i)=>i).filter(i=>ex.placed[i]===undefined);
+return head+`<p class="lessonbody">${l.intro}</p>
+${solved&&!ex.retry&&!Object.keys(ex.placed).length?`<div class="notice green">✓ You completed this exercise. <button class="btn xs alt" data-a="exReset" data-m="${m.id}" data-k="${k}">Try again</button></div>`:`
+<div class="chips">${unplaced.map(i=>`<button class="chipbtn ${ex.sel===i?'sel':''}" data-a="exSel" data-m="${m.id}" data-k="${k}" data-i="${i}">${esc(l.items[i].t)}</button>`).join('')||'<span class="small muted">All items placed.</span>'}</div>
+<div class="buckets">${l.buckets.map((b,bi)=>`<button class="bucket ${ex.sel!==null?'armed':''}" data-a="exPlace" data-m="${m.id}" data-k="${k}" data-b="${bi}"><h4>${esc(b)}</h4>${Object.entries(ex.placed).filter(([i,v])=>v===bi).map(([i])=>`<span class="placed ${ex.checked?(l.items[i].b===bi?'ok':'no'):''}">${ex.checked?(l.items[i].b===bi?'✓ ':'✗ '):''}${esc(l.items[i].t)}</span>`).join('')}</button>`).join('')}</div>
+<div class="btnrow mt">${!unplaced.length&&!ex.checked?`<button class="btn" data-a="exCheck" data-m="${m.id}" data-k="${k}">Check answers</button>`:''}${ex.checked&&l.items.some((it,i)=>ex.placed[i]!==it.b)?`<span class="small" style="color:var(--red)">${l.items.filter((it,i)=>ex.placed[i]!==it.b).length} to reconsider.</span><button class="btn alt sm" data-a="exRetry" data-m="${m.id}" data-k="${k}">Move incorrect items back</button>`:''}${ex.checked&&l.items.every((it,i)=>ex.placed[i]===it.b)?'<span class="tag">✓ All correct</span>':''}</div>`}`+stepFoot(m,pos,st,solved||(ex.checked&&l.items.every((it,i)=>ex.placed[i]===it.b)),'Continue →')}
+if(l.type==='sequence'){const ex=ui.ex[m.id+k]=ui.ex[m.id+k]||{order:[3,0,5,1,4,2].filter(i=>i<l.items.length).concat(l.items.map((x,i)=>i)).filter((v,i,a)=>a.indexOf(v)===i),checked:false};const ok=ex.order.every((v,i)=>v===l.order[i]);
+return head+`<p class="lessonbody">${l.intro}</p>${ex.order.map((ii,pi)=>`<div class="seqitem" style="${ex.checked?(l.order[pi]===ii?'border-color:#9fc5aa;background:#f1f8f2':'border-color:#e2b3ab;background:#fbf0ee'):''}"><span class="n">${pi+1}</span><span class="grow">${esc(l.items[ii])}</span><button class="btn xs alt" aria-label="Move up" data-a="seqMove" data-m="${m.id}" data-k="${k}" data-i="${pi}" data-d="-1" ${pi===0?'disabled':''}>↑</button><button class="btn xs alt" aria-label="Move down" data-a="seqMove" data-m="${m.id}" data-k="${k}" data-i="${pi}" data-d="1" ${pi===ex.order.length-1?'disabled':''}>↓</button></div>`).join('')}
+<div class="btnrow mt"><button class="btn" data-a="seqCheck" data-m="${m.id}" data-k="${k}">Check order</button>${ex.checked?(ok?'<span class="tag">✓ Nice sequence</span>':'<span class="small" style="color:var(--red)">Not quite. Adjust the highlighted items.</span>'):''}</div>
+${ex.checked&&ok&&l.explain?`<div class="keypoint">${esc(l.explain)}</div>`:''}`+stepFoot(m,pos,st,p.done[k]||(ex.checked&&ok),'Continue →')}
+if(l.type==='rewrite'){const show=p.ex&&p.ex[k+'show'];return head+`<p class="lessonbody">${esc(l.prompt)}</p><label class="f">Original note (fictional)</label><div class="quote" style="background:var(--red2);border-color:#efc9c2">${esc(l.poor)}</div>
+<div class="field mt"><label class="f" for="rw">Your rewrite (saved as you type)</label><textarea class="input" id="rw" data-in="rewrite" data-m="${m.id}" data-k="${k}" style="min-height:140px" placeholder="D: … A: … P: …">${esc((p.ex||{})[k]||'')}</textarea></div>
+<button class="btn alt" data-a="rwShow" data-m="${m.id}" data-k="${k}">${show?'Hide':'Compare with'} model note</button>${show?`<div class="quote mt" style="background:#f1f8f2;border-color:#bcdbc4">${esc(l.model)}</div><p class="small muted mt">Notice what the model does: it quotes the client, describes observable behavior, links to a goal, and gives a concrete plan.</p>`:''}`+stepFoot(m,pos,st,show||p.done[k],'Continue →')}
+return head+`<div class="lessonbody">${l.html||''}</div>`+stepFoot(m,pos,st,true)}
+function renderSim(u,m,p,pos,st){const sc=m.scenario;const sim=p.sim&&p.sim.path?p.sim:{path:[],done:false};const nodes=sc.nodes;
+let html=`<div class="eyebrow">Case simulation · branching</div><h2>${esc(sc.title)}</h2><div class="notice blue mb small">Fictional scenario for practice. Choose how you’d respond. Each choice changes what happens next, and you’ll see feedback right away.</div>
+<div class="sim"><div class="bubble narr">${sc.setup}</div>`;
+const line=l=>l.w==='client'?`<div class="bubble client"><div class="tiny muted" style="margin-bottom:2px">${esc(sc.client)}</div>${esc(l.t)}</div>`:`<div class="bubble narr">${esc(l.t)}</div>`;
+let cur=sc.start;sim.path.forEach(st2=>{const n=nodes[st2.n],ch=n.choices[st2.c];html+=n.lines.map(line).join('')+`<div class="bubble me">${esc(ch.t)}</div><div class="bubble fb ${ch.q}"><b>${ch.q==='good'?'Strong choice.':ch.q==='mixed'?'Partly effective.':'Risky choice.'}</b> ${esc(ch.fb)}</div>`;cur=ch.next});
+if(cur&&!sim.done){const n=nodes[cur];html+=n.lines.map(line).join('')+`<div class="choices">${n.choices.map((c,i)=>`<button class="choice" data-a="simChoose" data-m="${m.id}" data-n="${cur}" data-c="${i}">${esc(c.t)}</button>`).join('')}</div>`}
+html+='</div>';
+if(sim.done){const sc2=sim.score,mx=sim.max;const tier=sc2/mx>=.85?['Skillful handling','You consistently chose responses that protected the client and the relationship.']:sc2/mx>=.5?['Mixed outcome','Some choices worked well. Replay to see how other paths unfold.']:['Learning opportunity','Several choices increased risk. Replay and compare the feedback.'];
+html+=`<div class="card tint mt"><div class="flex between wrap"><div><div class="eyebrow">Outcome</div><h3>${tier[0]}</h3><p class="small" style="margin:0">${tier[1]}</p></div><div class="meter" title="${sc2}/${mx}">${Array.from({length:mx/2},(x,i)=>`<i class="${i<Math.round(sc2/2)?'on':''}"></i>`).join('')}</div></div>
+<div class="btnrow mt"><button class="btn alt sm" data-a="simReset" data-m="${m.id}">↺ Replay scenario</button></div></div>`}
+return html+stepFoot(m,pos,st,sim.done||p.done.sim,'Continue →')}
+function renderQuiz(u,m,p,pos,st){const pass=passOf(m.id),q=ui.quiz[m.id];const last=p.attempts[p.attempts.length-1];
+const head=`<div class="eyebrow">Knowledge check · ${m.quiz.length} questions · passing score ${pass}%</div><h2>Check your understanding</h2>`;
+if(q&&q.submitted){const sc=q.score;return head+`<div class="card ${sc>=pass?'tint':''} flex between wrap mb"><div><h3 style="margin:0">${sc>=pass?'Passed ✓':'Not yet passing'} · ${sc}%</h3><div class="small muted">${sc>=pass?'Nice work. Review the explanations below.':'Review the explanations, then try again. Your supervisor can see your attempts.'}</div></div>${sc>=pass?'':`<button class="btn" data-a="quizRetake" data-m="${m.id}">Retake</button>`}</div>
+${m.quiz.map((x,i)=>`<div class="qcard"><b>${i+1}. ${esc(x.q)}</b>${x.o.map((o,j)=>`<div class="opt ${j===x.a?'right':q.ans[i]===j?'wrong':''}"><span class="l">${String.fromCharCode(65+j)}</span><span>${esc(o)}</span></div>`).join('')}<div class="explain">${q.ans[i]===x.a?'✓ Correct. ':'✗ '}${esc(x.why)}</div></div>`).join('')}`+stepFoot(m,pos,st,sc>=pass||p.done.quiz,'Continue →')}
+if(!q&&p.done.quiz)return head+`<div class="card tint mb"><h3 style="margin:0">Passed ✓ · best score ${best(p)}%</h3><div class="small muted">${p.attempts.length} attempt${p.attempts.length>1?'s':''}. You can retake it for practice.</div><div class="btnrow mt"><button class="btn alt sm" data-a="quizRetake" data-m="${m.id}">Practice again</button></div></div>`+stepFoot(m,pos,st,true,'Continue →');
+const ans=(q&&q.ans)||{};ui.quiz[m.id]={ans,submitted:false};
+return head+(last?`<div class="notice mb small">Previous attempt: ${last.score}% (${rel(last.at)}). ${p.attempts.length} attempt${p.attempts.length>1?'s':''} so far.</div>`:'')+
+m.quiz.map((x,i)=>`<div class="qcard"><b>${i+1}. ${esc(x.q)}</b>${x.o.map((o,j)=>`<button class="opt ${ans[i]===j?'sel':''}" data-a="quizPick" data-m="${m.id}" data-q="${i}" data-o="${j}"><span class="l">${String.fromCharCode(65+j)}</span><span>${esc(o)}</span></button>`).join('')}</div>`).join('')+
+`<div class="btnrow"><button class="btn" data-a="quizSubmit" data-m="${m.id}" ${Object.keys(ans).length<m.quiz.length?'disabled':''}>Submit answers (${Object.keys(ans).length}/${m.quiz.length})</button></div>`+stepFoot(m,pos,st,false)}
+function renderRefl(u,m,p,pos,st){const r=db.reflections.find(r=>r.userId===u.id&&r.moduleId===m.id);const head=`<div class="eyebrow">Reflection journal</div><h2>Reflect & submit</h2><div class="lessonbody"><p>${m.reflection}</p></div>`;
+const allDone=st.every(s=>s.key==='ref'||p.done[s.key]);
+if(r&&r.status!=='revise'){if(r.unread){r.unread=false;save()}return head+`<div class="flex between wrap mb"><span class="small muted">Submitted ${fmtDY(r.at)}</span>${r.status==='awaiting'?'<span class="tag gold">Awaiting instructor feedback</span>':'<span class="tag">Feedback received</span>'}</div><div class="quote">${esc(r.text)}</div>${thread(r,u)}${replyBox(r)}
+${modPct(u.id,m.id)>=100?`<div class="card tint mt flex between wrap"><div><h3 style="margin:0">Module complete 🎉</h3><div class="small muted">Nice work. Your supervisor can see your progress.</div></div><a class="btn" href="#/student/course/${m.courseId}">Back to course</a></div>`:`<div class="notice mt">Finish the remaining steps (${st.filter(s=>!p.done[s.key]).map(s=>esc(s.label)).join(', ')}) to complete this module.</div>`}
+<div class="stagefoot"><button class="btn alt sm" data-a="goStep" data-m="${m.id}" data-i="${pos-1}">← Back</button></div>`}
+const draft=(p.ex||{}).refDraft??(r?r.text:'');
+return head+(r&&r.status==='revise'?`<div class="notice mb"><b>Revision requested.</b> See your instructor’s note below, then update and resubmit.</div>${thread(r,u)}`:'')+
+`<div class="notice red small mb"><b>Privacy reminder:</b> don’t include names, dates of birth, contact details, addresses, or other identifying client information. This demo checks for common identifiers before you submit.</div>
+<div class="field"><label class="f" for="refl">Your reflection</label><textarea class="input" id="refl" data-in="refl" data-m="${m.id}" style="min-height:170px" placeholder="Write a few thoughtful paragraphs…">${esc(draft)}</textarea><div class="flex between tiny muted" style="margin-top:4px"><span id="piiwarn"></span><span id="wc">${draft.trim()?draft.trim().split(/\s+/).length:0} words</span></div></div>
+<div class="btnrow"><button class="btn" data-a="reflSubmit" data-m="${m.id}">${r?'Resubmit for review':'Submit to instructor'}</button><span class="small muted">Draft saves automatically.</span></div>
+${!allDone?`<div class="notice mt small">You can submit now. To complete the module, also finish: ${st.filter(s=>s.key!=='ref'&&!p.done[s.key]).map(s=>esc(s.label)).join(', ')}.</div>`:''}
+<div class="stagefoot"><button class="btn alt sm" data-a="goStep" data-m="${m.id}" data-i="${pos-1}">← Back</button></div>`}
+function thread(r,viewer){if(!r.thread.length)return'';return `<div class="thread">${r.thread.map(t=>`<div class="msg"><div class="meta"><b>${esc(U(t.by).name)}</b> · ${rel(t.at)}${t.kind==='revise'?' · <span class="tag amber">revision requested</span>':''}</div><div class="small">${esc(t.text)}</div></div>`).join('')}</div>`}
+function replyBox(r){if(!r.thread.length)return'';return `<form class="flex mt" data-f="reply" data-r="${r.id}" style="gap:8px"><input class="input" name="t" placeholder="Reply to your instructor…" aria-label="Reply"><button class="btn sm">Send</button></form>`}
+function sProgress(){const u=me();const cs=coursesOf(u.id);
+const rows=cs.flatMap(c=>enrolledMods(u.id,c.id).map(mid=>{const m=M(mid),p=prog(u.id,mid);return {m,p,s:modStatus(u.id,mid),pc:modPct(u.id,mid)}}));
+const atts=allAttempts(u.id).sort((a,b)=>b.at-a.at);
+return `<div class="pagehead"><div><div class="eyebrow">My progress</div><h1>Learning record</h1><p class="muted" style="margin:0">Course activity only. This is not a record of supervised clinical experience or CE credit.</p></div><button class="btn alt sm" data-a="exportMine">⬇ Export my record (CSV)</button></div>
+<div class="grid g4 mb">${[['Modules complete',rows.filter(r=>r.s==='done').length+' / '+rows.length],['Average best score',(avgQuiz(u.id)??'—')+(avgQuiz(u.id)!==null?'%':'')],['Quiz attempts',atts.length],['Reflections submitted',db.reflections.filter(r=>r.userId===u.id).length]].map(k=>`<div class="card kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div></div>`).join('')}</div>
+<div class="card mb"><h3>Modules</h3><div class="tablewrap"><table class="t stack"><thead><tr><th>Module</th><th>Status</th><th>Progress</th><th>Best score</th><th>Simulation</th><th></th></tr></thead><tbody>
+${rows.map(r=>`<tr><td data-l="Module"><b>${esc(r.m.title)}</b></td><td data-l="Status">${statusTag(r.s)}</td><td data-l="Progress" style="min-width:120px">${bar(r.pc)}<span class="tiny muted">${r.pc}%</span></td><td data-l="Best score">${best(r.p)??'—'}${best(r.p)!==null?'%':''}</td><td data-l="Simulation">${r.p&&r.p.sim&&r.p.sim.done?r.p.sim.score+'/'+r.p.sim.max:'—'}</td><td class="nolabel">${r.s!=='locked'?`<a class="btn xs alt" href="#/student/module/${r.m.id}">Open</a>`:''}</td></tr>`).join('')}</tbody></table></div></div>
+<div class="card"><h3>Knowledge-check history</h3>${atts.length?`<div class="list">${atts.map(a=>`<div class="li"><span class="dot ${a.score>=passOf(a.mid)?'':'gold'}"></span><div class="grow small"><b>${esc(M(a.mid).title)}</b> · ${a.score}% ${a.score>=passOf(a.mid)?'<span class="tag">pass</span>':'<span class="tag gold">below passing</span>'}</div><span class="small muted">${fmtDY(a.at)}</span></div>`).join('')}</div>`:'<div class="small muted">No attempts yet.</div>'}</div>`}
+function sJournal(){const u=me();const rs=db.reflections.filter(r=>r.userId===u.id).sort((a,b)=>b.at-a.at);const notes=db.notes.filter(n=>n.to===u.id).sort((a,b)=>b.at-a.at);
+const html=`<div class="pagehead"><div><div class="eyebrow">Reflection journal</div><h1>Reflections & feedback</h1><p class="muted" style="margin:0">Your submitted reflections and your instructor’s responses.</p></div></div>
+${notes.length?`<div class="card mb"><h3>Notes from your instructor</h3><div class="list">${notes.map(n=>`<div class="li"><span class="dot ${n.read?'':'gold'}"></span><div class="grow"><div class="small"><b>${esc(U(n.from).name)}</b> · <span class="muted">${rel(n.at)}</span></div><div class="small">${esc(n.text)}</div></div></div>`).join('')}</div></div>`:''}
+${rs.length?rs.map(r=>`<div class="card mb"><div class="cardhead"><div><div class="eyebrow">Module ${M(r.moduleId).num}</div><h3>${esc(M(r.moduleId).title)}</h3></div>${r.status==='awaiting'?'<span class="tag gold">Awaiting feedback</span>':r.status==='revise'?'<span class="tag amber">Revision requested</span>':'<span class="tag">Reviewed</span>'}</div>
+<div class="quote">${esc(r.text)}</div>${thread(r,u)}${r.status==='revise'?`<a class="btn sm mt" href="#/student/module/${r.moduleId}/${stepsOf(M(r.moduleId)).length-1}">Revise & resubmit</a>`:replyBox(r)}<div class="tiny muted mt">Submitted ${fmtDY(r.at)}</div></div>`).join(''):'<div class="empty">No reflections yet. You’ll write one at the end of each module.</div>'}`;
+let ch=false;notes.forEach(n=>{if(!n.read){n.read=true;ch=true}});rs.forEach(r=>{if(r.unread){r.unread=false;ch=true}});if(ch)save();return html}
+function base(){return role()==='admin'?'#/admin':'#/sup'}
+function iOverview(){const v=me(),ss=studentsFor(v);const ids=ss.map(s=>s.id);
+const active=ss.filter(s=>Date.now()-lastActive(s.id)<7*DAY).length;
+const myCourses=db.courses.filter(c=>v.role==='admin'||c.instructorIds.includes(v.id));
+const inProg=db.enrollments.filter(e=>ids.includes(e.userId)&&coursePct(e.userId,e.courseId)>0&&coursePct(e.userId,e.courseId)<100).length;
+const avgComp=ss.length?Math.round(ss.reduce((a,s)=>a+coursePct(s.id,'c1'),0)/ss.length):0;
+const pq=pendingQuiz(v),pr=pendingRefl(v);const meets=db.meetings.filter(m=>(v.role==='admin'||m.supervisorId===v.id)&&m.status==='scheduled'&&m.at>Date.now()).sort((a,b)=>a.at-b.at);
+const need=ss.filter(s=>flags(s.id).length);
+const acts=db.activity.filter(a=>ids.includes(a.uid)||a.uid===v.id).slice(0,8);
+const c1mods=C('c1').moduleIds;
+return `<div class="pagehead"><div><div class="eyebrow">${v.role==='admin'?'All supervisors':'Supervisor dashboard'}</div><h1>Good ${new Date().getHours()<12?'morning':new Date().getHours()<17?'afternoon':'evening'}, ${esc(v.name.replace(/,.*/,''))}</h1><p class="muted" style="margin:0">${ss.length} supervisees · ${myCourses.filter(c=>c.status==='published').length} published course${myCourses.filter(c=>c.status==='published').length===1?'':'s'}</p></div>
+<div class="btnrow"><button class="btn alt sm" data-a="newMeeting">+ Schedule meeting</button><a class="btn sm" href="${base()}/review">Open review queue</a></div></div>
+<div class="grid g4 mb">
+${kpi('Enrolled students',ss.length,'across '+myCourses.length+' courses')}
+${kpi('Active this week',active,pctf(active,ss.length)+'% of students')}
+${kpi('Courses in progress',inProg,'enrollments started, not finished')}
+${kpi('Avg. completion',avgComp+'%','Clinical Foundations')}
+${kpi('Assessments to review',pq.length,'below-passing attempts',pq.length?'alert':'',base()+'/review/quiz')}
+${kpi('Reflections need feedback',pr.length,'oldest '+(pr.length?rel(Math.min(...pr.map(r=>r.at))):'—'),pr.length?'alert':'',base()+'/review')}
+${kpi('Upcoming meetings',meets.length,meets[0]?'next '+rel(meets[0].at):'none scheduled','',base()+'/supervision')}
+${kpi('Need support',need.length,'flagged students',need.length?'alert':'',base()+'/students')}
+</div>
+<div class="split">
+<div class="grid">
+<div class="card"><div class="cardhead"><h3>Completion by module</h3><span class="small muted">Clinical Foundations · % of students complete</span></div>
+${hbars(c1mods.map(mid=>({l:'M'+M(mid).num+' · '+M(mid).title,v:pctf(ss.filter(s=>modStatus(s.id,mid)==='done').length,ss.length)})))}</div>
+<div class="card"><div class="cardhead"><h3>Student progress</h3><a class="small" href="${base()}/students">All students →</a></div>
+<div class="tablewrap"><table class="t stack"><thead><tr><th>Student</th><th>Progress</th><th>Avg score</th><th>Last active</th><th></th></tr></thead><tbody>
+${ss.map(s=>`<tr class="click" data-go="${base()}/student/${s.id}"><td data-l="Student" class="nolabel">${person(s)}</td><td data-l="Progress" style="min-width:130px">${bar(coursePct(s.id,'c1'))}<span class="tiny muted">${coursePct(s.id,'c1')}%</span></td><td data-l="Avg score">${avgQuiz(s.id)??'—'}${avgQuiz(s.id)!==null?'%':''}</td><td data-l="Last active" class="small">${rel(lastActive(s.id))}</td><td data-l="Flags">${flags(s.id).map(f=>`<span class="tag ${f.c}">${esc(f.t)}</span>`).join(' ')||'<span class="tag">On track</span>'}</td></tr>`).join('')}</tbody></table></div></div>
+</div>
+<div class="grid" style="align-content:start">
+<div class="card"><div class="cardhead"><h3>Needs attention</h3></div><div class="list">
+${pr.slice(0,3).map(r=>`<a class="li" style="text-decoration:none;color:inherit" href="${base()}/review/r/${r.id}"><span class="dot gold"></span><div class="grow small"><b>${esc(U(r.userId).name)}</b> submitted a reflection<div class="muted">M${M(r.moduleId).num} · ${rel(r.at)}</div></div><span class="btn xs alt">Review</span></a>`).join('')}
+${pq.slice(0,3).map(x=>`<a class="li" style="text-decoration:none;color:inherit" href="${base()}/review/quiz"><span class="dot red"></span><div class="grow small"><b>${esc(x.s.name)}</b> · ${x.un.length} below-passing attempt${x.un.length>1?'s':''}<div class="muted">M${M(x.mid).num} · latest ${x.un[x.un.length-1].score}%</div></div><span class="btn xs alt">Review</span></a>`).join('')}
+${need.filter(s=>flags(s.id).some(f=>/Inactive|Overdue/.test(f.t))).map(s=>`<a class="li" style="text-decoration:none;color:inherit" href="${base()}/student/${s.id}"><span class="dot red"></span><div class="grow small"><b>${esc(s.name)}</b><div class="muted">${flags(s.id).map(f=>esc(f.t)).join(' · ')}</div></div><span class="btn xs alt">Open</span></a>`).join('')}
+${!pr.length&&!pq.length&&!need.length?'<div class="small muted">Nothing needs attention right now.</div>':''}</div></div>
+<div class="card"><div class="cardhead"><h3>Upcoming supervision</h3><a class="small" href="${base()}/supervision">Calendar →</a></div><div class="list">${meets.slice(0,4).map(m=>`<div class="li"><span class="dot ${m.type==='group'?'gold':''}"></span><div class="grow small"><b>${fmtDT(m.at)}</b><div class="muted">${m.type==='group'?'Group':'Individual'} · ${m.attendees.map(a=>esc(U(a).name)).join(', ')}</div></div></div>`).join('')||'<div class="small muted">None scheduled.</div>'}</div></div>
+<div class="card"><div class="cardhead"><h3>Recent activity</h3></div><div class="list">${acts.map(a=>`<div class="li"><span class="dot ${a.type==='quiz'?'blue':a.type==='reflection'?'gold':''}"></span><div class="grow small"><b>${esc(U(a.uid).name)}</b> ${esc(a.text)}<div class="muted tiny">${rel(a.at)}</div></div></div>`).join('')}</div></div>
+</div></div>`}
+function kpi(l,v,s,cls,href){const inner=`<div class="lbl">${l}</div><div class="val">${v}</div><div class="sub">${s}</div>`;return href?`<a class="card kpi ${cls||''}" href="${href}" style="text-decoration:none;color:inherit">${inner}</a>`:`<div class="card kpi ${cls||''}">${inner}</div>`}
+function iStudents(){const v=me();let ss=studentsFor(v);const f=ui.filter||'',q=(ui.q||'').toLowerCase();
+if(q)ss=ss.filter(s=>s.name.toLowerCase().includes(q)||s.credential.toLowerCase().includes(q));
+if(f==='support')ss=ss.filter(s=>flags(s.id).length);if(f==='done')ss=ss.filter(s=>coursePct(s.id,'c1')===100);if(f==='active')ss=ss.filter(s=>Date.now()-lastActive(s.id)<7*DAY);
+return `<div class="pagehead"><div><div class="eyebrow">Student management</div><h1>Students</h1><p class="muted" style="margin:0">${v.role==='admin'?'All students across supervisors.':'Only students assigned to you are visible.'}</p></div>${v.role==='admin'?`<button class="btn sm" data-a="addUser">+ Add student</button>`:''}</div>
+<div class="card mb flex wrap" style="gap:10px"><input class="input" style="max-width:280px" placeholder="Search name or credential…" value="${esc(ui.q||'')}" data-in="search" aria-label="Search students">
+${[['','All'],['active','Active this week'],['support','Needs support'],['done','Completed']].map(x=>`<button class="btn sm ${f===x[0]?'':'alt'}" data-a="filter" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+<div class="card"><div class="tablewrap"><table class="t stack"><thead><tr><th>Student</th>${v.role==='admin'?'<th>Supervisor</th>':''}<th>Courses</th><th>Progress</th><th>Avg score</th><th>Reflections</th><th>Last active</th><th>Status</th></tr></thead><tbody>
+${ss.map(s=>{const rs=db.reflections.filter(r=>r.userId===s.id);return `<tr class="click" data-go="${base()}/student/${s.id}"><td class="nolabel">${person(s)}</td>${v.role==='admin'?`<td data-l="Supervisor" class="small">${esc((U(s.supervisorId)||{}).name||'—')}</td>`:''}<td data-l="Courses" class="small">${db.enrollments.filter(e=>e.userId===s.id).length}</td><td data-l="Progress" style="min-width:130px">${bar(coursePct(s.id,'c1'))}<span class="tiny muted">${coursePct(s.id,'c1')}% · ${C('c1').moduleIds.filter(m=>modStatus(s.id,m)==='done').length}/5 modules</span></td>
+<td data-l="Avg score">${avgQuiz(s.id)??'—'}${avgQuiz(s.id)!==null?'%':''}</td><td data-l="Reflections" class="small">${rs.length}${rs.some(r=>r.status==='awaiting')?' <span class="tag gold">'+rs.filter(r=>r.status==='awaiting').length+' new</span>':''}</td><td data-l="Last active" class="small">${rel(lastActive(s.id))}</td><td data-l="Status">${flags(s.id).map(f=>`<span class="tag ${f.c}">${esc(f.t)}</span>`).join(' ')||'<span class="tag">On track</span>'}</td></tr>`}).join('')||`<tr><td colspan="8"><div class="empty">No students match.</div></td></tr>`}</tbody></table></div></div>`}
+function iStudent(sid,tab){const v=me(),s=U(sid);if(!s||s.role!=='student')return denied('Student not found.');if(v.role!=='admin'&&s.supervisorId!==v.id)return denied('This student isn’t assigned to you. Supervisors can only view their own supervisees.');
+tab=tab||'progress';const ens=db.enrollments.filter(e=>e.userId===sid);
+const tabs=[['progress','Progress'],['assess','Assessments'],['refl','Reflections'],['sup','Supervision'],['history','History']];
+let body='';
+if(tab==='progress')body=ens.map(e=>{const c=C(e.courseId);return `<div class="card mb"><div class="cardhead"><div><h3>${esc(c.title)}</h3><div class="small muted">Assigned ${fmtDY(e.at)} by ${esc((U(e.assignedBy)||{}).name||'—')} · due ${fmtDY(e.due)} ${e.moduleIds?'· selected modules':''} ${c.status!=='published'?'· <span class="tag gray">course unpublished</span>':''}</div></div><div class="flex">${ring(coursePct(sid,c.id),true)}<button class="btn xs danger" data-a="unassign" data-e="${e.id}">Remove</button></div></div>
+<div class="tablewrap"><table class="t stack"><thead><tr><th>Module</th><th>Status</th><th>Steps</th><th>Best</th><th>Sim</th><th>Last activity</th></tr></thead><tbody>${enrolledMods(sid,c.id).map(mid=>{const m=M(mid),p=prog(sid,mid),stt=stepsOf(m);return `<tr><td data-l="Module"><b>${esc(m.title)}</b></td><td data-l="Status">${statusTag(modStatus(sid,mid))}</td><td data-l="Steps" style="min-width:110px">${bar(modPct(sid,mid),'thin')}<span class="tiny muted">${p?stt.filter(x=>p.done[x.key]).length:0}/${stt.length}</span></td><td data-l="Best">${best(p)??'—'}${best(p)!==null?'%':''}</td><td data-l="Sim">${p&&p.sim&&p.sim.done?p.sim.score+'/'+p.sim.max:'—'}</td><td data-l="Last activity" class="small">${p&&p.touched?rel(p.touched):'—'}</td></tr>`}).join('')}</tbody></table></div></div>`}).join('')||'<div class="empty">No courses assigned.</div>';
+if(tab==='assess'){const atts=allAttempts(sid).sort((a,b)=>b.at-a.at);body=`<div class="card"><h3>Knowledge-check attempts</h3>${atts.length?`<div class="tablewrap"><table class="t stack"><thead><tr><th>Module</th><th>Score</th><th>Result</th><th>Date</th><th>Review</th></tr></thead><tbody>${atts.map(a=>`<tr><td data-l="Module">${esc(M(a.mid).title)}</td><td data-l="Score"><b>${a.score}%</b></td><td data-l="Result">${a.score>=passOf(a.mid)?'<span class="tag">Pass</span>':'<span class="tag gold">Below passing</span>'}</td><td data-l="Date" class="small">${fmtDY(a.at)}</td><td data-l="Review">${a.score<passOf(a.mid)?(a.reviewed?'<span class="tag gray">Reviewed</span>':'<a class="btn xs" href="'+base()+'/review/quiz">Review</a>'):'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="small muted">No attempts yet.</div>'}</div>`}
+if(tab==='refl'){const rs=db.reflections.filter(r=>r.userId===sid).sort((a,b)=>b.at-a.at);body=rs.map(r=>`<div class="card mb"><div class="cardhead"><h3>M${M(r.moduleId).num} · ${esc(M(r.moduleId).title)}</h3>${r.status==='awaiting'?`<a class="btn xs" href="${base()}/review/r/${r.id}">Give feedback</a>`:r.status==='revise'?'<span class="tag amber">Revision requested</span>':'<span class="tag">Reviewed</span>'}</div><div class="quote">${esc(r.text)}</div>${thread(r)}</div>`).join('')||'<div class="empty">No reflections submitted.</div>'}
+if(tab==='sup'){const ms=db.meetings.filter(m=>m.attendees.includes(sid)).sort((a,b)=>b.at-a.at);const done=ms.filter(m=>m.status==='completed');const hrs=done.reduce((a,m)=>a+m.mins/60,0);
+body=`<div class="notice blue mb small"><b>Separate from coursework.</b> These are supervisor-entered meeting records. Completing online modules never adds supervision or clinical experience hours. Official hours are verified on the board’s forms by the LPC-S.</div>
+<div class="grid g3 mb">${kpi('Meetings recorded',done.length,'completed')}${kpi('Supervision time logged',hrs.toFixed(1)+' h','individual + group')}${kpi('Approved records',done.filter(m=>m.approved).length+' / '+done.length,'signed off by supervisor')}</div>
+<div class="card"><div class="cardhead"><h3>Meetings</h3><button class="btn sm" data-a="newMeeting" data-s="${sid}">+ Schedule</button></div><div class="list">${ms.map(m=>`<div class="li"><span class="dot ${m.status==='scheduled'?'blue':m.approved?'':'gold'}"></span><div class="grow small"><b>${fmtDT(m.at)}</b> · ${m.type} · ${m.mins} min ${m.status==='scheduled'?'<span class="tag blue">Scheduled</span>':m.approved?'<span class="tag">Approved</span>':'<span class="tag gold">Needs sign-off</span>'}<div class="muted">${esc(m.agenda)}</div>${m.notes?`<div>${esc(m.notes)}</div>`:''}</div><button class="btn xs alt" data-a="editMeeting" data-id="${m.id}">${m.status==='scheduled'?'Record':'Edit'}</button></div>`).join('')||'<div class="small muted">No meetings yet.</div>'}</div></div>`}
+if(tab==='history'){const h=db.activity.filter(a=>a.uid===sid||(a.text.includes(s.name))).slice(0,30);body=`<div class="card"><h3>Educational history</h3><div class="list">${h.map(a=>`<div class="li"><span class="dot"></span><div class="grow small"><b>${esc(U(a.uid).name)}</b> ${esc(a.text)}</div><span class="small muted">${fmtDY(a.at)}</span></div>`).join('')||'<div class="small muted">No activity yet.</div>'}
+<div class="li"><span class="dot blue"></span><div class="grow small">Joined the platform</div><span class="small muted">${fmtDY(s.joined)}</span></div></div></div>`}
+return `<div class="crumbs"><a href="${base()}/students">Students</a> / ${esc(s.name)}</div>
+<div class="card mb flex wrap" style="gap:16px">${av(s,'lg')}<div style="flex:1;min-width:200px"><h2 style="margin:0">${esc(s.name)}</h2><div class="small muted">${esc(s.credential)} · ${esc(s.setting||'')} · ${esc(s.stage||'')}</div><div class="small muted">${esc(s.email)} · supervisor: ${esc((U(s.supervisorId)||{}).name||'—')}</div><div class="mt" style="margin-top:8px">${flags(sid).map(f=>`<span class="tag ${f.c}">${esc(f.t)}</span>`).join(' ')||'<span class="tag">On track</span>'}</div></div>
+<div class="btnrow"><button class="btn sm" data-a="assign" data-s="${sid}">Assign course / modules</button><button class="btn sm alt" data-a="note" data-s="${sid}">Send note</button><button class="btn sm alt" data-a="newMeeting" data-s="${sid}">Schedule meeting</button></div></div>
+<div class="tabs" role="tablist">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-go="${base()}/student/${sid}/${t[0]}">${t[1]}</button>`).join('')}</div>${body}`}
+function iReview(sub,id){const v=me();const pr=pendingRefl(v),pq=pendingQuiz(v);
+const ids=studentsFor(v).map(s=>s.id);const reviewed=db.reflections.filter(r=>ids.includes(r.userId)&&r.status!=='awaiting').sort((a,b)=>(b.thread.slice(-1)[0]||{at:0}).at-(a.thread.slice(-1)[0]||{at:0}).at);
+const head=`<div class="pagehead"><div><div class="eyebrow">Review queue</div><h1>Assessments & reflections</h1></div></div>
+<div class="tabs"><button class="${sub!=='quiz'&&sub!=='done'?'on':''}" data-go="${base()}/review">Reflections (${pr.length})</button><button class="${sub==='quiz'?'on':''}" data-go="${base()}/review/quiz">Assessments (${pq.length})</button><button class="${sub==='done'?'on':''}" data-go="${base()}/review/done">Recently reviewed</button></div>`;
+if(sub==='r'&&id){const r=db.reflections.find(x=>x.id===id);if(!r||!ids.includes(r.userId))return denied('Reflection not found or not assigned to you.');const s=U(r.userId),m=M(r.moduleId);
+return `<div class="crumbs"><a href="${base()}/review">Review queue</a> / Reflection</div><div class="split"><div class="card"><div class="cardhead">${person(s)}<span class="small muted">${fmtDT(r.at)}</span></div><div class="eyebrow">Module ${m.num} · ${esc(m.title)}</div><p class="small muted">Prompt: ${m.reflection.replace(/<[^>]+>/g,'')}</p><div class="quote">${esc(r.text)}</div>${thread(r)}</div>
+<div class="card" style="align-self:start"><h3>Your feedback</h3><form data-f="feedback" data-r="${r.id}"><textarea class="input" name="t" placeholder="Specific, supportive feedback…" required></textarea>
+<div class="chips">${['Strong insight. ','Consider consulting about this in our next meeting. ','Please keep reflections de-identified. ','Can you say more about the principles in tension? '].map(x=>`<button type="button" class="chipbtn small" data-a="insert" data-t="${esc(x)}">${esc(x.trim())}</button>`).join('')}</div>
+<div class="btnrow"><button class="btn" name="k" value="ok">Send feedback</button><button class="btn alt" name="k" value="revise">Request revision</button></div></form>
+<p class="tiny muted mt">The student sees your feedback in their journal and home dashboard.</p></div></div>`}
+if(sub==='quiz')return head+(pq.length?pq.map(x=>{const m=M(x.mid);const lastA=x.p.attempts[x.p.attempts.length-1];const missed=m.quiz.map((q,i)=>({q,i})).filter(o=>lastA.answers&&lastA.answers.length&&lastA.answers[o.i]!==o.q.a);
+return `<div class="card mb"><div class="cardhead">${person(x.s,'M'+m.num+' · '+m.title)}<div class="flex"><span class="tag gold">${x.un.length} below passing</span></div></div><div class="small">Attempts: ${x.p.attempts.map(a=>`<b>${a.score}%</b> (${fmtD(a.at)})`).join(' · ')} · passing ${passOf(x.mid)}%</div>
+${missed.length?`<div class="small mt"><b>Missed on latest attempt:</b><ul style="margin:4px 0">${missed.map(o=>`<li>${esc(o.q.q)}</li>`).join('')}</ul></div>`:''}
+<form class="mt" data-f="quizReview" data-s="${x.s.id}" data-m="${x.mid}"><textarea class="input" name="t" style="min-height:70px" placeholder="Optional note to student (e.g., re-read lesson 4 on cloning; we’ll discuss Thursday)"></textarea><div class="btnrow mt"><button class="btn sm">Mark reviewed${''} & send note</button></div></form></div>`}).join(''):'<div class="empty">No below-passing attempts awaiting review.</div>');
+if(sub==='done')return head+(reviewed.map(r=>`<div class="card mb"><div class="cardhead">${person(U(r.userId),'M'+M(r.moduleId).num+' · '+M(r.moduleId).title)}${r.status==='revise'?'<span class="tag amber">Revision requested</span>':'<span class="tag">Reviewed</span>'}</div><div class="quote small">${esc(r.text)}</div>${thread(r)}</div>`).join('')||'<div class="empty">Nothing reviewed yet.</div>');
+return head+(pr.length?`<div class="card"><div class="list">${pr.sort((a,b)=>a.at-b.at).map(r=>`<a class="li" href="${base()}/review/r/${r.id}" style="text-decoration:none;color:inherit">${av(U(r.userId))}<div class="grow"><b>${esc(U(r.userId).name)}</b> <span class="small muted">· M${M(r.moduleId).num} ${esc(M(r.moduleId).title)} · ${rel(r.at)}</span><div class="small" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.text)}</div></div><span class="btn sm">Review</span></a>`).join('')}</div></div>`:'<div class="empty">All caught up. No reflections waiting.</div>')}
+function iCurriculum(){const v=me();const cs=db.courses.filter(c=>v.role==='admin'||c.instructorIds.includes(v.id));
+return `<div class="pagehead"><div><div class="eyebrow">Curriculum management</div><h1>Courses</h1><p class="muted" style="margin:0">Create and edit courses, organize modules, set prerequisites and passing scores, and publish.</p></div><button class="btn sm" data-a="newCourse">+ New course</button></div>
+<div class="grid g2">${cs.map(c=>`<div class="card coursecard"><div class="flex between"><span class="tag ${c.status==='published'?'':'gray'}">${c.status==='published'?'● Published':'Draft'}</span><span class="tag outline">${approvalLabel(c.approval)}</span></div><h3 style="margin:0">${esc(c.title)}</h3><p class="small muted" style="margin:0">${esc(c.desc)}</p>
+<div class="small muted">${c.moduleIds.length} modules · pass ${c.passScore}% · ${db.enrollments.filter(e=>e.courseId===c.id).length} enrolled · ${esc(c.hoursLabel)}</div><div class="btnrow"><a class="btn sm" href="${base()}/course/${c.id}">Edit course</a><button class="btn sm alt" data-a="togglePub" data-c="${c.id}">${c.status==='published'?'Unpublish':'Publish'}</button></div></div>`).join('')}</div>`}
+function approvalLabel(a){return {not_approved:'Not CE-approved',pending:'CE approval pending',approved:'CE approval on file (verify)'}[a]||'Not CE-approved'}
+function iCourse(cid){const c=C(cid);if(!c)return denied('Course not found.');
+return `<div class="crumbs"><a href="${base()}/curriculum">Curriculum</a> / ${esc(c.title)}</div>
+<div class="pagehead"><div><div class="eyebrow">Course editor</div><h1>${esc(c.title)}</h1></div><div class="btnrow"><span class="tag ${c.status==='published'?'':'gray'}">${c.status==='published'?'Published':'Draft'}</span><button class="btn sm ${c.status==='published'?'alt':''}" data-a="togglePub" data-c="${c.id}">${c.status==='published'?'Unpublish':'Publish course'}</button></div></div>
+<div class="split"><div class="card"><h3>Modules</h3><p class="small muted">Order, prerequisites, and content. Students see changes immediately in this demo.</p>
+${c.moduleIds.map((mid,i)=>{const m=M(mid);return `<div class="modrow"><div class="modnum">${i+1}</div><div style="flex:1;min-width:0"><b>${esc(m.title)}</b><div class="small muted">${m.lessons.length} lessons · ${m.quiz.length} quiz Qs${m.scenario?' · simulation':''}${m.prereq?' · requires '+esc(M(m.prereq).title):''}</div></div>
+<div class="btnrow"><button class="btn xs alt" aria-label="Move up" data-a="modMove" data-c="${c.id}" data-i="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button class="btn xs alt" aria-label="Move down" data-a="modMove" data-c="${c.id}" data-i="${i}" data-d="1" ${i===c.moduleIds.length-1?'disabled':''}>↓</button><a class="btn xs" href="${base()}/module/${mid}">Edit</a></div></div>`}).join('')||'<div class="empty">No modules yet.</div>'}
+<button class="btn alt sm mt" data-a="newModule" data-c="${c.id}">+ Add module</button></div>
+<form class="card" data-f="course" data-c="${c.id}" style="align-self:start"><h3>Settings</h3>
+<div class="field"><label class="f">Title</label><input class="input" name="title" value="${esc(c.title)}" required></div>
+<div class="field"><label class="f">Description</label><textarea class="input" name="desc" style="min-height:80px">${esc(c.desc)}</textarea></div>
+<div class="row"><div class="field"><label class="f">Passing score (%)</label><input class="input" type="number" min="50" max="100" name="pass" value="${c.passScore}"></div><div class="field"><label class="f">Price (USD, display only)</label><input class="input" type="number" min="0" name="price" value="${c.price||0}"></div></div>
+<div class="field"><label class="f">Estimated time label</label><input class="input" name="hours" value="${esc(c.hoursLabel)}"></div>
+<div class="field"><label class="f">CE / approval status</label><div class="small">${approvalLabel(c.approval)}</div><div class="tiny muted">Only administrators can change this, and only with documentation on file. Courses never show “approved” or “accredited” wording otherwise.</div></div>
+<button class="btn">Save settings</button></form></div>`}
+function iModuleEdit(mid){const m=M(mid);if(!m)return denied('Module not found.');const c=C(m.courseId);const others=c.moduleIds.filter(x=>x!==mid);
+return `<div class="crumbs"><a href="${base()}/curriculum">Curriculum</a> / <a href="${base()}/course/${c.id}">${esc(c.title)}</a> / Module</div>
+<div class="pagehead"><div><div class="eyebrow">Module editor</div><h1>${esc(m.title)}</h1></div><div class="btnrow"><button class="btn alt sm" data-a="previewMod" data-m="${mid}">Preview as student</button><button class="btn danger sm" data-a="delModule" data-m="${mid}">Delete</button></div></div>
+<form data-f="module" data-m="${mid}"><div class="split"><div class="grid" style="align-content:start">
+<div class="card"><h3>Lessons</h3>${m.lessons.map((l,i)=>`<div class="card flat cream mb"><div class="flex between wrap mb"><b class="small">Lesson ${i+1} · ${({text:'Text',video:'Video',file:'File (PDF/PowerPoint)',worksheet:'Worksheet',sort:'Sorting exercise',sequence:'Sequencing exercise',rewrite:'Rewrite exercise'})[l.type]}</b><div class="btnrow"><button type="button" class="btn xs alt" data-a="lesMove" data-m="${mid}" data-i="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button type="button" class="btn xs alt" data-a="lesMove" data-m="${mid}" data-i="${i}" data-d="1" ${i===m.lessons.length-1?'disabled':''}>↓</button><button type="button" class="btn xs danger" data-a="lesDel" data-m="${mid}" data-i="${i}">Remove</button></div></div>
+<div class="field"><input class="input" name="lt${i}" value="${esc(l.title)}" aria-label="Lesson title"></div>
+${['text','video','file'].includes(l.type)?`<div class="field"><textarea class="input" name="lb${i}" style="min-height:90px" aria-label="Lesson content">${esc(l.html||'')}</textarea><div class="tiny muted">Basic HTML allowed in demo (production would use a rich-text editor with sanitization).</div></div>`:`<div class="tiny muted">Interactive content. Edited in the full builder (planned); shown read-only here.</div>`}
+${['video','file'].includes(l.type)?`<div class="field"><label class="f">Upload ${l.type==='video'?'video (MP4)':'slides or PDF'}</label><input type="file" class="input" data-up="${i}" data-m="${mid}" accept="${l.type==='video'?'video/*':'.pdf,.ppt,.pptx,.key'}"><div class="tiny muted">${l.fileName?'Attached: '+esc(l.fileName)+' · ':''}Demo stores the file name only. Production uploads go to private Supabase Storage.</div></div>`:''}</div>`).join('')}
+<div class="btnrow"><span class="small muted">Add:</span>${[['text','Text lesson'],['video','Video'],['file','Slides / PDF']].map(x=>`<button type="button" class="btn xs alt" data-a="lesAdd" data-m="${mid}" data-t="${x[0]}">+ ${x[1]}</button>`).join('')}</div></div>
+<div class="card"><div class="cardhead"><h3>Knowledge check</h3><button type="button" class="btn xs alt" data-a="qAdd" data-m="${mid}">+ Question</button></div>
+${m.quiz.map((q,i)=>`<div class="card flat cream mb"><div class="flex between mb"><b class="small">Question ${i+1}</b><button type="button" class="btn xs danger" data-a="qDel" data-m="${mid}" data-i="${i}">Remove</button></div><div class="field"><input class="input" name="q${i}" value="${esc(q.q)}"></div>
+${q.o.map((o,j)=>`<div class="flex" style="margin-bottom:6px"><input type="radio" name="qa${i}" value="${j}" ${q.a===j?'checked':''} aria-label="Correct answer" style="accent-color:var(--green)"><input class="input" name="qo${i}_${j}" value="${esc(o)}"></div>`).join('')}
+<div class="field"><label class="f">Explanation</label><input class="input" name="qw${i}" value="${esc(q.why)}"></div></div>`).join('')||'<div class="small muted">No questions yet.</div>'}</div>
+${m.scenario?`<div class="card"><h3>Branching simulation</h3><p class="small muted">“${esc(m.scenario.title)}” · ${Object.keys(m.scenario.nodes).length} decision points. A visual scenario builder is planned for the production build.</p></div>`:''}
+</div>
+<div class="card" style="align-self:start"><h3>Module settings</h3>
+<div class="field"><label class="f">Title</label><input class="input" name="title" value="${esc(m.title)}" required></div>
+<div class="field"><label class="f">Category</label><input class="input" name="category" value="${esc(m.category)}"></div>
+<div class="field"><label class="f">Summary</label><textarea class="input" name="summary" style="min-height:70px">${esc(m.summary)}</textarea></div>
+<div class="row"><div class="field"><label class="f">Est. minutes</label><input class="input" type="number" name="minutes" value="${m.minutes}"></div><div class="field"><label class="f">Prerequisite</label><select class="input" name="prereq"><option value="">None</option>${others.map(x=>`<option value="${x}" ${m.prereq===x?'selected':''}>${esc(M(x).title)}</option>`).join('')}</select></div></div>
+<div class="field"><label class="f">Learning objectives (one per line)</label><textarea class="input" name="objectives" style="min-height:90px">${esc(m.objectives.join('\n'))}</textarea></div>
+<div class="field"><label class="f">Reflection prompt</label><textarea class="input" name="reflection" style="min-height:80px">${esc(m.reflection.replace(/<[^>]+>/g,''))}</textarea></div>
+<button class="btn" style="width:100%">Save module</button></div></div></form>`}
+function iSupervision(tab){const v=me();tab=tab||'cal';const ms=db.meetings.filter(m=>v.role==='admin'||m.supervisorId===v.id);
+const head=`<div class="pagehead"><div><div class="eyebrow">Supervision management</div><h1>Supervision</h1></div><div class="btnrow"><button class="btn sm" data-a="newMeeting">+ Schedule meeting</button></div></div>
+<div class="notice blue mb small"><b>Kept separate from coursework.</b> Meetings and supervision records are entered by the supervisor. Online lesson completion is <u>never</u> converted into supervision or clinical experience hours. Official Texas LPC Associate hours are documented on the board’s Supervised Experience Documentation Form.</div>
+<div class="tabs"><button class="${tab==='cal'?'on':''}" data-go="${base()}/supervision">Calendar</button><button class="${tab==='log'?'on':''}" data-go="${base()}/supervision/log">Records & sign-off</button></div>`;
+if(tab==='log'){const done=ms.filter(m=>m.status==='completed').sort((a,b)=>b.at-a.at);return head+`<div class="card"><div class="cardhead"><h3>Supervision records</h3><button class="btn sm alt" data-a="exportSup">⬇ Export CSV</button></div><div class="tablewrap"><table class="t stack"><thead><tr><th>Date</th><th>Type</th><th>Supervisee(s)</th><th>Minutes</th><th>Topics (de-identified)</th><th>Status</th><th></th></tr></thead><tbody>
+${done.map(m=>`<tr><td data-l="Date" class="small">${fmtDY(m.at)}</td><td data-l="Type">${m.type}</td><td data-l="Supervisees" class="small">${m.attendees.map(a=>esc(U(a).name)).join(', ')}</td><td data-l="Minutes">${m.mins}</td><td data-l="Topics" class="small">${esc(m.notes||m.agenda)}</td><td data-l="Status">${m.approved?'<span class="tag">Approved</span>':'<span class="tag gold">Needs sign-off</span>'}</td><td class="nolabel"><div class="btnrow">${m.approved?'':`<button class="btn xs" data-a="approve" data-id="${m.id}">Approve</button>`}<button class="btn xs alt" data-a="editMeeting" data-id="${m.id}">Edit</button></div></td></tr>`).join('')}</tbody></table></div>
+<p class="tiny muted mt">Approval here is an internal record-keeping step for the demo. It does not submit anything to a licensing board.</p></div>`}
+const off=ui.cal||0,base0=new Date();base0.setDate(1);base0.setMonth(base0.getMonth()+off);const y=base0.getFullYear(),mo=base0.getMonth();const first=new Date(y,mo,1).getDay(),days=new Date(y,mo+1,0).getDate();const today=new Date();
+let cells='';for(let i=0;i<42;i++){const dn=i-first+1;const dt=new Date(y,mo,dn);const evs=ms.filter(m=>{const d=new Date(m.at);return d.getFullYear()===dt.getFullYear()&&d.getMonth()===dt.getMonth()&&d.getDate()===dt.getDate()});
+cells+=`<div class="d ${dn<1||dn>days?'other':''} ${dt.toDateString()===today.toDateString()?'today':''}">${dt.getDate()}${evs.map(e=>`<span class="ev ${e.type==='group'?'grp':''}" title="${esc(fmtT(e.at)+' '+e.attendees.map(a=>U(a).name).join(', '))}">${fmtT(e.at).replace(':00','')} ${esc(e.type==='group'?'Group':U(e.attendees[0]).name.split(' ')[0])}</span>`).join('')}</div>`;if(i>=34&&dn>=days)break}
+const up=ms.filter(m=>m.status==='scheduled').sort((a,b)=>a.at-b.at);
+return head+`<div class="split"><div class="card"><div class="cardhead"><button class="btn xs alt" data-a="cal" data-d="-1">←</button><h3>${base0.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h3><button class="btn xs alt" data-a="cal" data-d="1">→</button></div><div class="cal">${'SMTWTFS'.split('').map(x=>`<div class="hd">${x}</div>`).join('')}${cells}</div><div class="legend"><span><i style="background:var(--mint2)"></i>Individual</span><span><i style="background:var(--gold2)"></i>Group</span></div></div>
+<div class="card" style="align-self:start"><h3>Scheduled</h3><div class="list">${up.map(m=>`<div class="li"><span class="dot ${m.type==='group'?'gold':''}"></span><div class="grow small"><b>${fmtDT(m.at)}</b> · ${m.mins} min<div class="muted">${m.type} · ${m.attendees.map(a=>esc(U(a).name)).join(', ')}</div><div>${esc(m.agenda)}</div></div><button class="btn xs alt" data-a="editMeeting" data-id="${m.id}">Record</button></div>`).join('')||'<div class="small muted">Nothing scheduled.</div>'}</div></div></div>`}
+function iReports(){const v=me(),ss=studentsFor(v),ids=ss.map(s=>s.id);const c=C('c1');
+const atts=ids.flatMap(id=>allAttempts(id));const buckets=[['<60',0,59],['60–69',60,69],['70–79',70,79],['80–89',80,89],['90–100',90,100]].map(b=>({l:b[0],v:atts.filter(a=>a.score>=b[1]&&a.score<=b[2]).length,c:b[1]<80?'#b78345':'#3d7a5f'}));
+const instr=db.users.filter(u=>u.role==='instructor'&&(v.role==='admin'||u.id===v.id)).map(u=>({u,fb:db.reflections.reduce((a,r)=>a+r.thread.filter(t=>t.by===u.id).length,0),notes:db.notes.filter(n=>n.from===u.id).length,meet:db.meetings.filter(m=>m.supervisorId===u.id&&m.status==='completed').length}));
+return `<div class="pagehead"><div><div class="eyebrow">Reporting</div><h1>Reports</h1><p class="muted" style="margin:0">${v.role==='admin'?'Platform-wide':'Your supervisees'} · generated ${fmtDT(Date.now())}</p></div><div class="btnrow"><button class="btn sm alt" data-a="exportProgress">⬇ Student progress CSV</button><button class="btn sm alt" data-a="exportQuiz">⬇ Quiz attempts CSV</button><button class="btn sm alt" data-a="print">Print / PDF</button></div></div>
+<div class="grid g4 mb">${kpi('Enrollments',db.enrollments.filter(e=>ids.includes(e.userId)).length,'active assignments')}${kpi('Completion rate',pctf(db.enrollments.filter(e=>ids.includes(e.userId)&&coursePct(e.userId,e.courseId)===100).length,db.enrollments.filter(e=>ids.includes(e.userId)).length)+'%','courses fully complete')}${kpi('First-attempt pass rate',pctf(ids.flatMap(id=>Object.entries(db.progress[id]||{}).filter(([m,p])=>p.attempts.length).map(([m,p])=>p.attempts[0].score>=passOf(m))).filter(Boolean).length,ids.flatMap(id=>Object.values(db.progress[id]||{}).filter(p=>p.attempts.length)).length)+'%','knowledge checks')}${kpi('Reflections',db.reflections.filter(r=>ids.includes(r.userId)).length,pendingRefl(v).length+' awaiting feedback')}</div>
+<div class="grid g2 mb"><div class="card"><h3>Enrollment by course</h3><div class="tablewrap"><table class="t"><thead><tr><th>Course</th><th>Status</th><th>Enrolled</th><th>Avg progress</th></tr></thead><tbody>${db.courses.map(cc=>{const es=db.enrollments.filter(e=>e.courseId===cc.id&&ids.includes(e.userId));return `<tr><td>${esc(cc.title)}</td><td><span class="tag ${cc.status==='published'?'':'gray'}">${cc.status}</span></td><td>${es.length}</td><td>${es.length?Math.round(es.reduce((a,e)=>a+coursePct(e.userId,cc.id),0)/es.length)+'%':'—'}</td></tr>`}).join('')}</tbody></table></div></div>
+<div class="card"><h3>Quiz performance</h3><p class="small muted">All attempts, by score range (passing = ${c.passScore}%)</p>${cols(buckets)}</div></div>
+<div class="grid g2 mb"><div class="card"><h3>Module completion rates</h3>${hbars(c.moduleIds.map(mid=>({l:'M'+M(mid).num+' '+M(mid).title,v:pctf(ss.filter(s=>modStatus(s.id,mid)==='done').length,ss.length)})))}</div>
+<div class="card"><h3>Average best score by module</h3>${hbars(c.moduleIds.map(mid=>{const b=ids.map(id=>best(prog(id,mid))).filter(x=>x!==null);const a=b.length?Math.round(b.reduce((x,y)=>x+y,0)/b.length):0;return {l:'M'+M(mid).num+' '+M(mid).title,v:a,t:b.length?a+'% (n='+b.length+')':'no data',c:a&&a<80?'#b78345':'#3d7a5f'}}))}</div></div>
+<div class="card mb"><h3>Student progress</h3><div class="tablewrap"><table class="t stack"><thead><tr><th>Student</th><th>Credential</th>${c.moduleIds.map(mid=>`<th>M${M(mid).num}</th>`).join('')}<th>Overall</th></tr></thead><tbody>${ss.map(s=>`<tr><td data-l="Student"><b>${esc(s.name)}</b></td><td data-l="Credential" class="small">${esc(s.credential)}</td>${c.moduleIds.map(mid=>{const st=modStatus(s.id,mid);return `<td data-l="M${M(mid).num}">${st==='done'?'✓':st==='in'?modPct(s.id,mid)+'%':st==='locked'?'🔒':'—'}</td>`}).join('')}<td data-l="Overall"><b>${coursePct(s.id,'c1')}%</b></td></tr>`).join('')}</tbody></table></div></div>
+<div class="card"><h3>Instructor activity</h3><div class="tablewrap"><table class="t"><thead><tr><th>Instructor</th><th>Reflection feedback</th><th>Notes sent</th><th>Meetings recorded</th></tr></thead><tbody>${instr.map(x=>`<tr><td>${esc(x.u.name)}</td><td>${x.fb}</td><td>${x.notes}</td><td>${x.meet}</td></tr>`).join('')}</tbody></table></div></div>`}
+function aOverview(){const st=db.users.filter(u=>u.role==='student'),ins=db.users.filter(u=>u.role==='instructor');
+return `<div class="pagehead"><div><div class="eyebrow">Administration</div><h1>Platform overview</h1><p class="muted" style="margin:0">${esc(db.settings.brand)} · demo environment</p></div></div>
+<div class="grid g4 mb">${kpi('Students',st.length,'all supervisors','',  '#/admin/students')}${kpi('Instructors',ins.length,'LPC-S (fictional)','','#/admin/users')}${kpi('Published courses',db.courses.filter(c=>c.status==='published').length,db.courses.length+' total','','#/admin/curriculum')}${kpi('Revenue',`$0`,'payments not connected','','#/admin/billing')}</div>
+<div class="grid g2"><div class="card"><h3>System status</h3><div class="list">
+${[['Frontend hosting','Vercel · static site','tag','Live'],['Data storage','Browser localStorage (demo only)','tag gold','Prototype'],['Authentication','Role switcher (no real login)','tag gold','Prototype'],['Database & RLS','Supabase schema drafted, not applied','tag gray','Planned'],['File storage','File names only','tag gray','Planned'],['Payments','Stripe not connected','tag gray','Planned'],['CE approval','No course approved','tag red','Not approved']].map(r=>`<div class="li"><div class="grow small"><b>${r[0]}</b><div class="muted">${r[1]}</div></div><span class="${r[2]}">${r[3]}</span></div>`).join('')}</div></div>
+<div class="card"><h3>Recent platform activity</h3><div class="list">${db.activity.slice(0,9).map(a=>`<div class="li"><span class="dot"></span><div class="grow small"><b>${esc(U(a.uid).name)}</b> ${esc(a.text)}<div class="tiny muted">${rel(a.at)}</div></div></div>`).join('')}</div></div></div>`}
+function aUsers(){return `<div class="pagehead"><div><div class="eyebrow">Administration</div><h1>Users & roles</h1><p class="muted" style="margin:0">Roles control what each person can see. In production this is enforced by Supabase row-level security, not just the interface.</p></div><button class="btn sm" data-a="addUser">+ Add user</button></div>
+<div class="card"><div class="tablewrap"><table class="t stack"><thead><tr><th>User</th><th>Email</th><th>Role</th><th>Supervisor</th><th>Joined</th></tr></thead><tbody>${db.users.map(u=>`<tr><td class="nolabel">${person(u)}</td><td data-l="Email" class="small">${esc(u.email)}</td><td data-l="Role">${u.id==='a1'?'<span class="tag gold">admin</span>':`<select class="input" style="width:auto;padding:5px 8px" data-ch="role" data-u="${u.id}">${['student','instructor','admin'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select>`}</td>
+<td data-l="Supervisor">${u.role==='student'?`<select class="input" style="width:auto;padding:5px 8px" data-ch="sup" data-u="${u.id}"><option value="">—</option>${db.users.filter(x=>x.role==='instructor').map(x=>`<option value="${x.id}" ${u.supervisorId===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:'—'}</td><td data-l="Joined" class="small">${fmtDY(u.joined)}</td></tr>`).join('')}</tbody></table></div></div>`}
+function aBilling(){return `<div class="pagehead"><div><div class="eyebrow">Administration</div><h1>Plans & payments</h1></div></div>
+<div class="notice mb"><b>Not connected.</b> No payment processor is configured, and no charges can be made. Planned: Stripe Checkout for course purchases, bundles, and memberships, with webhooks that create enrollments in Supabase and email receipts.</div>
+<div class="grid g3 mb">${db.plans.map(p=>`<form class="card" data-f="plan" data-p="${p.id}"><div class="flex between"><b>${esc(p.name)}</b><label class="toggle small"><input type="checkbox" name="active" ${p.active?'checked':''}> Active</label></div><div class="row mt"><div class="field"><label class="f">Price (USD)</label><input class="input" type="number" name="price" value="${p.price}"></div><div class="field"><label class="f">Billing</label><select class="input" name="interval">${['one-time','month','year'].map(i=>`<option ${p.interval===i?'selected':''}>${i}</option>`).join('')}</select></div></div><button class="btn sm alt">Save</button></form>`).join('')}</div>
+<div class="card"><h3>Course pricing</h3><div class="tablewrap"><table class="t"><thead><tr><th>Course</th><th>Status</th><th>List price</th><th>Purchases</th></tr></thead><tbody>${db.courses.map(c=>`<tr><td>${esc(c.title)}</td><td>${c.status}</td><td>$${c.price||0}</td><td class="muted">— (no payments yet)</td></tr>`).join('')}</tbody></table></div></div>`}
+function aCompliance(){return `<div class="pagehead"><div><div class="eyebrow">Administration</div><h1>Approvals & claims</h1><p class="muted" style="margin:0">Controls what the platform is allowed to say about each course.</p></div></div>
+<div class="notice red mb"><b>Guardrail:</b> unless an approval is documented here, the platform will not display “accredited,” “approved,” “CE credit,” or “counts toward licensure” language. Lesson completion is never converted to supervised experience hours.</div>
+${db.courses.map(c=>`<form class="card mb" data-f="approval" data-c="${c.id}"><div class="cardhead"><h3>${esc(c.title)}</h3><span class="tag outline">${approvalLabel(c.approval)}</span></div><div class="row"><div class="field"><label class="f">Approval status</label><select class="input" name="approval">${[['not_approved','Not approved'],['pending','Application pending'],['approved','Approval on file']].map(x=>`<option value="${x[0]}" ${c.approval===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div><div class="field"><label class="f">Approving body & ID (required for “approved”)</label><input class="input" name="body" value="${esc(c.approvalBody||'')}" placeholder="e.g., NBCC ACEP #____"></div></div><button class="btn sm alt">Save</button></form>`).join('')}`}
+function aSettings(){return `<div class="pagehead"><div><div class="eyebrow">Administration</div><h1>Settings</h1></div></div>
+<div class="grid g2"><form class="card" data-f="settings"><h3>Branding</h3><div class="field"><label class="f">Platform name</label><input class="input" name="brand" value="${esc(db.settings.brand)}"></div><div class="field"><label class="f">Tagline</label><input class="input" name="tagline" value="${esc(db.settings.tagline)}"></div><button class="btn sm">Save</button></form>
+<div class="card"><h3>Demo data</h3><p class="small muted">All records are fictional and live only in this browser.</p><div class="btnrow"><button class="btn sm alt" data-a="exportAll">⬇ Export JSON</button><button class="btn sm danger" data-a="reset">Reset demo data</button></div></div></div>`}
+function denied(msg){return `<div class="card" style="max-width:560px;margin:40px auto;text-align:center"><div style="font-size:34px">🔒</div><h2>Not available</h2><p class="muted">${esc(msg)}</p><a class="btn alt sm" href="${homeOf(role())}">Go to my home</a></div>`}
+function homeOf(r){return r==='student'?'#/student':r==='instructor'?'#/sup':r==='admin'?'#/admin':'#/'}
+function landing(){const b=db.settings;return `<div class="landing"><section class="hero"><div><div class="eyebrow">${esc(b.tagline)}</div><h1>Study the principles.<br>Practice the decisions.</h1>
+<p>A connected learning platform for counseling students, LPC Associates, and their supervisors: case-based modules, branching simulations, knowledge checks, reflection journals, and a supervisor dashboard that ties it all together.</p>
+<div class="btnrow" style="margin-top:20px"><button class="btn" style="background:#fff;color:var(--green);border-color:#fff" data-a="enter" data-r="student:s1">Try the student portal</button><button class="btn" style="background:transparent;border-color:#ffffff88" data-a="enter" data-r="instructor:i1">Open supervisor dashboard</button></div></div>
+<div style="align-self:end;position:relative;z-index:1"><div class="card" style="background:#ffffff14;border-color:#ffffff30;color:#fff;box-shadow:none"><div class="eyebrow">Featured pathway</div><div class="serif" style="font-size:24px;line-height:1.2">Clinical Foundations</div><div class="small" style="color:#cfe0d3;margin-top:6px">Ethics · Documentation · Supervision · Treatment planning · Risk & referral</div><div class="flex" style="gap:22px;margin-top:14px"><div><b style="font-size:20px">5</b><div class="tiny" style="color:#cfe0d3">modules</div></div><div><b style="font-size:20px">5</b><div class="tiny" style="color:#cfe0d3">simulations</div></div><div><b style="font-size:20px">25</b><div class="tiny" style="color:#cfe0d3">check questions</div></div></div></div></div></section>
+<h2 class="mt2">Choose a demo view</h2><p class="muted">Every record is fictional. Switch views anytime from the top bar. Changes you make in one portal show up in the others.</p>
+<div class="portalcards">${[['🎓','Student / LPC Associate','Take modules, run branching case simulations, pass knowledge checks, and submit reflections. Signed in as Mia Torres.','student:s1','Enter as student'],['🧭','Instructor / Supervisor','Review reflections, give feedback, assign courses, build curriculum, schedule supervision, and run reports. Signed in as Dr. Elena Morris, LPC-S.','instructor:i1','Enter as supervisor'],['⚙️','Administrator','Manage users and roles, publication, CE-claim guardrails, pricing plans, and platform settings.','admin:a1','Enter as admin']].map(x=>`<button class="portal" data-a="enter" data-r="${x[3]}"><span class="ico">${x[0]}</span><b class="serif" style="font-size:21px">${x[1]}</b><span class="small muted">${x[2]}</span><span class="btn sm alt" style="align-self:flex-start">${x[4]} →</span></button>`).join('')}</div>
+<div class="card mt2 cream"><h3>Try the connected workflow</h3><ol class="small" style="margin:0;padding-left:18px;line-height:1.9"><li>As <b>Mia</b>, finish Module 3, play the case simulation, pass the check, and submit a reflection.</li><li>Switch to <b>Dr. Morris</b>. Mia’s reflection appears in the review queue. Send feedback or request a revision.</li><li>Switch back to <b>Mia</b>. The feedback shows on her home page and in her journal.</li><li>As <b>Dr. Morris</b>, open Jordan Patel’s failed Documentation attempts, assign a module, or schedule a meeting.</li></ol></div>
+<div class="notice mt2"><b>Educational demonstration.</b> This prototype is not an accredited or board-approved program. It does not award continuing education credit, supervised clinical experience hours, practicum or internship hours, or certificates. Never enter identifiable client information. Data is stored only in this browser.</div></div>`}
+const NAV={student:[['#/student','⌂','Home'],['#/student/course/c1','▤','My course',null,'Course'],['#/student/progress','▦','My progress',null,'Progress'],['#/student/journal','✎','Journal','j']],
+instructor:[['#/sup','⌂','Overview'],['#/sup/students','☺','Students'],['#/sup/review','✓','Review queue','r','Review'],['#/sup/curriculum','▤','Curriculum'],['#/sup/supervision','◷','Supervision'],['#/sup/reports','▥','Reports']],
+admin:[['#/admin','⌂','Platform'],['#/admin/teaching','◎','Teaching dashboard',null,'Teaching'],['#/admin/students','☺','Students'],['#/admin/review','✓','Review queue','r','Review'],['#/admin/curriculum','▤','Curriculum'],['#/admin/supervision','◷','Supervision'],['#/admin/reports','▥','Reports'],['#/admin/users','⚑','Users & roles'],['#/admin/billing','$','Plans & payments'],['#/admin/compliance','§','Approvals & claims'],['#/admin/settings','⚙','Settings']]};
+function navCount(k){if(k==='j')return unreadFor(ui.as);if(k==='r'){const v=me();return pendingRefl(v).length+pendingQuiz(v).length}return 0}
+function isOn(h){const cur=location.hash||'#/';if(h==='#/student'||h==='#/sup'||h==='#/admin')return cur===h||cur===h+'/';return cur.startsWith(h)}
+function shell(main){const r=role(),u=me();const opts=[['public:','Public site'],['student:s1','Student · Mia Torres'],['student:s2','Student · Jordan Patel'],['student:s3','Student · Lauren Kim'],['student:s4','Student · Caleb Brooks'],['student:s5','Student · Nina Shah'],['instructor:i1','Supervisor · Dr. Elena Morris'],['instructor:i2','Supervisor · Dr. Hannah Cole'],['admin:a1','Admin · Casey Whitfield']];
+const cur=r==='public'?'public:':r+':'+u.id;
+const top=`<header class="topbar"><a class="brand" href="#/">${esc(db.settings.brand.replace(/ Studio$/,''))}<b>.</b><small>${r==='public'?'Interactive training':r==='student'?'Student portal':r==='instructor'?'Supervisor portal':'Administration'}</small></a><span class="spacer"></span><span class="demo-pill">Prototype · fictional data</span>
+<label class="rolesel"><span>Viewing as</span><select data-ch="as" aria-label="Demo role">${opts.map(o=>`<option value="${o[0]}" ${o[0]===cur?'selected':''}>${o[1]}</option>`).join('')}</select></label></header>`;
+const foot=`<footer class="footer"><span>${esc(db.settings.brand)} · educational prototype · not CE-approved · no clinical hours awarded</span><span>Fictional people and records only · <a href="#" data-a="about">About this demo</a></span></footer>`;
+if(r==='public')return top+main+foot;
+const items=NAV[r];const side=`<aside class="side"><div class="who">${av(u)}<div style="min-width:0"><b class="small" style="display:block">${esc(u.name)}</b><span class="tiny muted">${esc(u.credential)}</span></div></div>
+${items.map((n,i)=>(r==='admin'&&i===1?'<div class="navsec">Teaching</div>':r==='admin'&&i===7?'<div class="navsec">Admin</div>':'')+`<a class="navlink ${isOn(n[0])?'on':''}" href="${n[0]}"><span class="ic">${n[1]}</span>${n[2]}${n[3]&&navCount(n[3])?`<span class="count">${navCount(n[3])}</span>`:''}</a>`).join('')}
+<div class="navsec">Demo</div><a class="navlink" href="#/" ><span class="ic">↩</span>Public site</a></aside>`;
+const bn=items.slice(0,4);const bottom=`<nav class="bottomnav">${bn.map(n=>`<a class="${isOn(n[0])?'on':''}" href="${n[0]}"><span class="ic">${n[1]}</span>${n[4]||n[2].split(' ')[0]}${n[3]&&navCount(n[3])?`<span class="count">${navCount(n[3])}</span>`:''}</a>`).join('')}<a href="#" data-a="more"><span class="ic">☰</span>More</a></nav>`;
+return top+`<div class="app">${side}<main class="view" id="main">${main}</main></div>`+bottom+foot}
+function route(){const h=(location.hash||'#/').slice(2).replace(/\/$/,'');const p=h.split('/');const r=role();
+const need={student:'student',sup:'instructor',admin:'admin'}[p[0]];
+if(!p[0])return landing();
+if(need&&r!==need){return need==='instructor'&&r==='admin'?denied('Admins use the Teaching pages under Administration.'):denied(`This area is for the ${need==='instructor'?'instructor/supervisor':need} role. You’re viewing as ${r==='public'?'a visitor':r}. Switch views with the “Viewing as” menu.`)}
+if(p[0]==='student'){if(!p[1])return sHome();if(p[1]==='course')return sCourse(p[2]);if(p[1]==='module')return sModule(p[2],p[3]);if(p[1]==='progress')return sProgress();if(p[1]==='journal')return sJournal()}
+if(p[0]==='sup'||p[0]==='admin'){const s=p[1];
+if(p[0]==='admin'){if(!s)return aOverview();if(s==='teaching')return iOverview();if(s==='users')return aUsers();if(s==='billing')return aBilling();if(s==='compliance')return aCompliance();if(s==='settings')return aSettings()}
+if(!s)return iOverview();if(s==='students')return iStudents();if(s==='student')return iStudent(p[2],p[3]);if(s==='review')return iReview(p[2],p[3]);if(s==='curriculum')return iCurriculum();if(s==='course')return iCourse(p[2]);if(s==='module')return iModuleEdit(p[2]);if(s==='supervision')return iSupervision(p[2]);if(s==='reports')return iReports()}
+return denied('Page not found.')}
+let lastHash=null;
+function render(){const h=location.hash;const main=route();$('#root').innerHTML=shell(main);if(h!==lastHash){window.scrollTo(0,0);lastHash=h}document.title=db.settings.brand+' · '+(role()==='public'?'Interactive Training':role()==='student'?'Student':role()==='instructor'?'Supervisor':'Admin')}
+function go(h){if(location.hash===h)render();else location.hash=h}
+window.addEventListener('hashchange',render);
+function meetingModal(id,sid){const v=me();const m=id?db.meetings.find(x=>x.id===id):{attendees:sid?[sid]:[],type:'individual',at:Date.now()+2*DAY,mins:60,status:'scheduled',agenda:'',notes:'',approved:false};
+const d=new Date(m.at),pad=n=>String(n).padStart(2,'0');const ss=studentsFor(v);
+modal(`<h2>${id?'Supervision meeting':'Schedule supervision'}</h2><form data-f="meeting" data-id="${id||''}">
+<div class="field"><label class="f">Supervisee(s)</label><div class="chips" style="margin:0">${ss.map(s=>`<label class="chipbtn small"><input type="checkbox" name="att" value="${s.id}" ${m.attendees.includes(s.id)?'checked':''}> ${esc(s.name)}</label>`).join('')}</div></div>
+<div class="row"><div class="field"><label class="f">Type</label><select class="input" name="type"><option ${m.type==='individual'?'selected':''}>individual</option><option ${m.type==='group'?'selected':''}>group</option></select></div><div class="field"><label class="f">Minutes</label><input class="input" type="number" name="mins" min="15" step="15" value="${m.mins}"></div></div>
+<div class="row"><div class="field"><label class="f">Date</label><input class="input" type="date" name="date" value="${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}"></div><div class="field"><label class="f">Time</label><input class="input" type="time" name="time" value="${pad(d.getHours())}:${pad(d.getMinutes())}"></div></div>
+<div class="field"><label class="f">Agenda</label><input class="input" name="agenda" value="${esc(m.agenda)}"></div>
+<div class="row"><div class="field"><label class="f">Status</label><select class="input" name="status">${['scheduled','completed','canceled'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="field" style="display:flex;align-items:flex-end"><label class="toggle"><input type="checkbox" name="approved" ${m.approved?'checked':''}> Supervisor approves record</label></div></div>
+<div class="field"><label class="f">Supervision notes (de-identified, no client names)</label><textarea class="input" name="notes">${esc(m.notes)}</textarea></div>
+<div class="btnrow"><button class="btn">Save</button>${id?`<button type="button" class="btn danger" data-a="delMeeting" data-id="${id}">Delete</button>`:''}</div></form>`)}
+function P(mid){return prog(me().id,mid,true)}
+const ACT={
+enter(e){const [r,id]=e.dataset.r.split(':');setRole(r,id)},
+about(){modal(`<h2>About this demo</h2><p class="small">This is a working prototype of the ${esc(db.settings.brand)} learning-management system. It uses fictional people and records, saved only in your browser's local storage. There are no real accounts.</p><ul class="small"><li><b>Working now:</b> student modules with save &amp; resume, branching simulations, quizzes, reflections, supervisor review and feedback, course assignment, curriculum editing, supervision scheduling and records, reports and CSV export, admin roles, and claim guardrails.</li><li><b>Planned for production:</b> Supabase Auth with row-level security, file storage, Stripe payments, email notifications, and audit logs.</li></ul><p class="small muted">Not CE-approved. Awards no supervised experience, practicum, or internship hours.</p>`)},
+more(){const r=role();modal(`<h2>Menu</h2><div class="list">${NAV[r].map(n=>`<a class="li" href="${n[0]}" data-a="close" style="text-decoration:none;color:inherit"><span>${n[1]}</span><b class="grow">${n[2]}</b></a>`).join('')}<a class="li" href="#/" data-a="close" style="text-decoration:none;color:inherit"><span>↩</span><b class="grow">Public site</b></a></div>`)},
+close(){closeModal()},
+goStep(e){go('#/student/module/'+e.dataset.m+'/'+e.dataset.i)},
+complete(e){const mid=e.dataset.m,k=e.dataset.k,p=P(mid);p.done[k]=true;p.touched=Date.now();finishCheck(mid);save();const st=stepsOf(M(mid));const i=st.findIndex(s=>s.key===k);go('#/student/module/'+mid+'/'+Math.min(i+1,st.length-1))},
+exSel(e){const ex=ui.ex[e.dataset.m+e.dataset.k];ex.sel=+e.dataset.i;render()},
+exPlace(e){const ex=ui.ex[e.dataset.m+e.dataset.k];if(ex.sel===null||ex.sel===undefined)return toast('Select a statement first');ex.placed[ex.sel]=+e.dataset.b;ex.sel=null;ex.checked=false;render()},
+exCheck(e){const ex=ui.ex[e.dataset.m+e.dataset.k];ex.checked=true;const l=M(e.dataset.m).lessons[+e.dataset.k.slice(1)];if(l.items.every((it,i)=>ex.placed[i]===it.b)){P(e.dataset.m).done[e.dataset.k]=true;finishCheck(e.dataset.m);save();toast('All correct ✓')}render()},
+exRetry(e){const ex=ui.ex[e.dataset.m+e.dataset.k],l=M(e.dataset.m).lessons[+e.dataset.k.slice(1)];Object.keys(ex.placed).forEach(i=>{if(ex.placed[i]!==l.items[i].b)delete ex.placed[i]});ex.checked=false;render()},
+exReset(e){ui.ex[e.dataset.m+e.dataset.k]={sel:null,placed:{},checked:false,retry:true};render()},
+seqMove(e){const ex=ui.ex[e.dataset.m+e.dataset.k],i=+e.dataset.i,j=i+ +e.dataset.d;[ex.order[i],ex.order[j]]=[ex.order[j],ex.order[i]];ex.checked=false;render()},
+seqCheck(e){const ex=ui.ex[e.dataset.m+e.dataset.k];ex.checked=true;const l=M(e.dataset.m).lessons[+e.dataset.k.slice(1)];if(ex.order.every((v,i)=>v===l.order[i])){P(e.dataset.m).done[e.dataset.k]=true;finishCheck(e.dataset.m);save()}render()},
+rwShow(e){const p=P(e.dataset.m);p.ex=p.ex||{};p.ex[e.dataset.k+'show']=!p.ex[e.dataset.k+'show'];save();render()},
+worksheet(e){const m=M(e.dataset.m),l=m.lessons[+e.dataset.i];const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(l.title)}</title><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;color:#19362d;padding:0 20px}h1{font-weight:400}h2{font-size:17px;border-bottom:1px solid #ccd;padding-bottom:4px;margin-top:28px}.ln{border-bottom:1px solid #bbb;height:30px}.note{font:12px sans-serif;color:#666}</style></head><body><div class="note">${esc(db.settings.brand)} · Module ${m.num}: ${esc(m.title)} · Educational worksheet. Do not record identifying client information.</div><h1>${esc(l.title.replace(/^Worksheet:\s*/,''))}</h1><p>${esc(l.intro)}</p>${l.sections.map(s=>`<h2>${esc(s.h)}</h2>${s.p.map(q=>`<p>${esc(q)}</p><div class="ln"></div><div class="ln"></div>`).join('')}`).join('')}</body></html>`;download(l.fileName+'.html',html,'text/html')},
+simChoose(e){const mid=e.dataset.m,m=M(mid),p=P(mid);if(!p.sim||!p.sim.path||p.sim.done&&!p.sim.path.length)p.sim={path:[],done:false};const n=m.scenario.nodes[e.dataset.n],c=n.choices[+e.dataset.c];p.sim.path.push({n:e.dataset.n,c:+e.dataset.c});
+if(!c.next){const pts={good:2,mixed:1,poor:0};p.sim.score=p.sim.path.reduce((a,x)=>a+pts[m.scenario.nodes[x.n].choices[x.c].q],0);p.sim.max=p.sim.path.length*2;p.sim.done=true;p.done.sim=true;finishCheck(mid);log('completed the case simulation in Module '+m.num+' ('+p.sim.score+'/'+p.sim.max+')','progress')}p.touched=Date.now();save();render()},
+simReset(e){const p=P(e.dataset.m);p.sim={path:[],done:false};save();render()},
+quizPick(e){const q=ui.quiz[e.dataset.m];q.ans[+e.dataset.q]=+e.dataset.o;render()},
+quizSubmit(e){const mid=e.dataset.m,m=M(mid),q=ui.quiz[mid],p=P(mid),pass=passOf(mid);const ans=m.quiz.map((x,i)=>q.ans[i]);const sc=Math.round(ans.filter((a,i)=>a===m.quiz[i].a).length/m.quiz.length*100);
+p.attempts.push({score:sc,at:Date.now(),answers:ans,reviewed:sc>=pass});q.submitted=true;q.score=sc;if(sc>=pass)p.done.quiz=true;p.touched=Date.now();finishCheck(mid);
+log((sc>=pass?'passed':'scored '+sc+'% on')+' the Module '+m.num+' knowledge check'+(sc>=pass?' ('+sc+'%)':' (attempt '+p.attempts.length+')'),'quiz');save();render();window.scrollTo(0,0)},
+quizRetake(e){ui.quiz[e.dataset.m]={ans:{},submitted:false};render();window.scrollTo(0,0)},
+reflSubmit(e){const mid=e.dataset.m,m=M(mid),p=P(mid);const t=($('#refl')||{}).value||'';if(t.trim().split(/\s+/).length<15)return toast('Please write at least a few sentences (15+ words).');
+const c=piiCheck(t);if(c.hard.length){$('#piiwarn').innerHTML='<span style="color:var(--red)">⚠ Remove '+c.hard.join(', ')+' before submitting.</span>';return toast('Possible identifying information detected')}
+if(c.soft.length&&!ui.softOk){ui.softOk=true;$('#piiwarn').innerHTML='<span style="color:var(--amber)">⚠ Check for '+c.soft.join(', ')+'. Click submit again to confirm it’s de-identified.</span>';return}ui.softOk=false;
+let r=db.reflections.find(r=>r.userId===me().id&&r.moduleId===mid);if(r){r.text=t;r.at=Date.now();r.status='awaiting'}else{r={id:uid('r'),userId:me().id,moduleId:mid,text:t,at:Date.now(),status:'awaiting',thread:[],unread:false};db.reflections.push(r)}
+p.done.ref=true;p.reflId=r.id;if(p.ex)delete p.ex.refDraft;finishCheck(mid);log('submitted a reflection for Module '+m.num,'reflection');save();toast('Submitted to '+U(me().supervisorId).name);render()},
+filter(e){ui.filter=e.dataset.v;render()},
+cal(e){ui.cal=(ui.cal||0)+ +e.dataset.d;save();render()},
+newMeeting(e){meetingModal(null,e.dataset.s)},
+editMeeting(e){meetingModal(e.dataset.id)},
+delMeeting(e){db.meetings=db.meetings.filter(m=>m.id!==e.dataset.id);save();closeModal();toast('Meeting deleted');render()},
+approve(e){const m=db.meetings.find(x=>x.id===e.dataset.id);m.approved=true;log('approved a supervision record ('+fmtD(m.at)+')','feedback');save();toast('Record approved');render()},
+assign(e){const s=U(e.dataset.s);const cs=db.courses.filter(c=>c.status==='published');modal(`<h2>Assign to ${esc(s.name)}</h2><form data-f="assign" data-s="${s.id}"><div class="field"><label class="f">Course</label><select class="input" name="c" data-ch="assignCourse">${cs.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select></div>
+<div class="field"><label class="f">Modules</label><div id="assignMods">${assignMods(cs[0].id,s.id)}</div></div><div class="field"><label class="f">Due date</label><input class="input" type="date" name="due" value="${new Date(Date.now()+30*DAY).toISOString().slice(0,10)}"></div>
+<p class="tiny muted">Only published courses can be assigned. Draft courses stay hidden from students.</p><button class="btn">Assign</button></form>`)},
+unassign(e){const en=db.enrollments.find(x=>x.id===e.dataset.e);db.enrollments=db.enrollments.filter(x=>x.id!==e.dataset.e);log('removed '+C(en.courseId).title+' from '+U(en.userId).name,'feedback');save();toast('Assignment removed (progress kept)');render()},
+note(e){const s=U(e.dataset.s);modal(`<h2>Note to ${esc(s.name)}</h2><form data-f="note" data-s="${s.id}"><textarea class="input" name="t" required placeholder="Shown on the student’s home page and journal…"></textarea><p class="tiny muted">Keep notes educational and de-identified.</p><button class="btn">Send note</button></form>`)},
+insert(e){const ta=e.closest('form').querySelector('textarea');ta.value+=(ta.value&&!/\s$/.test(ta.value)?' ':'')+e.dataset.t;ta.focus()},
+togglePub(e){const c=C(e.dataset.c);if(c.status!=='published'&&!c.moduleIds.length)return toast('Add at least one module before publishing');c.status=c.status==='published'?'draft':'published';log((c.status==='published'?'published ':'unpublished ')+c.title,'feedback');save();toast(c.status==='published'?'Published. Assigned students can now see it.':'Unpublished. Hidden from students.');render()},
+newCourse(){modal(`<h2>New course</h2><form data-f="newCourse"><div class="field"><label class="f">Title</label><input class="input" name="title" required></div><div class="field"><label class="f">Description</label><textarea class="input" name="desc" style="min-height:70px"></textarea></div><button class="btn">Create draft</button></form>`)},
+newModule(e){const c=C(e.dataset.c);const id=uid('m');db.modules[id]={id,courseId:c.id,num:c.moduleIds.length+1,title:'Untitled module',category:'General',minutes:60,prereq:null,summary:'',objectives:['Objective 1'],lessons:[{type:'text',title:'Introduction',html:'<p>Lesson content…</p>'}],scenario:null,quiz:[],reflection:'Reflection prompt…'};c.moduleIds.push(id);save();go(base()+'/module/'+id)},
+modMove(e){const c=C(e.dataset.c),i=+e.dataset.i,j=i+ +e.dataset.d;[c.moduleIds[i],c.moduleIds[j]]=[c.moduleIds[j],c.moduleIds[i]];c.moduleIds.forEach((m,k)=>M(m).num=k+1);save();render()},
+lesMove(e){harvest();const m=M(e.dataset.m),i=+e.dataset.i,j=i+ +e.dataset.d;[m.lessons[i],m.lessons[j]]=[m.lessons[j],m.lessons[i]];save();render()},
+lesDel(e){harvest();const m=M(e.dataset.m);m.lessons.splice(+e.dataset.i,1);save();render()},
+lesAdd(e){harvest();const m=M(e.dataset.m);m.lessons.push({type:e.dataset.t,title:{text:'New lesson',video:'New video',file:'Slides / handout'}[e.dataset.t],html:'',duration:''});save();render()},
+qAdd(e){harvest();M(e.dataset.m).quiz.push({q:'New question',o:['Option A','Option B','Option C','Option D'],a:0,why:''});save();render()},
+qDel(e){harvest();M(e.dataset.m).quiz.splice(+e.dataset.i,1);save();render()},
+delModule(e){const mid=e.dataset.m;if(Object.values(db.progress).some(p=>p[mid]&&Object.keys(p[mid].done).length))return toast('Students have progress in this module. Unpublish the course instead.');const m=M(mid),c=C(m.courseId);c.moduleIds=c.moduleIds.filter(x=>x!==mid);delete db.modules[mid];save();go(base()+'/course/'+c.id)},
+previewMod(e){const m=M(e.dataset.m);modal(`<div class="eyebrow">Student preview</div><h2>${esc(m.title)}</h2><p class="muted small">${esc(m.summary)}</p>${m.lessons.map((l,i)=>`<h4>Lesson ${i+1}: ${esc(l.title)}</h4><div class="small">${l.html||'<i class="muted">Interactive exercise</i>'}</div>`).join('<div class="hr"></div>')}<div class="hr"></div><h4>Knowledge check (${m.quiz.length} questions)</h4><h4>Reflection</h4><p class="small">${m.reflection}</p>`)},
+exportSup(){const v=me();const rows=[['Date','Type','Supervisor','Supervisees','Minutes','Topics','Approved']].concat(db.meetings.filter(m=>m.status==='completed'&&(v.role==='admin'||m.supervisorId===v.id)).map(m=>[fmtDY(m.at),m.type,U(m.supervisorId).name,m.attendees.map(a=>U(a).name).join('; '),m.mins,m.notes||m.agenda,m.approved?'yes':'no']));download('supervision-records-demo.csv',csv(rows),'text/csv')},
+exportProgress(){const v=me(),c=C('c1');const rows=[['Student','Credential','Supervisor',...c.moduleIds.map(m=>'M'+M(m).num+' status'),'Overall %','Avg best score','Last active']].concat(studentsFor(v).map(s=>[s.name,s.credential,(U(s.supervisorId)||{}).name,...c.moduleIds.map(m=>modStatus(s.id,m)),coursePct(s.id,'c1'),avgQuiz(s.id)??'',fmtDY(lastActive(s.id))]));download('student-progress-demo.csv',csv(rows),'text/csv')},
+exportQuiz(){const v=me();const rows=[['Student','Module','Score','Passed','Date']];studentsFor(v).forEach(s=>allAttempts(s.id).forEach(a=>rows.push([s.name,M(a.mid).title,a.score,a.score>=passOf(a.mid)?'yes':'no',fmtDY(a.at)])));download('quiz-attempts-demo.csv',csv(rows),'text/csv')},
+exportMine(){const u=me();const rows=[['Module','Status','Progress %','Best score','Attempts']];coursesOf(u.id).forEach(c=>enrolledMods(u.id,c.id).forEach(mid=>{const p=prog(u.id,mid);rows.push([M(mid).title,modStatus(u.id,mid),modPct(u.id,mid),best(p)??'',p?p.attempts.length:0])}));download('my-learning-record.csv',csv(rows),'text/csv')},
+exportAll(){download('lpc-demo-data.json',JSON.stringify(db,null,2),'application/json')},
+print(){window.print()},
+reset(){if(ui.resetArm){localStorage.removeItem(KEY);db=seed();save();ui.resetArm=false;toast('Demo data reset');render()}else{ui.resetArm=true;toast('Click reset again to confirm')}},
+addUser(){modal(`<h2>Add user</h2><form data-f="addUser"><div class="field"><label class="f">Full name (fictional)</label><input class="input" name="name" required></div><div class="field"><label class="f">Email</label><input class="input" type="email" name="email" placeholder="name@example.org"></div><div class="row"><div class="field"><label class="f">Role</label><select class="input" name="role"><option>student</option><option>instructor</option></select></div><div class="field"><label class="f">Supervisor (students)</label><select class="input" name="sup">${db.users.filter(u=>u.role==='instructor').map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div></div><div class="field"><label class="f">Credential</label><select class="input" name="cred"><option>LPC Associate</option><option>Graduate practicum student</option><option>LPC</option><option>LPC-S (fictional)</option></select></div><p class="tiny muted">In production this sends an invitation email through Supabase Auth.</p><button class="btn">Add user</button></form>`)}
+};
+function assignMods(cid,sid){const c=C(cid);const en=db.enrollments.find(e=>e.userId===sid&&e.courseId===cid);return `${en?'<div class="tiny muted mb">Already enrolled. Saving updates the module selection.</div>':''}${c.moduleIds.map(m=>`<label class="toggle small" style="display:flex;margin-bottom:4px"><input type="checkbox" name="mods" value="${m}" ${!en||!en.moduleIds||en.moduleIds.includes(m)?'checked':''}> ${esc(M(m).title)}</label>`).join('')}`}
+function finishCheck(mid){const u=me(),p=prog(u.id,mid);if(p&&!p.completedAt&&modPct(u.id,mid)>=100){p.completedAt=Date.now();log('completed Module '+M(mid).num+', '+M(mid).title,'progress');toast('Module complete 🎉')}}
+function harvest(){const f=document.querySelector('form[data-f="module"]');if(f)saveModule(f,true)}
+function saveModule(f,silent){const m=M(f.dataset.m),fd=new FormData(f);m.title=fd.get('title')||m.title;m.category=fd.get('category');m.summary=fd.get('summary');m.minutes=+fd.get('minutes')||m.minutes;m.prereq=fd.get('prereq')||null;m.objectives=String(fd.get('objectives')).split('\n').map(x=>x.trim()).filter(Boolean);m.reflection=esc(fd.get('reflection'));
+m.lessons.forEach((l,i)=>{if(fd.has('lt'+i))l.title=fd.get('lt'+i);if(fd.has('lb'+i))l.html=fd.get('lb'+i)});
+m.quiz.forEach((q,i)=>{if(!fd.has('q'+i))return;q.q=fd.get('q'+i);q.o=q.o.map((o,j)=>fd.get('qo'+i+'_'+j)??o);q.a=+(fd.get('qa'+i)??q.a);q.why=fd.get('qw'+i)});
+if(m.prereq&&(m.prereq===m.id||M(m.prereq).prereq===m.id)){m.prereq=null;toast('Circular prerequisite removed')}save();if(!silent){log('updated module “'+m.title+'”','feedback');toast('Module saved');render()}}
+function setRole(r,id){ui.role=r==='public'?null:r;if(r==='student')ui.as=id;if(r==='instructor')ui.supAs=id;ui.ex={};ui.quiz={};ui.filter='';ui.q='';save();go(homeOf(role()))}
+const FORMS={
+reply(f,fd){const r=db.reflections.find(x=>x.id===f.dataset.r);const t=String(fd.get('t')).trim();if(!t)return;r.thread.push({by:me().id,text:t,at:Date.now()});if(me().role!=='student')r.unread=true;save();render()},
+feedback(f,fd,sub){const r=db.reflections.find(x=>x.id===f.dataset.r);const t=String(fd.get('t')).trim();if(!t)return toast('Write some feedback first');const k=sub&&sub.value==='revise'?'revise':'ok';r.thread.push({by:me().id,text:t,at:Date.now(),kind:k==='revise'?'revise':undefined});r.status=k==='revise'?'revise':'reviewed';r.unread=true;
+if(k==='revise'){const p=prog(r.userId,r.moduleId);if(p){p.done.ref=false;p.completedAt=null}}log((k==='revise'?'requested a revision on ':'gave feedback on ')+U(r.userId).name+'’s Module '+M(r.moduleId).num+' reflection','feedback');save();toast(k==='revise'?'Revision requested':'Feedback sent to '+U(r.userId).name);go(base()+'/review')},
+quizReview(f,fd){const p=prog(f.dataset.s,f.dataset.m);p.attempts.forEach(a=>a.reviewed=true);const t=String(fd.get('t')).trim();if(t)db.notes.push({id:uid('n'),to:f.dataset.s,from:me().id,text:t,at:Date.now(),read:false});log('reviewed '+U(f.dataset.s).name+'’s Module '+M(f.dataset.m).num+' attempts','feedback');save();toast('Marked reviewed'+(t?' · note sent':''));render()},
+assign(f,fd){const sid=f.dataset.s,cid=fd.get('c'),mods=fd.getAll('mods');if(!mods.length)return toast('Select at least one module');const c=C(cid);const ids=mods.length===c.moduleIds.length?null:mods;let en=db.enrollments.find(e=>e.userId===sid&&e.courseId===cid);const due=new Date(fd.get('due')+'T12:00').getTime()||Date.now()+30*DAY;
+if(en){en.moduleIds=ids;en.due=due}else db.enrollments.push({id:uid('e'),userId:sid,courseId:cid,moduleIds:ids,assignedBy:me().id,at:Date.now(),due});log('assigned '+c.title+(ids?' ('+ids.length+' modules)':'')+' to '+U(sid).name,'feedback');save();closeModal();toast('Assigned');render()},
+note(f,fd){db.notes.push({id:uid('n'),to:f.dataset.s,from:me().id,text:String(fd.get('t')).trim(),at:Date.now(),read:false});log('sent a note to '+U(f.dataset.s).name,'feedback');save();closeModal();toast('Note sent');render()},
+meeting(f,fd){const att=fd.getAll('att');if(!att.length)return toast('Choose at least one supervisee');const at=new Date(fd.get('date')+'T'+(fd.get('time')||'09:00')).getTime();const data={attendees:att,type:fd.get('type'),at,mins:+fd.get('mins')||60,agenda:fd.get('agenda'),status:fd.get('status'),notes:fd.get('notes'),approved:fd.get('approved')==='on'};
+if(data.status!=='completed'&&data.approved){data.approved=false;toast('Only completed meetings can be approved')}
+if(f.dataset.id)Object.assign(db.meetings.find(m=>m.id===f.dataset.id),data);else{db.meetings.push({id:uid('mt'),supervisorId:me().role==='admin'?(U(att[0]).supervisorId||'i1'):me().id,...data});log('scheduled a '+data.type+' supervision meeting','feedback')}save();closeModal();toast('Saved');render()},
+course(f,fd){const c=C(f.dataset.c);c.title=fd.get('title');c.desc=fd.get('desc');c.passScore=Math.max(50,Math.min(100,+fd.get('pass')||80));c.price=+fd.get('price')||0;c.hoursLabel=fd.get('hours');save();toast('Course saved');render()},
+module(f){saveModule(f)},
+newCourse(f,fd){const id=uid('c');db.courses.push({id,title:fd.get('title'),desc:fd.get('desc'),status:'draft',passScore:80,moduleIds:[],instructorIds:[me().role==='admin'?'i1':me().id],approval:'not_approved',hoursLabel:'TBD',price:0,createdAt:Date.now()});log('created course '+fd.get('title'),'feedback');save();closeModal();go(base()+'/course/'+id)},
+addUser(f,fd){const r=fd.get('role');db.users.push({id:uid('u'),name:fd.get('name'),email:fd.get('email')||'user@example.org',role:r,credential:fd.get('cred'),supervisorId:r==='student'?fd.get('sup'):undefined,color:['#3d7a5f','#9a6a18','#3b6280','#6a5a8c','#a4473b'][Math.floor(Math.random()*5)],joined:Date.now(),lastActive:Date.now(),setting:'—',stage:'—'});save();closeModal();toast('User added');render()},
+plan(f,fd){const p=db.plans.find(x=>x.id===f.dataset.p);p.price=+fd.get('price');p.interval=fd.get('interval');p.active=fd.get('active')==='on';save();toast('Plan saved (no payments connected)');render()},
+approval(f,fd){const c=C(f.dataset.c);const a=fd.get('approval'),b=String(fd.get('body')).trim();if(a==='approved'&&b.length<4)return toast('Enter the approving body and ID first');c.approval=a;c.approvalBody=b;log('set CE status for '+c.title+' to '+approvalLabel(a),'feedback');save();toast('Saved');render()},
+settings(f,fd){db.settings.brand=fd.get('brand')||'LPC Learning Studio';db.settings.tagline=fd.get('tagline');save();toast('Settings saved');render()}
+};
+document.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(a&&!a.disabled){if(a.tagName==='A'&&a.getAttribute('href')==='#')e.preventDefault();const fn=ACT[a.dataset.a];if(fn){if(a.tagName!=='A'||a.getAttribute('href')==='#')e.preventDefault();fn(a,e)}return}
+const g=e.target.closest('[data-go]');if(g&&!e.target.closest('a,button:not([data-go]),input,select')){go(g.dataset.go)}
+if(e.target.id==='modal')closeModal()});
+document.addEventListener('submit',e=>{const f=e.target.closest('form[data-f]');if(!f)return;e.preventDefault();const fn=FORMS[f.dataset.f];if(fn)fn(f,new FormData(f),e.submitter)});
+document.addEventListener('input',e=>{const t=e.target,k=t.dataset.in;if(!k)return;
+if(k==='search'){ui.q=t.value;render();const s=document.querySelector('[data-in="search"]');if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length)}}
+if(k==='rewrite'){const p=P(t.dataset.m);p.ex=p.ex||{};p.ex[t.dataset.k]=t.value;save()}
+if(k==='refl'){const p=P(t.dataset.m);p.ex=p.ex||{};p.ex.refDraft=t.value;save();ui.softOk=false;const w=t.value.trim()?t.value.trim().split(/\s+/).length:0;$('#wc').textContent=w+' words';const c=piiCheck(t.value);$('#piiwarn').innerHTML=c.hard.length?'<span style="color:var(--red)">⚠ This looks like it includes '+c.hard.join(', ')+'</span>':c.soft.length?'<span style="color:var(--amber)">⚠ This may include '+c.soft.join(', ')+'</span>':''}});
+document.addEventListener('change',e=>{const t=e.target;
+if(t.dataset.ch==='as'){const [r,id]=t.value.split(':');setRole(r,id)}
+if(t.dataset.ch==='role'){const u=U(t.dataset.u);u.role=t.value;if(u.role==='student'&&!u.supervisorId)u.supervisorId='i1';log('changed '+u.name+'’s role to '+u.role,'feedback');save();toast('Role updated');render()}
+if(t.dataset.ch==='sup'){U(t.dataset.u).supervisorId=t.value||null;save();toast('Supervisor updated');render()}
+if(t.dataset.ch==='assignCourse'){$('#assignMods').innerHTML=assignMods(t.value,t.closest('form').dataset.s)}
+if(t.dataset.up!==undefined&&t.files&&t.files[0]){harvest();const l=M(t.dataset.m).lessons[+t.dataset.up];l.fileName=t.files[0].name;l.fileSize=t.files[0].size;save();toast('Attached '+l.fileName+' (name only in demo)');render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+render();
+</script></body></html>

@@ -2,7 +2,7 @@
 // A 6-character room code (or a reserved 8-digit one) invites one friend; each device holds its own random 96-bit seat key.
 // Only SHA-256 hashes of seat keys are stored. The table has RLS on and no public grants.
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
-const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4','what-changed','draw-together','warmer','hide-a-dot','quick-draw','same-word']);
+const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4','what-changed','draw-together','warmer','hide-a-dot','quick-draw','same-word','wavelength']);
 const isToken = (x: unknown) => typeof x === 'string' && /^[a-f0-9]{24}$/.test(x);
 const isCode = (x: unknown) => typeof x === 'string' && /^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(x);
 const hash = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))), n => n.toString(16).padStart(2, '0')).join('');

@@ -1,0 +1,28 @@
+.wavelength{--gold:#ffcf6e;--text:#f6efe0;--muted:#b7b4cc;--line:#ffffff1f;background:radial-gradient(ellipse at 50% 0%,#3d4a86,#1d2346 58%,#141831);min-height:100dvh}
+.wavelength .brand{color:#ffd98c}
+.wavelength input:not(.move-chat input){background:#151a35}
+.cover{display:block;width:150px;margin:0 auto 14px}
+.face{fill:#f6efe0}
+.b2{fill:#7fc8c0}.b3{fill:#f0a35e}.b4{fill:#e5584f}
+.needle{stroke:#1d2346;stroke-width:4;stroke-linecap:round}
+.needle.guess{stroke:#ffcf6e}
+.hub{fill:#1d2346}
+#scorebar{display:flex;justify-content:space-between;align-items:baseline;margin:2px 4px 6px;color:var(--muted);font-size:13px}
+#score{font:700 22px Georgia,serif;color:var(--text)}
+#status{text-align:center;margin:6px 0 10px;font:600 17px/1.35 Georgia,serif}
+#clueShown{text-align:center;font:700 clamp(24px,8vw,34px)/1.15 Georgia,serif;color:var(--gold);margin:0 0 6px;overflow-wrap:anywhere}
+#dial{display:block;width:100%;max-width:440px;margin:0 auto;touch-action:none;user-select:none}
+#dial.live{cursor:grab}
+#dial .cover-face{fill:#2a3263}
+#ends{display:flex;justify-content:space-between;gap:12px;max-width:440px;margin:4px auto 14px;font:700 15px/1.2 Georgia,serif}
+#ends span:last-child{text-align:right}
+.row{display:flex;gap:9px}
+.row button{flex:1}
+#clueForm input{margin-bottom:0}
+#slider{padding:0;margin:4px 0 6px;accent-color:var(--gold);background:none;border:0}
+#last{margin:16px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#0002;font-size:14px;line-height:1.5;color:var(--muted)}
+#last b{color:var(--text)}
+#last .pts{float:right;font:700 20px Georgia,serif;color:var(--gold)}
+.history{list-style:none;padding:0;margin:8px 0 0}
+.history li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.mini{display:block;width:150px;margin:8px auto 0}

@@ -1,7 +1,7 @@
 // Your Move saved games. Deployed as Supabase Edge Function `your-move-games` (verify_jwt off: auth is done here).
 // Seats come from the same room as the chat (pounce_rooms_v1): a device proves its seat with the secret it joined with.
 //
-// Turn games (dots, hearts, uno, guess-who, scrabble, duet) are played THROUGH this function: it holds the full game,
+// Turn games (dots, hearts, uno, guess-who, scrabble, duet, wavelength) are played THROUGH this function: it holds the full game,
 // checks every move with the game's own rules, plays the computer seats, and sends each phone only its own view.
 // That is what lets one person take a turn while the other is away.
 //
@@ -16,6 +16,7 @@ import * as uno from './games/uno.mjs';
 import * as guessWho from './games/guess-who.mjs';
 import * as scrabble from './games/scrabble.mjs';
 import * as duet from './games/duet.mjs';
+import * as wavelength from './games/wavelength.mjs';
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -70,6 +71,12 @@ const turnGames: Record<string, any> = {
     act: (g: any, seat: number, m: any) => duet.action(g, seat, m),
     view: duet.view, done: (g: any) => !!g.outcome,
     yourMove: (g: any, s: number) => g.phase === 'final' || (g.phase === 'clue' ? g.giver === s : g.giver !== s),
+  },
+  wavelength: {
+    create: (names: string[]) => wavelength.newGame(names),
+    act: (g: any, seat: number, m: any) => wavelength.action(g, seat, m),
+    view: wavelength.view, done: (g: any) => g.phase === 'end',
+    yourMove: (g: any, s: number) => g.phase === 'clue' ? g.psychic === s : g.phase === 'guess' && g.psychic !== s,
   },
   scrabble: {
     create: (names: string[], o: any) => {

@@ -14,7 +14,7 @@ const marks = {'what-changed':'◫','draw-together':'〰',warmer:'◉','hide-a-d
 document.title = title+' · Your Move';
 document.body.dataset.kind = kind;
 document.documentElement.dataset.moveChat = kind;
-void import('/your-move-chat/chat.mjs?v=kill1');
+void import('/your-move-chat/chat.mjs?v=wave1');
 txt('title',title);
 txt('gameTitle',title);
 txt('mark',marks[kind]);

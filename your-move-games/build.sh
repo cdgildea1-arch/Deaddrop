@@ -3,4 +3,4 @@
 # Run from the repo root before deploying `your-move-games`.
 set -e
 cd "$(dirname "$0")"
-for g in dots hearts uno guess-who scrabble duet; do cp "../$g/rules.mjs" "games/$g.mjs"; done
+for g in dots hearts uno guess-who scrabble duet wavelength; do cp "../$g/rules.mjs" "games/$g.mjs"; done

@@ -1,0 +1,36 @@
+<!doctype html><html data-game-screen="panel" lang="en" data-move-chat="wavelength"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Wavelength · Your Move</title>
+<link rel="stylesheet" href="../speed/style.css"><link rel="stylesheet" href="../game-viewport.css?v=1"><link rel="stylesheet" href="style.css?v=1">
+<script defer src="../Pounce/supabase.min.js"></script><script type="module" src="app.mjs?v=1"></script>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=wave1"></script>
+<link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script>
+<body class="wavelength"><main>
+<header><a href="/">‹ Your Move</a><span class="brand">WAVELENGTH</span><button id="chatToggle">Chat</button></header>
+
+<section id="menu">
+ <div class="hero"><svg class="cover" viewBox="0 0 200 108" aria-hidden="true"><path class="face" d="M10 100A90 90 0 0 1 190 100Z"/><path class="b2" d="M100 100 L62 18 A90 90 0 0 1 120 12 Z"/><path class="b4" d="M100 100 L90 10.5 A90 90 0 0 1 104 10.1 Z"/><line class="needle" x1="100" y1="100" x2="76" y2="22"/><circle class="hub" cx="100" cy="100" r="7"/></svg>
+  <h1>Wavelength</h1><p>Read each other’s minds, one clue at a time.</p></div>
+ <div class="panel"><label for="name">Your name</label><input id="name" maxlength="18" autocomplete="nickname">
+  <label for="code">Game code</label><input id="code" placeholder="Enter game code" autocomplete="off" maxlength="8">
+  <button id="join" class="primary">Join a friend</button></div>
+ <details><summary>How to play</summary><p>You’re a team. Each round, one of you sees a scale like <b>Cold ↔ Hot</b> and a hidden spot on the dial, then gives a clue that points there. Your partner turns the dial to where they think the clue lands. A bullseye scores 4, close scores 3 or 2. Take turns giving clues for 8 rounds and see how in sync you are. You can play your turn whenever you like; the game waits for you.</p></details>
+</section>
+
+<section id="lobby" hidden><h1>Game room</h1><p id="roomLabel"></p><div id="seats"></div>
+ <button id="start" class="primary">Start game</button><button id="leaveLobby">Back to menu</button></section>
+
+<section id="game" hidden>
+ <div class="gamebar"><button id="back">‹ Leave table</button><span id="mode"></span></div>
+ <div id="scorebar"><span id="roundLabel"></span><strong id="score"></strong></div>
+ <p id="status" role="status"></p>
+ <div id="clueShown" hidden></div>
+ <svg id="dial" viewBox="0 0 200 112" role="img" aria-label="Wavelength dial"></svg>
+ <div id="ends"><span id="left"></span><span id="right"></span></div>
+ <form id="clueForm" hidden><input id="clue" maxlength="60" placeholder="Your clue" autocomplete="off" aria-label="Your clue">
+  <div class="row"><button type="button" id="swap" class="secondary">Different card</button><button id="sendClue" class="primary">Send clue</button></div></form>
+ <div id="guessBox" hidden><input type="range" id="slider" min="0" max="100" step="1" value="50" aria-label="Dial position">
+  <button id="lock" class="primary">Lock it in</button></div>
+ <div id="last" hidden></div>
+ <button id="again" class="primary" hidden>Play again</button>
+</section>
+<p id="notice" role="status"></p></main>
+</body></html>

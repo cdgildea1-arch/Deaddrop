@@ -755,19 +755,7 @@ function closeOverlay(){ $('#overlay').classList.add('hidden'); $('#overlay').in
 
 function pause(){
   if(!G || G.over || G.paused) return;
-  if(LV.inGame){
-    overlay(`${msgBtn()}<h2>Live game</h2><p>The game keeps going while this is open.</p>
-      <button class="big" id="resumeBtn">Back to the game</button>
-      
-      <button class="big alt" id="rulesBtn2">How to play</button>
-      <button class="big alt" id="quitBtn">Leave live game</button>
-      <button class="link" id="cancelRoomBtn">Cancel game and reset room</button>`);
-    $('#cancelRoomBtn').onclick = cancelRoom;
-    $('#resumeBtn').onclick = () => { closeOverlay(); render(); };
-    $('#rulesBtn2').onclick = () => rules(pause);
-    $('#quitBtn').onclick = () => { closeOverlay(); leaveLive(); };
-    return;
-  }
+  if(LV.inGame){ livePause(); return; }
   G.paused = true; G.pauseAt = now();
   overlay(`${msgBtn()}<h2>Paused</h2><p>Round ${match.round} · playing to ${match.target}</p>
     <button class="big" id="resumeBtn">Resume</button>
@@ -790,6 +778,35 @@ function resume(){
   G.lastProgress += d;
   G.paused = false;
   render();
+}
+/* live pause: either phone can stop the game for both; the host's board is the truth */
+function livePause(){
+  if(!G || G.over || G.paused || counting()) return;
+  G.paused = true; G.pausedBy = ME; G.pauseAt = now(); G.sel = null;
+  if(ME===0) sendState(); else { LV.pauseReq = now(); LV.resumeReq = 0; liveSend('ctl', {a:'pause'}); }
+  render(); showLivePaused();
+}
+function liveResume(){
+  if(!G || G.over || !G.paused) return;
+  if(ME===1){ LV.resumeReq = now(); LV.pauseReq = 0; liveSend('ctl', {a:'resume'}); showLivePaused(); setTimeout(() => { if(G && G.paused && LV.inGame) showLivePaused(); }, 4100); return; }
+  G.lastProgress += now() - (G.pauseAt||now());
+  G.paused = false; G.pausedBy = null;
+  closeOverlay(); render(); countdown(); sendState();
+}
+function showLivePaused(){
+  if(!G || !G.paused || !LV.inGame) return;
+  const who = G.pausedBy===ME ? 'You paused the game' : `${esc(match.players[G.pausedBy]?.name || 'Your friend')} paused the game`;
+  const waiting = ME===1 && LV.resumeReq && now()-LV.resumeReq < 4000;
+  overlay(`${msgBtn()}<h2>Paused</h2><p>${who}. Round ${match.round} · playing to ${match.target}</p>
+    <p style="font-size:13px">Paused for both of you. Either of you can resume.</p>
+    <button class="big" id="resumeBtn" ${waiting?'disabled':''}>${waiting?'Resuming…':'Resume'}</button>
+    <button class="big alt" id="rulesBtn2">How to play</button>
+    <button class="big alt" id="quitBtn">Leave live game</button>
+    <button class="link" id="cancelRoomBtn">Cancel game and reset room</button>`);
+  $('#resumeBtn').onclick = liveResume;
+  $('#rulesBtn2').onclick = () => rules(showLivePaused);
+  $('#quitBtn').onclick = () => { closeOverlay(); leaveLive(); };
+  $('#cancelRoomBtn').onclick = cancelRoom;
 }
 function reshuffleStocks(){ act({a:'shuffle'}); snd('flip'); render(); }
 $('#pauseBtn').onclick = pause;
@@ -965,10 +982,12 @@ function encodeState(){
     f: G.found.map(f=>f.map(encC)),
     p: G.ps.map(p=>[p.pounce.map(encC), p.work.map(w=>w.map(encC)), p.stock.map(encC), p.waste.map(encC), p.passPlays]),
     over: G.over, win: G.over ? G.winner : null, res: G.over ? G.result : null,
-    lp: Math.round(now() - G.lastProgress), ack: LV.ack, sid: LV.peerSid };
+    lp: Math.round((G.paused ? (G.pauseAt||now()) : now()) - G.lastProgress), ack: LV.ack, sid: LV.peerSid,
+    pz: G.paused && !G.over ? (G.pausedBy|0) : null };
 }
 function decodeInto(st){
-  return { deal: st.deal, sel:null, paused:false, over: !!st.over, winner: st.win, result: st.res,
+  const pz = st.pz!=null && !st.over;
+  return { deal: st.deal, sel:null, paused: pz, pausedBy: pz ? st.pz : null, pauseAt: pz ? now() : 0, over: !!st.over, winner: st.win, result: st.res,
     lastProgress: now() - (st.lp||0),
     found: st.f.map(f=>f.map(decC)),
     ps: st.p.map(p=>({ pounce:p[0].map(decC), work:p[1].map(w=>w.map(decC)), stock:p[2].map(decC), waste:p[3].map(decC), passPlays:p[4]|0, nextAt:0 })) };
@@ -1000,6 +1019,9 @@ function onLiveAct(m){
 }
 function onLiveCtl(m){
   if(LV.seat!==0 || !LV.inGame || !G || !m) return;
+  if(m.a==='pause' && !G.over && !G.paused && !counting()){ G.paused = true; G.pausedBy = 1; G.pauseAt = now(); G.sel = null; render(); showLivePaused(); sendState(); return; }
+  if(m.a==='resume' && !G.over && G.paused){ liveResume(); return; }
+  if(m.a==='shuffle' && G.paused) return;
   if(m.a==='shuffle' && !G.over){ shuffleAll(); snd('flip'); render(); banner('Shuffled!', '#ffbe0b', `${esc(match.players[1].name)} hit Stuck?`, 900); sendState(); }
   if((m.a==='next' || m.a==='rematch') && G.over) nextRound(m.a);
 }
@@ -1016,6 +1038,7 @@ function onLiveState(st){
   const wasOver = G && G.over;
   const keepSel = !fresh && G ? G.sel : null, counted = !fresh && G && G.counted;
   const theirsBefore = G && !fresh ? centerCount(0) : 0;
+  const wasPaused = !fresh && G && G.paused;
   match = { round: st.round, target: st.target, diff:'normal',
     players: st.names.map((n,i)=>({ name:n, color: i===1 ? COLORS[0] : COLORS[1], cpu:false, total: st.totals[i] })) };
   G = decodeInto(st);
@@ -1023,11 +1046,17 @@ function onLiveState(st){
   if(st.sid === LV.sid) LV.pending = LV.pending.filter(x => x.seq > st.ack);
   if(!G.over) for(const x of LV.pending) applyIntent(1, x.it);
   G.sel = keepSel; G.counted = counted;
+  // a pause I just asked for wins over a board the host sent before it heard me
+  if(!G.paused && LV.pauseReq && now()-LV.pauseReq < 4000 && !G.over){ G.paused = true; G.pausedBy = 1; G.pauseAt = now(); }
+  if(st.pz!=null) LV.pauseReq = 0; else LV.resumeReq = 0;
+  if(G.paused) G.sel = null;
   if(fresh){
     closeOverlay(); showScreen('game'); fit(); render();
-    if(!G.over) countdown(); else presentEnd(G.winner);
+    if(G.over) presentEnd(G.winner); else if(G.paused) showLivePaused(); else countdown();
     return;
   }
+  if(!G.over && G.paused && !wasPaused){ render(); showLivePaused(); return; }
+  if(!G.over && !G.paused && wasPaused){ closeOverlay(); render(); countdown(); return; }
   if(!G.over && centerCount(0) > theirsBefore) snd('cpu', 5);
   render();
   if(G.over && !wasOver) presentEnd(G.winner);
@@ -1045,7 +1074,7 @@ function startLive(){
   if(st && !finished && !LV.fresh){
     match = { round: st.round, target: st.target, diff:'normal',
       players: st.names.map((n,i)=>({ name: CH.names[i] || n, color: COLORS[i], cpu:false, total: st.totals[i] })) };
-    G = decodeInto(st);
+    G = decodeInto(st); G.paused = false; G.pausedBy = null;
     if(G.over){ newRound(); return; }
     G.deal = hex(4);   // fresh deal id so the other phone redraws and counts down with you
     showScreen('game'); fit(); render(); countdown(); sendState();
@@ -1058,7 +1087,7 @@ function startLive(){
 }
 function leaveLive(){
   if(LV.seat===0 && G && LV.inGame) sendState();
-  LV.inGame = false; LV.ready = false; LV.pending = []; ME = 0; G = null; cdTok++;
+  LV.inGame = false; LV.ready = false; LV.pending = []; LV.pauseReq = 0; LV.resumeReq = 0; ME = 0; G = null; cdTok++;
   track(); closeOverlay(); showScreen('menu');
 }
 // Cancel the game in this room for both phones and empty its seats, so you can both join fresh.

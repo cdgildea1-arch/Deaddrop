@@ -1,0 +1,46 @@
+<!doctype html><html data-game-screen="panel" lang="en" data-move-chat="butterflies"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Butterflies · Your Move</title>
+<link rel="stylesheet" href="../speed/style.css"><link rel="stylesheet" href="../game-viewport.css?v=1"><link rel="stylesheet" href="style.css?v=1">
+<script defer src="../Pounce/supabase.min.js"></script><script type="module" src="app.mjs?v=1"></script>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=wave1"></script>
+<link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script>
+<body class="butterflies"><main>
+<header><a href="/">‹ Your Move</a><span class="brand">BUTTERFLIES</span><button id="chatToggle">Chat</button></header>
+
+<section id="menu">
+ <div class="hero"><svg class="fly" viewBox="0 0 120 90" aria-hidden="true">
+  <path class="w1" d="M58 44C40 10 8 6 6 26c-2 16 20 22 52 18Z"/><path class="w1" d="M62 44C80 10 112 6 114 26c2 16-20 22-52 18Z"/>
+  <path class="w2" d="M58 47C30 50 18 70 30 80c10 8 24-12 28-33Z"/><path class="w2" d="M62 47c28 3 40 23 28 33-10 8-24-12-28-33Z"/>
+  <rect class="body" x="56.5" y="30" width="7" height="40" rx="3.5"/><path class="ant" d="M58 31c-3-10-8-15-13-17M62 31c3-10 8-15 13-17"/></svg>
+  <h1>Butterflies</h1><p>Questions that get a little closer every round.</p></div>
+ <div class="panel"><label for="name">Your name</label><input id="name" maxlength="18" autocomplete="nickname">
+  <label id="iamLabel">Which one are you?</label>
+  <div id="iam" role="group" aria-labelledby="iamLabel"><button type="button" data-v="him" aria-pressed="false">I’m him</button><button type="button" data-v="her" aria-pressed="false">I’m her</button></div>
+  <label for="code">Game code</label><input id="code" placeholder="Enter game code" autocomplete="off" maxlength="8">
+  <button id="join" class="primary">Join a friend</button></div>
+ <details><summary>How to play</summary><p>Three levels, ten questions, one jar to fill.<br>
+  <b>Read my mind:</b> one of you answers about yourself and the other guesses what you picked. A match adds 3 🦋.<br>
+  <b>Open up:</b> you both answer the same question, then reveal your answers together.<br>
+  After each reveal, tap 🦋 if the other person’s answer got you. That adds one more.<br>
+  It starts light (<i>First Flutter</i>), gets warmer (<i>Getting Closer</i>), goes deep (<i>Head Over Heels</i>), and ends with a love note from each of you. Answer whenever you like; the game waits for you.</p></details>
+</section>
+
+<section id="lobby" hidden><h1>Game room</h1><p id="roomLabel"></p><div id="seats"></div>
+ <button id="start" class="primary">Start game</button><button id="leaveLobby">Back to menu</button></section>
+
+<section id="game" hidden>
+ <div class="gamebar"><button id="back">‹ Leave table</button><span id="mode"></span></div>
+ <div id="bar"><span id="level"></span><span id="jar" aria-label="Butterflies in the jar"></span></div>
+ <div id="progress" aria-hidden="true"></div>
+ <div id="card"><small id="kind"></small><h2 id="question"></h2></div>
+ <p id="status" role="status"></p>
+ <div id="choices" hidden></div>
+ <form id="write" hidden><textarea id="text" maxlength="400" rows="4" placeholder="Your answer" aria-label="Your answer"></textarea>
+  <button id="send" class="primary">Send my answer</button></form>
+ <div id="reveal" hidden></div>
+ <div id="after" hidden><button id="heart" type="button" class="secondary" aria-pressed="false"></button><button id="next" class="primary">Next question</button></div>
+ <button id="swap" class="textbtn" hidden></button>
+ <div id="end" hidden></div>
+ <button id="again" class="primary" hidden>Play again</button>
+</section>
+<p id="notice" role="status"></p></main>
+</body></html>

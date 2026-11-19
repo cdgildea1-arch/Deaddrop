@@ -31,7 +31,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 }
 .shuffle:focus-visible,.shuffle:hover{outline:2px solid #ffe3a9;outline-offset:2px}
 @media(max-width:359px){header h1{font-size:36px}.shuffle{padding-inline:7px}}
-.shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto repeat(3,minmax(0,1fr)) auto repeat(3,minmax(0,1fr));min-height:0;gap:clamp(5px,1.7vw,12px);max-height:820px}
+.shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto repeat(3,minmax(0,1fr)) auto repeat(4,minmax(0,1fr));min-height:0;gap:clamp(5px,1.7vw,12px);max-height:820px}
 .shelf h2{grid-column:1/-1;margin:clamp(2px,.8dvh,8px) 2px -2px;font:650 clamp(10px,2.8vw,13px)/1 system-ui,sans-serif;letter-spacing:.08em;color:var(--dim)}
 .shelf h2:first-child{margin-top:0}
 .game{grid-column:span 2}
@@ -95,6 +95,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .quick-draw{--surface:#fbc5a2;--text:#392b38;--stamp:#773b69}
 .hide-dot{--surface:#94d9d4;--text:#1b383b;--stamp:#226167}
 .wavelength{--surface:#3f4f8f;--text:#fdf3df;--stamp:#ffcf6e}
+.butterflies{--surface:#c9577f;--text:#fff1f4;--stamp:#ffe0e8}
 @media (min-width:700px){main{padding-inline:30px}}
 @media (max-height:490px){
  main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}
@@ -104,7 +105,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
  .game{--label-size:clamp(10px,3dvh,15px);padding-block:2px}
 }
 @media (orientation:landscape) and (min-width:560px){
- .shelf{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto repeat(2,minmax(0,1fr)) auto repeat(2,minmax(0,1fr))}
+ .shelf{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto repeat(2,minmax(0,1fr)) auto repeat(3,minmax(0,1fr))}
  .game,.game.wide{grid-column:span 3}
  .game.full{grid-column:span 6}
  .game{--label-size:clamp(11px,min(2.65vw,3.8dvh),21px)}
@@ -141,6 +142,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game quick-draw" href="/sketch/"><span class="mark" aria-hidden="true">✎</span><strong>Quick Draw</strong></a>
   <a class="game same-word wide" href="/same-word/"><span class="mark" aria-hidden="true">≈</span><strong>Same Word</strong></a>
   <a class="game wavelength wide" data-game="wavelength" href="/wavelength/"><span class="mark" aria-hidden="true">◠</span><strong>Wavelength</strong></a>
+  <a class="game butterflies full" data-game="butterflies" href="/butterflies/"><span class="mark" aria-hidden="true">🦋</span><strong>Butterflies</strong></a>
  </nav>
 </main>
 <script type="module">

@@ -94,7 +94,7 @@ async function start(){
 
 const kindLabel={mind:'READ MY MIND',open:'OPEN UP',note:'LOVE NOTE'};
 function answerHTML(card,a,mystery){
- if(card.kind==='mind')return esc(ask(card,mystery,mystery)[1][a]);
+ if(card.kind==='mind')return esc(ask(card,mystery,info.seat,partner())[1][a]);
  return esc(a);
 }
 function rating(){

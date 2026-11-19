@@ -68,7 +68,7 @@ function refresh(){if(info&&!busy&&screen!=='menu')table.load().catch(e=>text('n
 function renderLobby(){
  if(screen!=='lobby'||!info)return;
  text('roomLabel','Room '+room.code);
- $('#seats').innerHTML=info.names.map((name,i)=>`<div class="seat"><b>${esc(name||'Waiting for a friend')}</b><span>${i===info.seat?'You':peer?'Here now':'Away · can still play'}</span></div>`).join('');
+ $('#seats').innerHTML=[info.seat,1-info.seat].map(i=>`<div class="seat"><b>${i===info.seat?'You':info.names[i]?Sub():'Waiting for '+P().o}</b><span>${i===info.seat?'Here':peer?'Here now':'Away · can still play'}</span></div>`).join('');
  $('#start').disabled=busy;
  text('start',g&&!over?'Resume game':'Start game');
 }

@@ -1,7 +1,7 @@
 // Your Move saved games. Deployed as Supabase Edge Function `your-move-games` (verify_jwt off: auth is done here).
 // Seats come from the same room as the chat (pounce_rooms_v1): a device proves its seat with the secret it joined with.
 //
-// Turn games (dots, hearts, uno, guess-who, scrabble, duet, wavelength, butterflies) are played THROUGH this function: it holds the full game,
+// Turn games (dots, hearts, uno, guess-who, scrabble, duet, wavelength, butterflies, after-dark) are played THROUGH this function: it holds the full game,
 // checks every move with the game's own rules, plays the computer seats, and sends each phone only its own view.
 // That is what lets one person take a turn while the other is away.
 //
@@ -81,6 +81,13 @@ const turnGames: Record<string, any> = {
   },
   butterflies: {
     create: (names: string[]) => butterflies.newGame(names),
+    act: (g: any, seat: number, m: any) => butterflies.action(g, seat, m),
+    view: butterflies.view, done: (g: any) => g.phase === 'end',
+    yourMove: (g: any, s: number) => butterflies.yourMove(g, s),
+  },
+  // After Dark runs on the Butterflies rules with the grown-up deck.
+  'after-dark': {
+    create: (names: string[]) => butterflies.newGame(names, 'dark'),
     act: (g: any, seat: number, m: any) => butterflies.action(g, seat, m),
     view: butterflies.view, done: (g: any) => g.phase === 'end',
     yourMove: (g: any, s: number) => butterflies.yourMove(g, s),

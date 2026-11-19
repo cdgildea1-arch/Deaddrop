@@ -1,4 +1,4 @@
-import {ask, levels, pronouns} from './rules.mjs';
+import {ask as askDeck, levels, pronouns} from './rules.mjs';
 import {savedTable} from '../your-move-sync.mjs';
 // Butterflies is a saved turn game: the server (your-move-games) keeps it and hides each answer until you've
 // both answered, so you can play together live or one at a time. Realtime is only a doorbell ("moved").
@@ -13,7 +13,12 @@ const KEY='sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 let room=read('pounce.room'), info=null, client, channel, peer=null, connected=false;
 let g=null, over=false, screen='menu', busy=false, entering=false, heart=false, cardKey=null;
 const sid=hex();
-const table=savedTable('butterflies',()=>room,data=>{
+// The same screen runs two games: Butterflies (sweet deck) and After Dark (its own page and saved game).
+const GAME=document.documentElement.dataset.moveChat||'butterflies';
+const DECK=GAME==='after-dark'?'dark':'sweet';
+const ICON=DECK==='dark'?'🔥':'🦋', UNIT=DECK==='dark'?'flames':'butterflies';
+const ask=(card,mystery,seat,partner)=>askDeck(card,mystery,seat,partner,g?.deck||DECK);
+const table=savedTable(GAME,()=>room,data=>{
  g=data.game;over=!!data.over;
  if(screen==='lobby'&&g&&!over&&entering)show('game');
  renderLobby();render();
@@ -58,7 +63,7 @@ function send(event){if(connected)channel.send({type:'broadcast',event,payload:{
 function connect(){
  if(!window.supabase||!info?.live)return;
  client??=window.supabase.createClient(API.split('/functions')[0],KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- const ch=client.channel('butterflies-v1-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+info.seat}}});
+ const ch=client.channel(GAME+'-v1-'+info.live,{config:{broadcast:{self:false},presence:{key:'s'+info.seat}}});
  channel=ch;
  ch.on('presence',{event:'sync'},()=>{if(channel!==ch)return;peer=ch.presenceState()['s'+(1-info.seat)]?.[0]||null;renderLobby();render();})
  .on('broadcast',{event:'moved'},()=>refresh())
@@ -82,7 +87,7 @@ async function act(move){
 async function start(){
  if(!info||busy)return;
  busy=true;renderLobby();text('notice','');
- try{await table.start({});show('game');send('moved');}
+ try{await table.start({deck:DECK});show('game');send('moved');}
  catch(e){text('notice',e.message)}
  finally{busy=false;renderLobby();render();}
 }
@@ -94,33 +99,34 @@ function answerHTML(card,a,mystery){
 }
 function rating(){
  const p=g.jar/g.maxJar;
+ if(DECK==='dark')return p>=.7?['Dangerously hot','Clear your schedule tonight.']:p>=.5?['Seriously steamy','Somebody’s getting lucky.']:p>=.3?['Heating up','The tension is real.']:['Just warming up','Plenty of night left.'];
  return p>=.7?['Totally smitten','Your jar is overflowing.']:p>=.5?['Head over heels','That’s a lot of butterflies.']:p>=.3?['Seriously crushing','The flutter is real.']:['Butterflies warming up','Every jar starts somewhere.'];
 }
 function render(){
  if(screen!=='game'||!g)return;
  const me=info.seat, other=P().o, She=Sub(), who=s=>s===me?'You':She, ending=g.phase==='end';
  text('mode','Room '+room.code+(peer?' · both here':''));
- text('jar','🦋 '+g.jar);
+ text('jar',ICON+' '+g.jar);
  $('#progress').innerHTML=Array.from({length:g.rounds},(_,i)=>`<i class="${i+1<g.round||ending?'done':i+1===g.round?'now':''}"></i>`).join('');
  for(const id of ['card','status','choices','write','reveal','after','swap'])$('#'+id).hidden=ending;
  $('#end').hidden=$('#again').hidden=!ending;
  if(ending){
   text('level','All done');
   const [title,line]=rating();
-  $('#end').innerHTML=`<div class="big">🦋 ${g.jar}</div><h2>${esc(title)}</h2><p class="sub">${esc(line)} ${g.jar} of ${g.maxJar} butterflies.</p>
+  $('#end').innerHTML=`<div class="big">${ICON} ${g.jar}</div><h2>${esc(title)}</h2><p class="sub">${esc(line)} ${g.jar} of ${g.maxJar} ${UNIT}.</p>
    <ul class="recap">${g.history.map(h=>{
     const q=ask(h.card,h.mystery,me,partner());
     const words=h.card.kind==='mind'?q[0]:q;
-    const extra=h.card.kind==='mind'?(h.match?' · Match 🦋':' · Missed'):'';
-    return `<li><q>${esc(words)}</q>${[0,1].map(s=>`<span><b>${who(s)}${h.card.kind==='mind'?(s===h.mystery?' picked':' guessed'):''}:</b> ${answerHTML(h.card,h.answers[s],h.mystery)}${h.hearts[1-s]?' 🦋':''}</span>`).join('')}${extra?`<span>${extra}</span>`:''}</li>`;
+    const extra=h.card.kind==='mind'?(h.match?' · Match '+ICON:' · Missed'):'';
+    return `<li><q>${esc(words)}</q>${[0,1].map(s=>`<span><b>${who(s)}${h.card.kind==='mind'?(s===h.mystery?' picked':' guessed'):''}:</b> ${answerHTML(h.card,h.answers[s],h.mystery)}${h.hearts[1-s]?' '+ICON:''}</span>`).join('')}${extra?`<span>${extra}</span>`:''}</li>`;
    }).join('')}</ul>`;
   $('#again').disabled=busy;
   return text('status','');
  }
  const card=g.card, key=g.id+':'+g.round+':'+card.kind+card.i;
  if(key!==cardKey){cardKey=key;heart=false;$('#text').value='';}
- text('level','Level '+Math.min(card.level,3)+' · '+levels[card.level]);
- if(card.kind==='note')text('level',levels[4]);
+ text('level','Level '+Math.min(card.level,3)+' · '+levels(g)[card.level]);
+ if(card.kind==='note')text('level',levels(g)[4]);
  text('kind',kindLabel[card.kind]+(card.kind==='mind'?(g.mystery===me?' · ABOUT YOU':' · ABOUT '+other.toUpperCase()):''));
  const q=ask(card,g.mystery,me,partner()), question=card.kind==='mind'?q[0]:q;
  text('question',question);
@@ -147,15 +153,15 @@ function render(){
   const order=[me,1-me];
   let top='';
   if(card.kind==='mind'){
-   top=`<p class="verdict${g.match?' yes':''}">${g.match?'It’s a match! +3 🦋':'Not quite!'}</p>`;
+   top=`<p class="verdict${g.match?' yes':''}">${g.match?'It’s a match! +3 '+ICON:'Not quite!'}</p>`;
    $('#reveal').innerHTML=top+order.map(s=>`<div class="ans"><b>${who(s)} ${s===g.mystery?'picked':'guessed'}</b><p>${answerHTML(card,g.answers[s],g.mystery)}</p></div>`).join('');
   }else{
    $('#reveal').innerHTML=order.map(s=>`<div class="ans${card.kind==='note'?' note':''}"><b>${who(s)}</b><p>${esc(g.answers[s])}</p></div>`).join('');
   }
-  if(g.hearts[1-me])$('#reveal').innerHTML+=`<p class="sent">${She} sent you a 🦋</p>`;
-  status=g.ready[me]?'Waiting on '+other+' to read it…':'Did '+P().p+' answer give you butterflies?';
+  if(g.hearts[1-me])$('#reveal').innerHTML+=`<p class="sent">${She} sent you a ${ICON}</p>`;
+  status=g.ready[me]?'Waiting on '+other+' to read it…':(DECK==='dark'?'Did '+P().p+' answer turn you on?':'Did '+P().p+' answer give you butterflies?');
   $('#heart').setAttribute('aria-pressed',String(heart));
-  text('heart',heart?'🦋 Sent':'🦋 Give a butterfly');
+  text('heart',heart?ICON+' Sent':DECK==='dark'?'🔥 That’s hot':'🦋 Give a butterfly');
   $('#heart').disabled=$('#next').disabled=busy;
   text('next',g.round>=g.rounds?'See our jar':'Next question');
  }

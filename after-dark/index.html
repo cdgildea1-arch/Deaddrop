@@ -1,0 +1,43 @@
+<!doctype html><html data-game-screen="panel" lang="en" data-move-chat="after-dark"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>After Dark · Your Move</title>
+<link rel="stylesheet" href="../speed/style.css"><link rel="stylesheet" href="../game-viewport.css?v=1"><link rel="stylesheet" href="../butterflies/style.css?v=2"><link rel="stylesheet" href="style.css?v=1">
+<script defer src="../Pounce/supabase.min.js"></script><script type="module" src="../butterflies/app.mjs?v=2"></script>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=menus"><script type="module" src="/your-move-chat/chat.mjs?v=wave1"></script>
+<link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script>
+<body class="butterflies afterdark"><main>
+<header><a href="/">‹ Your Move</a><span class="brand">AFTER DARK</span><button id="chatToggle">Chat</button></header>
+
+<section id="menu">
+ <div class="hero"><svg class="flame" viewBox="0 0 100 120" aria-hidden="true"><path class="f1" d="M50 6c6 22 30 34 30 64a30 30 0 0 1-60 0c0-16 8-26 14-34 2 10 6 16 12 18-4-18 0-34 4-48Z"/><path class="f2" d="M50 52c4 12 16 18 16 34a16 16 0 0 1-32 0c0-10 6-16 10-22 1 6 4 9 7 10-2-8-2-15-1-22Z"/></svg>
+  <h1>After Dark</h1><p>Questions that get hotter every round. Grown-ups only.</p></div>
+ <div class="panel"><label for="name">Your name</label><input id="name" maxlength="18" autocomplete="nickname">
+  <label id="iamLabel">Which one are you?</label>
+  <div id="iam" role="group" aria-labelledby="iamLabel"><button type="button" data-v="him" aria-pressed="false">I’m him</button><button type="button" data-v="her" aria-pressed="false">I’m her</button></div>
+  <label for="code">Game code</label><input id="code" placeholder="Enter game code" autocomplete="off" maxlength="8">
+  <button id="join" class="primary">Join a friend</button></div>
+ <details><summary>How to play</summary><p>Three levels, ten questions, one fire to keep going.<br>
+  <b>Read my mind:</b> one of you answers about yourself and the other guesses what you picked. A match adds 3 🔥.<br>
+  <b>Open up:</b> you both answer the same question, then reveal together. Nobody sees an answer until you’ve both sent yours.<br>
+  After each reveal, tap 🔥 if the other person’s answer turned you on.<br>
+  It starts flirty (<i>Warming Up</i>), gets explicit (<i>Getting Hot</i>), goes all the way (<i>No Limits</i>: kinks, fantasies, limits and safe words), and ends with what you want <i>Tonight</i>. Skip any question with “Different question.”</p></details>
+</section>
+
+<section id="lobby" hidden><h1>Game room</h1><p id="roomLabel"></p><div id="seats"></div>
+ <button id="start" class="primary">Start game</button><button id="leaveLobby">Back to menu</button></section>
+
+<section id="game" hidden>
+ <div class="gamebar"><button id="back">‹ Leave table</button><span id="mode"></span></div>
+ <div id="bar"><span id="level"></span><span id="jar" aria-label="Butterflies in the jar"></span></div>
+ <div id="progress" aria-hidden="true"></div>
+ <div id="card"><small id="kind"></small><h2 id="question"></h2></div>
+ <p id="status" role="status"></p>
+ <div id="choices" hidden></div>
+ <form id="write" hidden><textarea id="text" maxlength="400" rows="4" placeholder="Your answer" aria-label="Your answer"></textarea>
+  <button id="send" class="primary">Send my answer</button></form>
+ <div id="reveal" hidden></div>
+ <div id="after" hidden><button id="heart" type="button" class="secondary" aria-pressed="false"></button><button id="next" class="primary">Next question</button></div>
+ <button id="swap" class="textbtn" hidden></button>
+ <div id="end" hidden></div>
+ <button id="again" class="primary" hidden>Play again</button>
+</section>
+<p id="notice" role="status"></p></main>
+</body></html>

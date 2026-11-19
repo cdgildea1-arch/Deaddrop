@@ -1,0 +1,11 @@
+.butterflies.afterdark{--gold:#ffb199;--rose:#e8455c;--text:#fff0ec;--muted:#cfa9a6;background:radial-gradient(ellipse at 50% 0%,#5a1220,#2a070f 55%,#120306)}
+.afterdark .brand{color:#ff9a8a}
+.afterdark .primary,.afterdark #choices button.mine,.afterdark #iam button[aria-pressed=true]{background:var(--rose);color:#fff4f1}
+.afterdark input:not(.move-chat input),.afterdark textarea{background:#1e050b}
+.afterdark #card{background:#1a0509;color:#ffe9e4;border:1px solid #e8455c66;box-shadow:0 8px 30px #e8455c33}
+.afterdark #card small{color:#ff8a7a}
+.afterdark #progress i.done{background:var(--rose)}.afterdark #progress i.now{background:#ffb199}
+.flame{display:block;width:96px;margin:0 auto 10px;animation:flicker 1.8s ease-in-out infinite;transform-origin:50% 100%}
+.flame .f1{fill:#e8455c}.flame .f2{fill:#ffb199}
+@keyframes flicker{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.05,.96) rotate(1.5deg)}}
+@media(prefers-reduced-motion:reduce){.flame{animation:none}}

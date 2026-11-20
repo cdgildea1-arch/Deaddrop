@@ -37,8 +37,14 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .game{grid-column:span 2}
 .game.wide{grid-column:span 3}
 .game.full{grid-column:1/-1}
-/* Your move: a gold outline on saved games that are waiting on you */
-.game.waiting{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffd273,0 3px 12px #ffd27355}
+/* Your move: saved games waiting on you glow gold with a "Your turn" tag; ones waiting on the other person get a quiet tag */
+.game.waiting{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffd273,0 0 22px 4px #ffd27399;animation:yourturn 1.8s ease-in-out infinite}
+@keyframes yourturn{50%{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffe7a8,0 0 30px 8px #ffd273cc}}
+.game.waiting::after,.game.theirs::after{position:absolute;top:clamp(4px,1vw,7px);right:clamp(4px,1vw,7px);z-index:2;
+ font:800 clamp(8px,2.3vw,11px)/1 system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:4px 7px;border-radius:999px;white-space:nowrap}
+.game.waiting::after{content:'Your turn';background:#ffd273;color:#2b1d05;box-shadow:0 1px 4px #0006}
+.game.theirs::after{content:'Their turn';background:#0008;color:#fff;opacity:.85}
+@media(prefers-reduced-motion:reduce){.game.waiting{animation:none}}
 .game{
  --surface:#e9e3d4;--text:#27242a;--stamp:#33343b;
  --label-size:clamp(11px,min(4vw,2.75dvh),23px);
@@ -157,7 +163,8 @@ async function yourMove(){
   const {gameCall}=await import('/your-move-sync.mjs');
   const {games}=await gameCall('status',room,null);
   for(const tile of document.querySelectorAll('.shelf [data-game]'))
-   tile.classList.toggle('waiting',games.some(g=>g.yours&&g.game===tile.dataset.game));
+  {tile.classList.toggle('waiting',games.some(g=>g.yours&&g.game===tile.dataset.game));
+   tile.classList.toggle('theirs',games.some(g=>!g.yours&&g.game===tile.dataset.game));}
  }catch{}
 }
 yourMove();

@@ -178,8 +178,20 @@ function runBot(){
 function cardMarkup(c,enabled){
  const glyph=symbols[c.value]||c.value;
  const name=[c.color,labels[c.value]||c.value].filter(Boolean).join(' ');
- return `<button class="card ${c.color||'wild'}" data-card="${c.id}" aria-label="${name}" ${enabled?'':'disabled'}><small>${glyph}</small><strong>${glyph}</strong></button>`;
+ const sym=/^\d$/.test(c.value)?'':' sym';
+ return `<button class="card ${c.color||'wild'}${sym}" data-card="${c.id}" data-glyph="${glyph}" aria-label="${name}" ${enabled?'':'disabled'}><small>${glyph}</small><strong>${glyph}</strong></button>`;
 }
+// Fan the hand: overlap cards to fit the width and tilt them around the middle.
+function layoutHand(){
+ const box=$('#hand'),cards=[...box.children],n=cards.length;
+ if(!n)return;
+ const w=cards[0].offsetWidth,room=box.clientWidth-12-w*.35;
+ box.style.setProperty('--gap',(n>1?Math.min(6,(room-n*w)/(n-1)):0)+'px');
+ const tilt=Math.min(4.5,24/Math.max(n-1,1));
+ cards.forEach((c,i)=>{const o=i-(n-1)/2;c.style.setProperty('--r',(o*tilt)+'deg');c.style.setProperty('--y',(o*o*tilt*.32)+'px')});
+}
+addEventListener('resize',layoutHand);
+let lastTop;
 const handPageSize=10;
 let handPage=0,lastGameId;
 function render(){
@@ -187,8 +199,12 @@ function render(){
  const g=current();if(!g)return;
  const me=seat(), active=canAct(g)&&g.turn===me, over=g.winner!==null;
  text('mode',practice?'Solo practice':'Room '+room.code);
- $('#players').innerHTML=g.names.map((name,i)=>`<div class="player ${!over&&i===g.turn?'on':''}"><span>${esc(name)}${i===me?' · You':''}</span><b>${g.counts[i]}</b></div>`).join('');
+ $('#game').dataset.turn=active?'me':'wait';
+ $('.table').dataset.color=g.color;
+ $('#players').innerHTML=g.names.map((name,i)=>`<div class="player p${i%4} ${!over&&i===g.turn?'on':''} ${g.counts[i]===1?'last':''}"><i aria-hidden="true">${esc([...String(name).trim()][0]||'?').toUpperCase()}</i><span>${esc(name)}${i===me?' · You':''}</span><b>${g.counts[i]}</b></div>`).join('');
  $('#discard').innerHTML=cardMarkup(g.top,false);
+ if(lastTop!==undefined&&lastTop!==g.top.id)$('#discard').firstElementChild.classList.add('fresh');
+ lastTop=g.top.id;
  $('#activeColor').className=g.color;text('activeColor',g.color[0].toUpperCase()+g.color.slice(1));
  text('direction',g.direction===1?'↻ Clockwise':'↺ Counterclockwise');
  text('turn',over?(g.winner===me?'You win!':g.names[g.winner]+' wins!'):pending?'Sending…':active?'Your turn':g.names[g.turn]+'’s turn');
@@ -203,6 +219,7 @@ function render(){
  $('#handNext').disabled=handPage===pages-1||drawnIndex>=0;
  text('handPage',(handPage+1)+' / '+pages+' · '+hand.length+' cards');
  $('#hand').innerHTML=hand.slice(handPage*handPageSize,(handPage+1)*handPageSize).map(c=>cardMarkup(c,active&&legal(g,me,c))).join('');
+ layoutHand();
  $('#draw').disabled=!active||g.drawn!==null;
  $('#pass').hidden=!active||g.drawn===null;
  $('#call').disabled=!active||g.counts[me]!==2||g.called;

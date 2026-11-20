@@ -36,10 +36,12 @@ async function words() {
 }
 
 // Each turn game: how to start it, apply a move, show it to one seat, tell when it is over, and which seat is a computer.
+// `first` hands the opening turn to whoever started the game (Hearts keeps its own rule: the 2 of clubs leads).
 const cpu = ['Clover', 'Ace'];
 const turnGames: Record<string, any> = {
   dots: {
     create: (names: string[]) => dots.newGame(names, 2),
+    first: (g: any, seat: number) => { g.turn = seat; },
     act: (g: any, seat: number, m: any) => dots.action(g, seat, m),
     view: (g: any) => dots.view(g), done: (g: any) => g.winner !== null,
     yourMove: (g: any, s: number) => g.turn === s,
@@ -55,6 +57,7 @@ const turnGames: Record<string, any> = {
   },
   uno: {
     create: (names: string[], o: any) => uno.newGame([...names, ...cpu], 2, o?.extras !== false),
+    first: (g: any, seat: number) => { g.turn = seat; },
     act: (g: any, seat: number, m: any) => uno.action(g, seat, m),
     view: uno.view, done: (g: any) => g.winner !== null,
     yourMove: (g: any, s: number) => g.turn === s,
@@ -63,24 +66,28 @@ const turnGames: Record<string, any> = {
   },
   'guess-who': {
     create: (names: string[]) => guessWho.newGame(names),
+    first: (g: any, seat: number) => { g.turn = seat; },
     act: (g: any, seat: number, m: any) => guessWho.action(g, seat, m),
     view: guessWho.view, done: (g: any) => g.winner !== null,
     yourMove: (g: any, s: number) => g.players[s].secret === null || (g.question ? g.question.seat !== s : g.turn === s && g.players[1 - s].secret !== null),
   },
   duet: {
     create: (names: string[], o: any) => duet.newGame(names, o?.turns === 11 ? 11 : 9),
+    first: (g: any, seat: number) => { g.giver = seat; },
     act: (g: any, seat: number, m: any) => duet.action(g, seat, m),
     view: duet.view, done: (g: any) => !!g.outcome,
     yourMove: (g: any, s: number) => g.phase === 'final' || (g.phase === 'clue' ? g.giver === s : g.giver !== s),
   },
   wavelength: {
     create: (names: string[]) => wavelength.newGame(names),
+    first: (g: any, seat: number) => { g.psychic = seat; },
     act: (g: any, seat: number, m: any) => wavelength.action(g, seat, m),
     view: wavelength.view, done: (g: any) => g.phase === 'end',
     yourMove: (g: any, s: number) => g.phase === 'clue' ? g.psychic === s : g.phase === 'guess' && g.psychic !== s,
   },
   butterflies: {
     create: (names: string[]) => butterflies.newGame(names),
+    first: (g: any, seat: number) => { g.mystery = seat; },
     act: (g: any, seat: number, m: any) => butterflies.action(g, seat, m),
     view: butterflies.view, done: (g: any) => g.phase === 'end',
     yourMove: (g: any, s: number) => butterflies.yourMove(g, s),
@@ -88,6 +95,7 @@ const turnGames: Record<string, any> = {
   // After Dark runs on the Butterflies rules with the grown-up deck.
   'after-dark': {
     create: (names: string[]) => butterflies.newGame(names, 'dark'),
+    first: (g: any, seat: number) => { g.mystery = seat; },
     act: (g: any, seat: number, m: any) => butterflies.action(g, seat, m),
     view: butterflies.view, done: (g: any) => g.phase === 'end',
     yourMove: (g: any, s: number) => butterflies.yourMove(g, s),
@@ -99,6 +107,7 @@ const turnGames: Record<string, any> = {
       g.humans = 2;
       return g;
     },
+    first: (g: any, seat: number) => { g.turn = seat; },
     act: async (g: any, seat: number, m: any) => scrabble.action(g, seat, m, await words()),
     view: scrabble.view, done: (g: any) => g.end,
     yourMove: (g: any, s: number) => g.turn === s,
@@ -186,6 +195,7 @@ Deno.serve(async (req: Request) => {
       // Both phones may tap Start; an unfinished game is kept unless a phone asks for a fresh one.
       if (row && !turn.done(row.state) && !b.fresh) return reply(out(row));
       const g = await turn.create(names, b.options || {});
+      if (turn.first) turn.first(g, seat); // whoever taps Start goes first
       if (turn.bot) runBots(turn, g);
       const rev = (row?.rev ?? 0) + 1;
       const saved = await rest('your_move_games', '?on_conflict=code,game', 'POST',

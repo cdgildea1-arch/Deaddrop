@@ -15,6 +15,9 @@
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
  font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body{position:fixed;inset:0}
+main,header,.kit{touch-action:none}
+button,a,input,label{touch-action:manipulation}
+.sheet,.card{touch-action:pan-y}
 main{width:100%;height:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;
  padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
 header{display:flex;align-items:center;gap:8px;min-height:44px}
@@ -102,7 +105,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 <div class="sheet" id="start">
  <div class="card">
   <h1>Drums</h1>
-  <p>Set the phone flat on your <b>right knee</b>, screen up. Stomp like you're on a kick pedal and the phone's motion sensor plays the kick. Your hands play everything else on the screen.</p>
+  <p>Set the phone flat on your <b>right knee</b>, screen up. Stomp like you're on a kick pedal for the <b>kick</b>, tap the <b>back</b> of the phone with your right finger for the <b>hi-hat</b>, and knock the <b>left edge</b> with your left hand for the <b>snare</b>. Crash, open hat and floor tom stay on the screen.</p>
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
@@ -127,9 +130,10 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <h2>Settings</h2>
   <div class="row"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1.5" step="0.01"><output id="volO"></output></div>
   <div class="row"><label for="room">Room</label><input id="room" type="range" min="0" max="1" step="0.01"><output id="roomO"></output></div>
-  <div class="row"><label for="sens">Kick sensitivity</label><input id="sens" type="range" min="0.4" max="1.8" step="0.01"><output id="sensO"></output></div>
+  <div class="row"><label for="sens">Sensor sensitivity</label><input id="sens" type="range" min="0.4" max="1.8" step="0.01"><output id="sensO"></output></div>
   <div class="row"><label for="kickPad">Show on-screen kick pad</label><input id="kickPad" type="checkbox"></div>
-  <div class="row"><label for="kneeOn">Knee kick sensor</label><input id="kneeOn" type="checkbox"></div>
+  <div class="row"><label for="kneeOn">Phone sensor</label><input id="kneeOn" type="checkbox"></div>
+  <div class="row"><label for="zonesOn">Back tap = hi-hat, left edge = snare</label><input id="zonesOn" type="checkbox"></div>
   <div class="row"><label for="bpm">Metronome</label><input id="bpm" type="range" min="40" max="220" step="1"><output id="bpmO"></output></div>
   <button class="btn" id="metroBtn" type="button">Start metronome</button>
   <button class="btn" id="midiBtn" type="button">Connect MIDI controller</button>
@@ -146,7 +150,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
    SETTINGS
    ============================================================ */
 const STORE = "drums.v1";
-const S = Object.assign({vol:1, room:.35, sens:1, kickPad:false, knee:true, bpm:90, cal:null},
+const S = Object.assign({vol:1, room:.35, sens:1, kickPad:false, knee:true, zones:true, zcal:null, bpm:90, cal:null},
   (() => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } })());
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
 
@@ -387,7 +391,11 @@ function flash(v, x=.5, y=.5){
   el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
 }
 document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("gesturestart", e => e.preventDefault());
+// iOS ignores user-scalable=no, so block pinch and double-tap zoom by hand
+for (const ev of ["gesturestart","gesturechange","gestureend","dblclick"]) document.addEventListener(ev, e => e.preventDefault(), {passive:false});
+document.addEventListener("touchmove", e => { if (e.touches.length > 1 || !e.target.closest(".card")) e.preventDefault(); }, {passive:false});
+document.addEventListener("touchend", e => { if (!e.target.closest("button,a,input,label,.card")) e.preventDefault(); }, {passive:false});
+$("kit").addEventListener("touchstart", e => e.preventDefault(), {passive:false});
 
 const KEYS = {" ":"kick", b:"kick", f:"hat", d:"open", j:"snare", k:"tom", l:"crash"};
 addEventListener("keydown", e => {
@@ -397,14 +405,18 @@ addEventListener("keydown", e => {
 });
 
 /* ============================================================
-   KNEE KICK — motion sensor
+   PHONE SENSOR — knee kick, back-tap hi-hat, left-edge snare
    ============================================================ */
 let motionOn = false, motionSeen = false;
 let grav = null;                     // gravity estimate if the browser gives no linear accel
 let sig = 0, sigShow = 0;            // current detection signal (for meter)
 let armed = true, lastKick = -1e9;
 let rawHook = null;                  // calibration taps into raw samples
-const REFRACT = 115;                 // ms between kicks
+const REFRACT = 115;                 // ms between kicks (kick-only mode)
+const ZREFRACT = 85;                 // ms between sensor hits (zone mode)
+const hist = [];                     // recent samples {v,m,rot,t}
+const ZONES = ["kick","hat","snare"];
+const ZNAME = {kick:"Kick", hat:"Hi-hat", snare:"Snare"};
 
 function linearAccel(e){
   const a = e.acceleration;
@@ -420,28 +432,79 @@ function signalOf(vec, cal){
   const p = vec[0]*cal.axis[0] + vec[1]*cal.axis[1] + vec[2]*cal.axis[2];
   return cal.signed ? p*cal.sign : Math.abs(p);
 }
+
+/* features of the sample at index i, using only what's known at that moment */
+function featAt(arr, i){
+  const s = arr[i], m = s.m || 1e-6, p = arr[i-1] || s;
+  let pe = 0, pn = 0;
+  for (let j=i-1; j>=0 && s.t - arr[j].t < 220; j--){ if (s.t - arr[j].t > 20){ pe += arr[j].m*arr[j].m; pn++; } }
+  const pre = pn ? Math.sqrt(pe/pn)/m : 0;
+  return [
+    s.v[0]/m, s.v[1]/m, s.v[2]/m,                 // direction of the jolt
+    p.v[0]/m, p.v[1]/m, p.v[2]/m,                 // the sample just before (lead-in)
+    Math.log(m), pre, Math.log1p(s.rot/60)        // strength, wind-up, spin
+  ];
+}
+const FW = [2.2,2.2,2.2, 1,1,1, .7,1,.8];         // direction matters most
+function zdist(f, c, sd){ let d=0; for (let k=0;k<f.length;k++){ const x=(f[k]-c[k])/sd[k]; d += FW[k]*x*x; } return Math.sqrt(d); }
+function classify(f, z){
+  let best=null, bd=1e9;
+  for (const n of ZONES){ if (!z.cent[n]) continue; const d = zdist(f, z.cent[n], z.sd); if (d<bd){ bd=d; best=n; } }
+  if (!best || bd > z.reject[best]) return null;
+  return best;
+}
+
 function thresholdNow(now){
+  if (S.zones){
+    const z = S.zcal; let thr = (z ? z.trig : 2.5)/S.sens;
+    if (z && now - lastTouch < 90) thr = Math.max(thr, z.screenGate);
+    return thr;
+  }
   const cal = S.cal;
   let thr = cal ? cal.thr : 3.2;
   thr /= S.sens;
   if (cal && now - lastTouch < 90) thr = Math.max(thr, cal.tapGate);
   return thr;
 }
+function sensorHit(name, vel){
+  play(name, vel);
+  if (name === "kick"){ flash("kick"); kickLight(); } else flash(name);
+}
 function onMotion(e){
   motionSeen = true;
   const vec = linearAccel(e); if (!vec) return;
   const now = performance.now();
-  if (rawHook) { rawHook(vec, now); return; }
+  const r = e.rotationRate;
+  const s = {v:vec, m:Math.hypot(vec[0],vec[1],vec[2]), rot: r ? Math.hypot(r.alpha||0, r.beta||0, r.gamma||0) : 0, t:now};
+  hist.push(s); if (hist.length > 30) hist.shift();
+  if (rawHook) { rawHook(s); return; }
   if (!S.knee) return;
-  const s = signalOf(vec, S.cal);
-  sig = s; if (s > sigShow) sigShow = s;
+
+  if (S.zones){
+    const z = S.zcal; if (!z) return;
+    sig = s.m; if (s.m > sigShow) sigShow = s.m;
+    const thr = thresholdNow(now);
+    if (armed && s.m > thr && now - lastKick > ZREFRACT){
+      armed = false;
+      const name = classify(featAt(hist, hist.length-1), z);
+      if (name){
+        const vel = Math.min(1, .4 + .6*Math.min(1, s.m/z.full[name]));
+        sensorHit(name, vel); lastKick = now;
+      }
+    } else if (!armed && s.m < z.trig*.45){
+      armed = true;
+    }
+    return;
+  }
+
+  const k = signalOf(vec, S.cal);
+  sig = k; if (k > sigShow) sigShow = k;
   const thr = thresholdNow(now);
-  if (armed && s > thr && now - lastKick > REFRACT){
+  if (armed && k > thr && now - lastKick > REFRACT){
     const full = S.cal ? S.cal.full : 9;
-    const vel = Math.min(1, .38 + .62*Math.min(1, s/full));
-    play("kick", vel); flash("kick"); kickLight();
+    sensorHit("kick", Math.min(1, .38 + .62*Math.min(1, k/full)));
     lastKick = now; armed = false;
-  } else if (!armed && s < thr*.45){
+  } else if (!armed && k < thr*.45){
     armed = true;
   }
 }
@@ -466,7 +529,8 @@ function drawMeter(){
   const w = mc.width, h = mc.height;
   mx.clearRect(0,0,w,h);
   const thr = thresholdNow(performance.now());
-  const scale = Math.max(thr*2.2, (S.cal ? S.cal.full : 9)*1.2);
+  const full = S.zones ? (S.zcal ? Math.max(...Object.values(S.zcal.full)) : 9) : (S.cal ? S.cal.full : 9);
+  const scale = Math.max(thr*2.2, full*1.2);
   const lvl = Math.min(1, sigShow/scale);
   mx.fillStyle = sigShow > thr ? "#ff7a45" : "#c9a24f";
   mx.fillRect(0, 0, w*lvl, h);
@@ -478,7 +542,7 @@ requestAnimationFrame(drawMeter);
 
 /* ============================================================
    CALIBRATION
-   1) hold still  2) kick ~8 times  3) tap pads without kicking
+   still → kicks → (back taps → left-edge taps) → screen taps
    ============================================================ */
 let calTapPhase = false, calRun = 0;
 const calTaps = [];
@@ -500,79 +564,100 @@ function calShow(title, text, big="", dots=0, lit=0){
 function openCal(){
   calRun++;
   $("cal").hidden = false; $("calGo").hidden = false; $("calCancel").textContent = "Cancel"; $("calGo").textContent = "Begin";
-  calShow("Calibrate the kick", "Sit how you'll play with the phone flat on your <b>right knee</b>, screen up. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
+  calShow(S.zones ? "Calibrate the phone" : "Calibrate the kick", S.zones
+    ? "Phone flat on your <b>right knee</b>, screen up. It'll learn four things: you holding still, your <b>kick</b>, your right finger tapping the <b>back</b> (hi-hat), and your left hand knocking the <b>left edge</b> (snare). About 40 seconds."
+    : "Sit how you'll play with the phone flat on your <b>right knee</b>, screen up. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
 }
 function closeCal(){ calRun++; rawHook = null; calTapPhase = false; $("cal").hidden = true; }
+function calFail(title, text){ rawHook = null; calShow(title, text); $("calGo").hidden=false; $("calGo").textContent="Try again"; }
+
+/* records N separate jolts; each event keeps the samples before it plus the jolt itself */
+async function recordEvents(alive, N, prov, voice, title, text, maxMs=16000){
+  const evs = [];
+  let cur = null, quietSince = 0;
+  rawHook = s => {
+    if (s.m > prov){
+      if (!cur){ cur = {arr: hist.slice(-14)}; cur.start = cur.arr.length-1; if (voice) sensorHit(voice, .9); }
+      else cur.arr.push(s);
+      quietSince = s.t;
+    } else if (cur){
+      if (s.t - quietSince > 150){ evs.push(cur); cur = null; }
+      else cur.arr.push(s);
+    }
+  };
+  const t0 = performance.now();
+  while (alive() && evs.length < N && performance.now()-t0 < maxMs){
+    calShow(title, text, `${evs.length}/${N}`, N, evs.length);
+    await sleep(100);
+  }
+  rawHook = null;
+  return evs;
+}
+const evPeak = ev => ev.arr.slice(ev.start).reduce((b,s) => s.m > b.m ? s : b);
 
 async function runCal(){
   const run = ++calRun;
   const alive = () => run === calRun;
   $("calGo").hidden = true;
   const st = await enableMotion();
-  if (st !== "ok"){ calShow("No motion sensor", st==="denied" ? "Motion access was blocked. On iPhone, reload the page and tap <b>Allow</b> when asked." : "This device doesn't report motion. Use the on-screen kick pad (Settings)."); $("calGo").hidden=false; $("calGo").textContent="Try again"; return; }
+  if (st !== "ok") return calFail("No motion sensor", st==="denied" ? "Motion access was blocked. On iPhone, reload the page and tap <b>Allow</b> when asked." : "This device doesn't report motion. Use the on-screen kick pad (Settings).");
   grav = null;
 
   // 1 — stillness
   const still = [];
-  rawHook = v => still.push(v);
+  rawHook = s => still.push(s);
   for (let i=3;i>0 && alive();i--){ calShow("1 · Hold still", "Phone on your knee. Don't move for a moment.", i); await sleep(800); }
   if (!alive()) return;
-  if (!motionSeen || still.length < 5){ rawHook=null; calShow("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.", ""); $("calGo").hidden=false; $("calGo").textContent="Try again"; return; }
-  const stillMag = still.map(v => Math.hypot(...v));
-  const noiseMag = pct(stillMag, .98);
+  if (!motionSeen || still.length < 5) return calFail("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.");
+  const noiseMag = pct(still.map(s => s.m), .98);
+  const prov = Math.max(noiseMag*3, 1.0);
+  const steps = S.zones ? 5 : 3;
 
   // 2 — kicks
-  const kicks = []; const N = 8;
-  let inHit = false, best = null, quietSince = 0;
-  const prov = Math.max(noiseMag*3, 1.2);
-  rawHook = (v, now) => {
-    const m = Math.hypot(...v);
-    if (m > prov){
-      if (!inHit){ inHit = true; best = v; play("kick", .9); flash("kick"); kickLight(); }
-      else if (m > Math.hypot(...best)) best = v;
-      quietSince = now;
-    } else if (inHit && now - quietSince > 140){
-      inHit = false; kicks.push(best); best = null;
-    }
-  };
-  const t0 = performance.now();
-  while (alive() && kicks.length < N && performance.now()-t0 < 14000){
-    calShow("2 · Kick", "Play the kick with your right foot like you would on a pedal — normal strength, steady.", `${kicks.length}/${N}`, N, kicks.length);
-    await sleep(100);
-  }
+  const kickEv = await recordEvents(alive, 8, prov, "kick", `2 of ${steps} · Kick`, "Play the kick with your right foot like you would on a pedal. Normal strength, steady.");
   if (!alive()) return;
-  if (kicks.length < 4){ rawHook=null; calShow("Didn't catch enough kicks", `Only felt ${kicks.length}. Make sure the phone is resting on the knee itself, and kick a bit firmer.`); $("calGo").hidden=false; $("calGo").textContent="Try again"; return; }
+  if (kickEv.length < 4) return calFail("Didn't catch enough kicks", `Only felt ${kickEv.length}. Make sure the phone is resting on the knee itself, and kick a bit firmer.`);
 
-  // principal axis of the kick peaks (sign-free), via power iteration on the scatter matrix
-  const M = [[0,0,0],[0,0,0],[0,0,0]];
-  for (const k of kicks) for (let i=0;i<3;i++) for (let j=0;j<3;j++) M[i][j] += k[i]*k[j];
-  let ax = [.3,.4,.86];
-  for (let it=0; it<40; it++){
-    const n = [0,1,2].map(i => M[i][0]*ax[0]+M[i][1]*ax[1]+M[i][2]*ax[2]);
-    const l = Math.hypot(...n) || 1; ax = n.map(x=>x/l);
+  let hatEv = [], snareEv = [];
+  if (S.zones){
+    await sleep(500); if (!alive()) return;
+    hatEv = await recordEvents(alive, 8, prov, "hat", `3 of ${steps} · Hi-hat`, "Keep your foot still. Tap the <b>back of the phone</b> with your right index finger: short, firm taps, the way you'd want to play the hat.");
+    if (!alive()) return;
+    if (hatEv.length < 4) return calFail("Didn't catch enough back taps", `Only felt ${hatEv.length}. Tap the back a little firmer — a quick knock, not a press.`);
+    await sleep(500); if (!alive()) return;
+    snareEv = await recordEvents(alive, 8, prov, "snare", `4 of ${steps} · Snare`, "Now knock the <b>left edge</b> of the phone (the side nearest your left hand) with your left fingers. Short, firm hits.");
+    if (!alive()) return;
+    if (snareEv.length < 4) return calFail("Didn't catch enough edge taps", `Only felt ${snareEv.length}. Knock the left edge a little firmer.`);
   }
-  const proj = kicks.map(k => k[0]*ax[0]+k[1]*ax[1]+k[2]*ax[2]);
-  const pos = proj.filter(p=>p>0).length, neg = proj.length-pos;
-  const signed = Math.max(pos,neg)/proj.length >= .8;
-  const sign = pos >= neg ? 1 : -1;
-  const calTmp = {axis:ax, signed, sign};
-  const kickSig = kicks.map(k => signalOf(k, calTmp));
-  const kickMed = med(kickSig);
-  const noiseSig = pct(still.map(v => signalOf(v, calTmp)), .98);
 
-  // 3 — taps
-  calTaps.length = 0; calTapPhase = true;
-  calRecent = [];
-  rawHook = (v, now) => {
-    const s = signalOf(v, calTmp);
-    calRecent.push({t:now, s}); if (calRecent.length > 12) calRecent.shift();
-    for (const t of calTaps) if (now - t.t < 110 && s > t.pk) t.pk = s;
+  // last — screen taps, so pad hits don't set off sensor drums
+  calTaps.length = 0; calTapPhase = true; calRecent = [];
+  let calTmp = null;
+  const sigFn = s => S.zones ? s.m : signalOf(s.v, calTmp);
+  if (!S.zones){
+    // principal axis of the kick peaks (sign-free), via power iteration on the scatter matrix
+    const kicks = kickEv.map(ev => evPeak(ev).v);
+    const M = [[0,0,0],[0,0,0],[0,0,0]];
+    for (const k of kicks) for (let i=0;i<3;i++) for (let j=0;j<3;j++) M[i][j] += k[i]*k[j];
+    let ax = [.3,.4,.86];
+    for (let it=0; it<40; it++){
+      const n = [0,1,2].map(i => M[i][0]*ax[0]+M[i][1]*ax[1]+M[i][2]*ax[2]);
+      const l = Math.hypot(...n) || 1; ax = n.map(x=>x/l);
+    }
+    const proj = kicks.map(k => k[0]*ax[0]+k[1]*ax[1]+k[2]*ax[2]);
+    const pos = proj.filter(p=>p>0).length, neg = proj.length-pos;
+    calTmp = {axis:ax, signed: Math.max(pos,neg)/proj.length >= .8, sign: pos >= neg ? 1 : -1};
+  }
+  rawHook = s => {
+    const v = sigFn(s);
+    calRecent.push({t:s.t, s:v}); if (calRecent.length > 12) calRecent.shift();
+    for (const t of calTaps) if (s.t - t.t < 110 && v > t.pk) t.pk = v;
   };
   $("cal").style.pointerEvents = "none"; $("cal").style.background = "#0b0c0e99";
   const t1 = performance.now();
-  while (alive() && performance.now()-t1 < 6500){
-    const left = Math.ceil((6500-(performance.now()-t1))/1000);
-    calShow("3 · Tap the pads", "Now play the pads with your hands like normal — <b>no kicking</b>. This teaches it to ignore your taps.", left, 0, 0);
+  while (alive() && performance.now()-t1 < 6000){
+    const left = Math.ceil((6000-(performance.now()-t1))/1000);
+    calShow(`${steps} of ${steps} · Screen pads`, "Play the pads on the screen like normal: <b>no kicking, no back or edge taps</b>. This teaches it to ignore screen hits.", left);
     await sleep(150);
   }
   $("cal").style.pointerEvents = ""; $("cal").style.background = "";
@@ -581,18 +666,71 @@ async function runCal(){
   await sleep(150);
   const tapPk = calTaps.length ? pct(calTaps.map(t=>t.pk), .85) : 0;
 
-  let thr = noiseSig + .35*(kickMed - noiseSig);
-  thr = Math.max(thr, noiseSig*1.6, .6);
-  // during a pad tap, a spike has to beat what taps normally make
-  let tapGate = Math.max(thr, tapPk*1.3);
-  let warn = "";
-  if (tapGate > kickMed*.9){ tapGate = kickMed*.9; warn = `<p class="warn">Your taps shake the phone almost as hard as your kicks. Kick a little firmer or tap a little lighter. A kick landing right with a pad hit needs some extra force.</p>`; }
-  if (tapPk > thr) thr = Math.max(thr, Math.min(tapPk*1.05, kickMed*.6));
+  if (!S.zones){
+    const kickMed = med(kickEv.map(ev => signalOf(evPeak(ev).v, calTmp)));
+    const noiseSig = pct(still.map(s => signalOf(s.v, calTmp)), .98);
+    let thr = Math.max(noiseSig + .35*(kickMed - noiseSig), noiseSig*1.6, .6);
+    let tapGate = Math.max(thr, tapPk*1.3), warn = "";
+    if (tapGate > kickMed*.9){ tapGate = kickMed*.9; warn = `<p class="warn">Your taps shake the phone almost as hard as your kicks. Kick a little firmer or tap a little lighter.</p>`; }
+    if (tapPk > thr) thr = Math.max(thr, Math.min(tapPk*1.05, kickMed*.6));
+    S.cal = {...calTmp, thr, tapGate, full:kickMed*1.15, at:Date.now()};
+    S.knee = true; save(); syncSettings();
+    calShow("Locked in", `Kick strength read at <b>${kickMed.toFixed(1)}</b> vs. a stillness floor of <b>${noiseSig.toFixed(2)}</b>. The bar up top shows each kick and the white line is the trigger point. If it misses, raise <b>Sensor sensitivity</b> in Settings; if it double-fires, lower it.${warn}`);
+    $("calGo").hidden = true; $("calCancel").textContent = "Play";
+    return;
+  }
 
-  S.cal = {axis:ax, signed, sign, thr, tapGate, full:kickMed*1.15, at:Date.now()};
+  // ---- zone model ----
+  const byName = {kick:kickEv, hat:hatEv, snare:snareEv};
+  const peakMed = {}; for (const n of ZONES) peakMed[n] = med(byName[n].map(ev => evPeak(ev).m));
+  const trig = Math.max(noiseMag*3, .8, .35*Math.min(...Object.values(peakMed)));
+  const F = {}, full = {};
+  for (const n of ZONES){
+    F[n] = [];
+    const crossM = [];
+    for (const ev of byName[n]){
+      const i = ev.arr.findIndex((s,j) => j >= ev.start && s.m > trig);
+      if (i < 0) continue;
+      F[n].push(featAt(ev.arr, i)); crossM.push(ev.arr[i].m);
+    }
+    full[n] = Math.max(trig*1.5, med(crossM)*1.25);
+  }
+  if (ZONES.some(n => F[n].length < 3)) return calFail("Some hits were too soft", "A few hits barely moved the phone. Try again with firmer taps.");
+  const dim = F.kick[0].length;
+  const mean = a => Array.from({length:dim}, (_,k) => a.reduce((x,f)=>x+f[k],0)/a.length);
+  const cent = {}; for (const n of ZONES) cent[n] = mean(F[n]);
+  // pooled within-zone spread, with floors so one perfect zone can't dominate
+  const sd = Array.from({length:dim}, (_,k) => {
+    let ss=0, c=0; for (const n of ZONES) for (const f of F[n]){ ss += (f[k]-cent[n][k])**2; c++; }
+    return Math.max(Math.sqrt(ss/Math.max(1,c-3)), k<6 ? .12 : .15);
+  });
+  const reject = {};
+  for (const n of ZONES){ reject[n] = Math.max(3.5, 1.8*Math.max(...F[n].map(f => zdist(f, cent[n], sd)))); }
+  // how well does it tell them apart? leave-one-out on what you just played
+  const score = {};
+  for (const n of ZONES){
+    let ok = 0;
+    F[n].forEach((f, idx) => {
+      const rest = F[n].filter((_,j)=>j!==idx);
+      const c2 = {...cent, [n]: rest.length ? mean(rest) : cent[n]};
+      if (classify(f, {cent:c2, sd, reject:{kick:1e9,hat:1e9,snare:1e9}}) === n) ok++;
+    });
+    score[n] = [ok, F[n].length];
+  }
+  const minScreen = Math.min(...Object.values(peakMed));
+  let screenGate = Math.max(trig, tapPk*1.3);
+  if (screenGate > minScreen*.9) screenGate = minScreen*.9;
+
+  S.zcal = {trig, cent, sd, reject, full, screenGate, at:Date.now()};
   S.knee = true; save(); syncSettings();
-  calShow("Locked in", `Kick strength read at <b>${kickMed.toFixed(1)}</b> vs. a stillness floor of <b>${noiseSig.toFixed(2)}</b>. The bar up top shows each kick and the white line is the trigger point. If it misses, raise <b>Kick sensitivity</b> in Settings; if it double-fires, lower it.${warn}`);
-  $("calGo").hidden = true; $("calCancel").textContent = "Play";
+  const lines = ZONES.map(n => { const [a,b] = score[n]; return `${ZNAME[n]}: <b>${a}/${b}</b>`; }).join(" · ");
+  const weak = ZONES.filter(n => score[n][0] < score[n][1]*.75);
+  let msg = `How well it told your hits apart: ${lines}.`;
+  if (weak.length) msg += `<p class="warn">${weak.map(n=>ZNAME[n]).join(" and ")} got mixed up a lot. Try again and make each hit more distinct: stomp the kick, knock the back square-on, hit the edge sideways.</p>`;
+  else msg += `<p>Play away. If soft hits get missed, raise <b>Sensor sensitivity</b> in Settings; if it fires on its own, lower it.</p>`;
+  calShow(weak.length ? "Almost" : "Locked in", msg);
+  $("calGo").hidden = !weak.length; $("calGo").textContent = "Recalibrate";
+  $("calCancel").textContent = "Play";
 }
 
 /* ============================================================
@@ -645,7 +783,7 @@ function syncSettings(){
   $("room").value = S.room; $("roomO").textContent = Math.round(S.room*100)+"%";
   $("sens").value = S.sens; $("sensO").textContent = S.sens.toFixed(2)+"×";
   $("bpm").value = S.bpm; $("bpmO").textContent = S.bpm;
-  $("kickPad").checked = S.kickPad; $("kneeOn").checked = S.knee;
+  $("kickPad").checked = S.kickPad; $("kneeOn").checked = S.knee; $("zonesOn").checked = S.zones;
   $("kit").classList.toggle("kickpad", S.kickPad);
   $("kickStat").style.opacity = S.knee ? 1 : .35;
   if (master) master.gain.value = S.vol;
@@ -657,6 +795,7 @@ $("sens").oninput = e => { S.sens = +e.target.value; syncSettings(); save(); };
 $("bpm").oninput  = e => { S.bpm = +e.target.value; syncSettings(); save(); };
 $("kickPad").onchange = e => { S.kickPad = e.target.checked; syncSettings(); save(); };
 $("kneeOn").onchange = async e => { S.knee = e.target.checked; if (S.knee) await enableMotion(); syncSettings(); save(); };
+$("zonesOn").onchange = e => { S.zones = e.target.checked; save(); syncSettings(); if ((S.zones && !S.zcal) || (!S.zones && !S.cal)){ $("settings").hidden = true; openCal(); } };
 $("metroBtn").onclick = toggleMetro;
 $("midiBtn").onclick = connectMidi;
 $("setBtn").onclick = () => { $("settings").hidden = false; };
@@ -677,7 +816,7 @@ async function begin(withKnee){
   keepAwake();
   $("start").hidden = true;
   if (withKnee){
-    if (st === "ok"){ S.knee = true; if (!S.cal) openCal(); }
+    if (st === "ok"){ S.knee = true; if (S.zones ? !S.zcal : !S.cal) openCal(); }
     else { S.knee = false; S.kickPad = true; $("startNote").textContent = ""; alert(st==="denied" ? "Motion access was blocked, so the on-screen kick pad is turned on. Reload to try again." : "No motion sensor here, so the on-screen kick pad is turned on."); }
   } else { S.knee = false; S.kickPad = true; }
   save(); syncSettings();

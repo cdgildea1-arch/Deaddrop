@@ -34,8 +34,7 @@ panel.setAttribute('aria-labelledby', 'move-chat-title');
 panel.innerHTML = `
   <div class="move-chat-head" data-gesture tabindex="0" aria-label="Chat header">
     <div><h2 id="move-chat-title">Chat</h2><small data-context></small></div>
-    <button type="button" data-clear aria-label="Swipe: delete this chat for you">Swipe</button>
-    <button type="button" data-wipe aria-label="Delete this chat for both of you">Delete for both</button>
+    <button type="button" data-clear aria-label="Swipe: delete this chat for both of you">Swipe</button>
     <button type="button" data-close aria-label="Close chat">×</button>
   </div>
   <form data-join hidden>
@@ -61,7 +60,6 @@ const selectors = {
 function setup(show) {
   find('join').hidden = !show;
   find('clear').disabled = show || !lastView || sending;
-  find('wipe').disabled = show || !lastView || sending;
   find('compose').hidden = show;
   find('message').disabled = show || !lastView;
   find('compose').querySelector('button').disabled = show || !lastView || sending;
@@ -127,7 +125,6 @@ async function load({ restart = false } = {}) {
   }
 }
 function change(next, restart = false) {
-  disarm();
   generation++;
   mode = next;
   loading = false;
@@ -153,38 +150,13 @@ function fitPanel() {
 }
 window.visualViewport?.addEventListener('resize', fitPanel);
 window.visualViewport?.addEventListener('scroll', fitPanel);
-// Kill switch: wipes this chat for you on the server, so it stays gone on every device you use.
-// The other person keeps their copy. The screen clears right away even if the server can't be reached.
+// Kill switch: erases this chat on the server for both people, so it's gone on every device.
+// The screen clears right away even if the server can't be reached.
 find('clear').onclick = () => {
   if (!panel.open || !room || !lastView || sending || joining) return;
   const thread = mode === 'room' ? 'room' : slot;
   change(mode, true);
-  request('clear', room, { thread }).catch(() => setStatus('Cleared here. Couldn’t reach the server, so tap Swipe again when you’re back online.'));
-};
-// Delete for both: erases this chat on the server for both people and every device. Two taps, so it can't happen by accident.
-let armTimer;
-function disarm() {
-  clearTimeout(armTimer);
-  const wipe = find('wipe');
-  delete wipe.dataset.armed;
-  wipe.textContent = 'Delete for both';
-}
-find('wipe').onclick = () => {
-  if (!panel.open || !room || !lastView || sending || joining) return;
-  const wipe = find('wipe');
-  if (!wipe.dataset.armed) {
-    wipe.dataset.armed = '';
-    wipe.textContent = 'Tap again';
-    armTimer = setTimeout(disarm, 3000);
-    return;
-  }
-  disarm();
-  const thread = mode === 'room' ? 'room' : slot, current = generation;
-  writeVersion++;
-  setStatus('Deleting for both of you…');
-  request('clear', room, { thread, both: true })
-    .then(() => { if (current !== generation) return; change(mode); setStatus('Deleted for both of you.'); })
-    .catch(error => { if (current === generation) setStatus(error.message || 'Couldn’t delete. Try again.'); });
+  request('clear', room, { thread, both: true }).catch(() => setStatus('Cleared here. Couldn’t reach the server, so tap Swipe again when you’re back online.'));
 };
 function open() {
   if (panel.open) return;
@@ -196,7 +168,6 @@ function open() {
 }
 find('close').onclick = () => panel.close();
 panel.addEventListener('close', () => {
-  disarm();
   generation++;loading = false;lastView = null;feed.replaceChildren();find('message').value = '';
   document.dispatchEvent(new Event('your-move-chat-close'));
 });

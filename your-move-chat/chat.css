@@ -7,7 +7,7 @@ html[data-move-chat] dialog.move-chat{
 }
 html[data-move-chat] dialog.move-chat[open]{display:flex;flex-direction:column;gap:9px}
 html[data-move-chat] dialog.move-chat::backdrop{background:#111321cc;backdrop-filter:blur(4px)}
-html[data-move-chat] dialog.move-chat .move-chat-head{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;border-bottom:1px solid #ffffff24;padding-bottom:8px}
+html[data-move-chat] dialog.move-chat .move-chat-head{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;border-bottom:1px solid #ffffff24;padding-bottom:8px}
 html[data-move-chat] dialog.move-chat .move-chat-head h2{margin:0;color:inherit;font:750 20px system-ui,sans-serif}
 html[data-move-chat] dialog.move-chat .move-chat-head small{display:block;color:#c3bdcd;font-size:11px;margin-top:2px}
 html[data-move-chat] dialog.move-chat button{
@@ -131,5 +131,3 @@ html[data-move-chat=hearts] #menu .panel{border-color:#db9ba65e;background:#6b30
 @media (min-height:650px) and (max-width:620px) and (orientation:portrait){
  html[data-move-chat=speed] body #menu .fan{display:flex;height:70px;transform:scale(.8);margin:5px auto 9px}
 }
-html[data-move-chat] dialog.move-chat [data-wipe]{font-size:11px;color:#ffc2c9;padding:6px 8px;border-color:#f0414f66}
-html[data-move-chat] dialog.move-chat [data-wipe][data-armed]{background:#f0414f;color:#fff;border-color:transparent}

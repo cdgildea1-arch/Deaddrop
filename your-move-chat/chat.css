@@ -133,3 +133,4 @@ html[data-move-chat=hearts] #menu .panel{border-color:#db9ba65e;background:#6b30
 }
 [data-move-unread]{position:relative}
 [data-move-unread]::after{content:attr(data-move-unread);position:absolute;top:-7px;right:-7px;z-index:2;min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#ff3b30;color:#fff;font:700 11px/19px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #0007;pointer-events:none}
+html[data-move-chat] dialog.move-chat .move-chat-day{margin:12px 0 6px;text-align:center;font:700 11px system-ui,sans-serif;letter-spacing:.04em;color:#c3bdcd}

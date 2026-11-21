@@ -73,9 +73,19 @@ function context() {
   find('context').textContent = mode === 'room' ? (room?.code ? 'Room ' + room.code : 'Room') : gameNames[slot];
   find('gesture').setAttribute('aria-keyshortcuts', mode === 'table' ? 'ArrowUp' : 'ArrowDown');
 }
+// Times read like a normal clock (7:04 PM), with a line for each new day.
+const clock = when => when.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+function dayLabel(when) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const that = new Date(when); that.setHours(0, 0, 0, 0);
+  const days = Math.round((today - that) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  return when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', ...(when.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
+}
 function showMessages(view) {
   const messages = view.messages.filter(message => message.ts > baseline);
-  const signature = mode + ':' + view.live + ':' + messages.map(message => message.id).join(',');
+  const signature = new Date().toDateString() + ':' + mode + ':' + view.live + ':' + messages.map(message => message.id).join(',');
   if (signature === visibleSignature) return;
   visibleSignature = signature;
   feed.toggleAttribute('data-blank', messages.length === 0);
@@ -87,11 +97,21 @@ function showMessages(view) {
     empty.textContent = 'No messages yet.';
     feed.append(empty);
   }
+  let lastDay = '';
   for (const message of messages) {
+    const when = new Date(message.ts);
+    const day = when.toDateString();
+    if (day !== lastDay) {
+      lastDay = day;
+      const divider = document.createElement('p');
+      divider.className = 'move-chat-day';
+      divider.textContent = dayLabel(when);
+      feed.append(divider);
+    }
     const article = document.createElement('article');
     article.className = message.seat === view.seat ? 'mine' : '';
     const name = document.createElement('small');
-    name.textContent = view.names[message.seat] || 'Player';
+    name.textContent = (view.names[message.seat] || 'Player') + ' · ' + clock(when);
     const content = document.createElement('div');
     content.textContent = message.text;
     article.append(name, content);
@@ -177,7 +197,8 @@ panel.addEventListener('close', () => {
 function swipeChat(direction) {
   if (!panel.open || sending || joining) return;
   if (direction === 'up' && mode === 'table') change('room');
-  if (direction === 'down' && mode === 'room') change('table', true);
+  // Coming back from the room chat keeps the regular chat as it was.
+  if (direction === 'down' && mode === 'room') change('table');
 }
 function attachSwipe(surface) {
   let start = null;

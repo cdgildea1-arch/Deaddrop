@@ -2,7 +2,7 @@
 // A 6-character room code (or a reserved 8-digit one) invites one friend; each device holds its own random 96-bit seat key.
 // Only SHA-256 hashes of seat keys are stored. The table has RLS on and no public grants.
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
-const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4','what-changed','draw-together','warmer','hide-a-dot','quick-draw','same-word','wavelength']);
+const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4','what-changed','draw-together','warmer','hide-a-dot','quick-draw','same-word','wavelength','butterflies','after-dark']);
 const isToken = (x: unknown) => typeof x === 'string' && /^[a-f0-9]{24}$/.test(x);
 const isCode = (x: unknown) => typeof x === 'string' && /^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(x);
 const hash = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))), n => n.toString(16).padStart(2, '0')).join('');
@@ -118,6 +118,16 @@ Deno.serve(async (req: Request) => {
     if (b.op === 'clear') {
       const thread = b.thread === 'room' ? 'room' : gameThreads.has(b.thread) ? b.thread : null;
       if (!thread) return reply({ error: 'Choose a chat.' }, 400);
+      // Delete for both: erases the messages from the server, so neither phone (on any device) can get them back.
+      if (b.both === true) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const patch = thread === 'room' ? { messages: [] } : { game_threads: { ...row.game_threads, [thread]: [] } };
+          const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { ...patch, rev: row.rev + 1, updated_at: new Date().toISOString() });
+          if (rows.length) return reply({ cleared: thread, both: true });
+          row = (await db(path))[0];
+        }
+        return reply({ error: 'Busy room. Try again.' }, 409);
+      }
       for (let attempt = 0; attempt < 3; attempt++) {
         const list = thread === 'room' ? row.messages : (row.game_threads[thread] || []);
         const upTo = Math.max(Date.now(), list.at(-1)?.ts || 0);

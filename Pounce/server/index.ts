@@ -88,6 +88,16 @@ Deno.serve(async (req: Request) => {
     if (seat < 0) return reply({ error: 'This phone is not part of that room.' }, 403);
     if (b.op === 'get' || b.op === 'join') return reply(view(row, seat, after));
 
+    // Unread badges: times of the other person's messages in each chat (after this seat's Swipe), newest 50 per chat.
+    if (b.op === 'unread') {
+      const other = 1 - seat;
+      const pick = (list: any[], thread: string) => { const from = clearedAt(row, seat, thread);
+        return (list || []).filter((m: any) => m.seat === other && m.ts > from).slice(-50).map((m: any) => m.ts); };
+      const threads: Record<string, number[]> = { room: pick(row.messages, 'room') };
+      for (const [thread, list] of Object.entries(row.game_threads || {})) if (gameThreads.has(thread)) threads[thread] = pick(list as any[], thread);
+      return reply({ seat, threads });
+    }
+
     if (b.op === 'table-get' || b.op === 'table-message') {
       if (!gameThreads.has(b.game)) return reply({ error: 'Choose a game.' }, 400);
       const tableView = (current: any) => {

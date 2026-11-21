@@ -1,3 +1,4 @@
+import { startUnread, onUnread, markSeen, askForIconBadge } from './unread.mjs?v=badge1';
 const slot = document.documentElement.dataset.moveChat;
 const api = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
@@ -112,6 +113,7 @@ async function load({ restart = false } = {}) {
     if (restart) { sessionCuts.set(key, baseline); write(key, baseline); }
     lastView = result;
     showMessages(result);
+    markSeen(thread === 'table' ? slot : 'room', cursor);
     setStatus('');
   } catch (error) {
     if (current !== generation) return;
@@ -161,6 +163,7 @@ find('clear').onclick = () => {
 function open() {
   if (panel.open) return;
   room = read('pounce.room');
+  askForIconBadge();
   panel.showModal();
   document.dispatchEvent(new Event('your-move-chat-open'));
   fitPanel();
@@ -237,6 +240,7 @@ find('compose').onsubmit = async event => {
     const result = await request(mode === 'table' ? 'table-message' : 'message', room, { game: slot, id: token(), text });
     if (current !== generation) return;
     lastView = result;
+    markSeen(mode === 'table' ? slot : 'room', result.messages.reduce((latest, message) => Math.max(latest, message.ts), 0));
     input.value = '';
     showMessages(result);
     feed.scrollTop = feed.scrollHeight;
@@ -278,3 +282,13 @@ if (document.documentElement.dataset.moveInvite) {
 setInterval(() => {
   if (panel.open && !document.hidden && find('join').hidden) void load();
 }, 2500);
+
+// Red unread count on this game's Chat button: this game's chat plus the room chat.
+onUnread(({ byThread }) => {
+  const n = (byThread[slot] || 0) + (byThread.room || 0);
+  for (const button of document.querySelectorAll(selector + ', .move-chat-launch')) {
+    if (n) button.dataset.moveUnread = n > 9 ? '9+' : String(n);
+    else delete button.dataset.moveUnread;
+  }
+});
+startUnread();

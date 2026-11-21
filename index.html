@@ -122,12 +122,16 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
  main{padding-top:calc(env(safe-area-inset-top, 0px) + clamp(11px,2.3dvh,23px))}
 }
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
+/* Unread chat badges (your-move-chat/unread.mjs) */
+.game[data-move-unread]{position:relative;overflow:visible}
+.game[data-move-unread]::after{content:attr(data-move-unread);position:absolute;top:-6px;right:-6px;z-index:3;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#ff3b30;color:#fff;font:700 11px/20px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #15171b;pointer-events:none}
+.room-unread{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#ff3b30;color:#fff;font:700 11px/18px system-ui,sans-serif;vertical-align:middle}
 </style>
 <link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
 <body>
 <main>
  <header>
-  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game</p></div>
+  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p></div>
   <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
@@ -169,6 +173,24 @@ async function yourMove(){
 }
 yourMove();
 setInterval(()=>{if(!document.hidden)yourMove()},30000);
+// Unread chat: red counts on game tiles, a pill for the room chat, and the Home Screen icon badge.
+import('/your-move-chat/unread.mjs?v=badge1').then(({startUnread,onUnread})=>{
+ const where={pounce:'/Pounce/',speed:'/speed/',hearts:'/hearts/',uno:'/uno/','guess-who':'/guess-who/',scrabble:'/scrabble/',dots:'/dots/',
+  mahjong:'/mahjong/','mahjong-daily':'/mahjong/','mahjong-level4':'/mahjong/',duet:'/duet/','what-changed':'/mini/?game=what-changed',
+  warmer:'/mini/?game=warmer','hide-a-dot':'/mini/?game=hide-a-dot','draw-together':'/mini/?game=draw-together','quick-draw':'/sketch/',
+  'same-word':'/same-word/',wavelength:'/wavelength/',butterflies:'/butterflies/','after-dark':'/after-dark/'};
+ onUnread(({byThread})=>{
+  const perTile=new Map();
+  for(const [thread,n] of Object.entries(byThread))if(where[thread])perTile.set(where[thread],(perTile.get(where[thread])||0)+n);
+  for(const tile of document.querySelectorAll('.shelf a')){
+   const n=perTile.get(tile.getAttribute('href'));
+   if(n)tile.dataset.moveUnread=n>9?'9+':String(n);else delete tile.dataset.moveUnread;
+  }
+  const pill=document.querySelector('.room-unread'),n=byThread.room||0;
+  pill.hidden=!n;pill.textContent=n+' new in room chat';
+ });
+ startUnread();
+}).catch(()=>{});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)yourMove()});
 const gameLinks=[...document.querySelectorAll('.shelf a')];
 document.querySelector('.shuffle').addEventListener('click',()=>{

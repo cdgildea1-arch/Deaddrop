@@ -130,6 +130,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 /* Unread chat badges (your-move-chat/unread.mjs) */
 .game[data-move-unread]{position:relative;overflow:visible}
 .game[data-move-unread]::after{content:attr(data-move-unread);position:absolute;top:-6px;right:-6px;z-index:3;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#ff3b30;color:#fff;font:700 11px/20px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #15171b;pointer-events:none}
+.room-unread[hidden]{display:none}
 .room-unread{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#ff3b30;color:#fff;font:700 11px/18px system-ui,sans-serif;vertical-align:middle}
 </style>
 <link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>

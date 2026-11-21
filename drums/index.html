@@ -31,14 +31,11 @@ header .spacer{flex:1}
 #kickDot{width:14px;height:14px;border-radius:50%;background:#333;flex:none;transition:background .25s}
 #kickDot.on{background:var(--hot);transition:none}
 
+/* left column: snare (top), floor tom (middle); right column: open hat, crash, hi-hat (bottom right) */
 .kit{display:grid;gap:8px;min-height:0;
- grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1.25fr;
- grid-template-areas:"crash open" "hat tom" "snare snare"}
-.kit.kickpad{grid-template-rows:1fr 1fr 1.25fr .8fr;grid-template-areas:"crash open" "hat tom" "snare snare" "kick kick"}
-@media (orientation:landscape){
- .kit{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;grid-template-areas:"crash open tom" "hat snare tom"}
- .kit.kickpad{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:1fr 1fr;grid-template-areas:"crash open tom kick" "hat snare tom kick"}
-}
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1fr;
+ grid-template-areas:"snare open" "tom crash" "tom hat"}
+.kit.kickpad{grid-template-areas:"snare open" "tom crash" "kick hat"}
 .pad{position:relative;border-radius:18px;border:1px solid #ffffff14;display:flex;align-items:flex-end;justify-content:flex-start;
  padding:12px 14px;touch-action:none;cursor:pointer;overflow:hidden;
  background:radial-gradient(circle at 50% 45%,var(--c2),var(--c1) 72%);box-shadow:inset 0 -6px 18px #0006,inset 0 1px 0 #ffffff12}
@@ -47,7 +44,7 @@ header .spacer{flex:1}
 .pad span{font:750 15px system-ui;letter-spacing:.04em;text-shadow:0 1px 3px #000a;pointer-events:none}
 .pad small{position:absolute;top:10px;right:12px;font:600 11px ui-monospace,monospace;color:#ffffff55;pointer-events:none}
 .pad::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--x,50%) var(--y,50%),#fff 0,#fff0 60%);opacity:0;pointer-events:none}
-.pad.hit::after{animation:flash .22s ease-out}
+.pad.flashing::after{animation:flash .22s ease-out}
 @keyframes flash{from{opacity:.55}to{opacity:0}}
 .pad[data-v=crash]{grid-area:crash;--c1:#3a2e12;--c2:#6b5420}
 .pad[data-v=open]{grid-area:open;--c1:#2f2a16;--c2:#5a5026}
@@ -118,11 +115,11 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 <div class="sheet" id="start">
  <div class="card">
   <h1>Drums</h1>
-  <p>Hold the phone on your <b>right knee</b>, screen up. Stomp like you're on a kick pedal and the phone's motion sensor plays the <b>kick</b>. Everything else is on the screen. Crash, open hat and floor tom stay on the screen.</p>
+  <p>Rest the phone on your <b>knee or foot</b>. Stomp like you're on a kick pedal and the phone's motion sensor plays the <b>kick</b>. Everything else is on the screen. Crash, open hat and floor tom stay on the screen.</p>
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
-  <p class="note" style="opacity:.6">Version 10 · knee kick + new crash</p>
+  <p class="note" style="opacity:.6">Version 11 · new layout, tighter combos</p>
  </div>
 </div>
 
@@ -155,7 +152,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <p class="note" id="midiNote"></p>
   <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash · <kbd>;</kbd> ride</p>
   <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
-  <p class="note" style="opacity:.6">Version 10</p>
+  <p class="note" style="opacity:.6">Version 11</p>
   <button class="btn primary" id="setDone" type="button">Done</button>
  </div>
 </div>
@@ -187,7 +184,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 
 <script>
 "use strict";
-const VERSION = "10";
+const VERSION = "11";
 // GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
 (async () => {
   try {
@@ -501,7 +498,7 @@ document.querySelectorAll(".pad").forEach(el => {
 function flash(v, x=.5, y=.5){
   const el = padEls[v]; if (!el) return;
   el.style.setProperty("--x", (x*100)+"%"); el.style.setProperty("--y", (y*100)+"%");
-  el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+  el.classList.remove("flashing"); void el.offsetWidth; el.classList.add("flashing");
 }
 document.addEventListener("contextmenu", e => e.preventDefault());
 // iOS ignores user-scalable=no, so block pinch and double-tap zoom by hand
@@ -619,7 +616,8 @@ function thresholdNow(now){
   const cal = S.cal;
   let thr = cal ? cal.thr : 3.2;
   thr /= S.sens;
-  if (cal && now - lastTouch < 90) thr = Math.max(thr, cal.tapGate);
+  // during a pad tap, only ask for a bit more than normal, so kick + crash / kick + snare together still land
+  if (cal && now - lastTouch < 90) thr = Math.max(thr, Math.min(cal.tapGate, cal.full/1.15*.5));
   return thr;
 }
 function sensorHit(name, vel){
@@ -742,7 +740,7 @@ function openCal(){
   $("cal").hidden = false; $("calCopy").hidden = true; $("calGo").hidden = false; $("calCancel").textContent = "Cancel"; $("calGo").textContent = "Begin";
   calShow(S.zones ? "Calibrate the phone" : "Calibrate the kick", S.zones
     ? `Hold the phone exactly how you'll play, on your <b>right knee</b>, screen up. It learns: holding still, your <b>kick</b>, a tap on the <b>right side</b> (hi-hat), a knock on the <b>top edge</b> (snare)${S.tune.combos ? ", then <b>kick + hat</b> and <b>kick + snare</b> together" : ""}. About ${S.tune.combos ? "a minute" : "40 seconds"}.`
-    : "Hold the phone on your <b>right knee</b> exactly how you'll play, screen up. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
+    : "Rest the phone on your <b>knee or foot</b> exactly how you'll play. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
 }
 function closeCal(){ calRun++; rawHook = null; calTapPhase = false; $("cal").hidden = true; if (calReturnToTune){ calReturnToTune = false; openTune(); } }
 function calFail(title, text){ rawHook = null; calShow(title, text); $("calGo").hidden=false; $("calGo").textContent="Try again"; }
@@ -803,7 +801,7 @@ async function runCal(){
   // 1: stillness
   const still = [];
   rawHook = s => still.push(s);
-  for (let i=3;i>0 && alive();i--){ calShow("1 · Hold still", "Phone on your knee, held how you'll play. Don't move for a moment.", i); await sleep(800); }
+  for (let i=3;i>0 && alive();i--){ calShow("1 · Hold still", "Phone where you'll play it. Don't move for a moment.", i); await sleep(800); }
   if (!alive()) return;
   if (!motionSeen || still.length < 5) return calFail("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.");
   const noiseMag = pct(still.map(s => s.m), .98);
@@ -861,8 +859,8 @@ async function runCal(){
     const kickMed = med(kickEv.map(ev => signalOf(evPeak(ev).v, calTmp)));
     const noiseSig = pct(still.map(s => signalOf(s.v, calTmp)), .98);
     let thr = Math.max(noiseSig + .35*(kickMed - noiseSig), noiseSig*1.6, .6);
-    let tapGate = Math.max(thr, tapPk*1.3), warn = "";
-    if (tapGate > kickMed*.9){ tapGate = kickMed*.9; warn = `<p class="warn">Your taps shake the phone almost as hard as your kicks. Kick a little firmer or tap a little lighter.</p>`; }
+    let tapGate = Math.max(thr, tapPk*1.15), warn = "";
+    if (tapGate > kickMed*.5){ tapGate = Math.max(thr, kickMed*.5); warn = `<p class="warn">Your taps shake the phone almost as hard as your kicks. Kick a little firmer or tap a little lighter.</p>`; }
     if (tapPk > thr) thr = Math.max(thr, Math.min(tapPk*1.05, kickMed*.6));
     S.cal = {...calTmp, thr, tapGate, full:kickMed*1.15, at:Date.now()};
     S.knee = true; save(); syncSettings();

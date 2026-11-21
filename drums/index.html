@@ -31,11 +31,15 @@ header .spacer{flex:1}
 #kickDot{width:14px;height:14px;border-radius:50%;background:#333;flex:none;transition:background .25s}
 #kickDot.on{background:var(--hot);transition:none}
 
-/* left column: snare (top), floor tom (middle); right column: open hat, crash, hi-hat (bottom right) */
+/* top half: snare (left) + crash (right); bottom half: tom strip (left) + hi-hat strip (right) */
 .kit{display:grid;gap:8px;min-height:0;
- grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1fr;
- grid-template-areas:"snare open" "tom crash" "tom hat"}
-.kit.kickpad{grid-template-areas:"snare open" "tom crash" "kick hat"}
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr;
+ grid-template-areas:"snare crash" "tom hat"}
+.kit.kickpad{grid-template-rows:1fr 1fr .35fr;grid-template-areas:"snare crash" "tom hat" "kick kick"}
+.strip b.top{position:absolute;top:12px;left:14px;font:750 12px system-ui;letter-spacing:.06em;color:#ffffffaa;pointer-events:none}
+.strip i{position:absolute;left:10px;right:10px;height:1px;background:#ffffff1c;pointer-events:none}
+.pad[data-v=hat]{background:linear-gradient(to top,#3a3519,#5e5528 55%,#8a7a34)}
+.pad[data-v=tom]{background:linear-gradient(to top,#2a1c22,#4d2d3a 60%,#6a3d4f)}
 .pad{position:relative;border-radius:18px;border:1px solid #ffffff14;display:flex;align-items:flex-end;justify-content:flex-start;
  padding:12px 14px;touch-action:none;cursor:pointer;overflow:hidden;
  background:radial-gradient(circle at 50% 45%,var(--c2),var(--c1) 72%);box-shadow:inset 0 -6px 18px #0006,inset 0 1px 0 #ffffff12}
@@ -102,11 +106,10 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <button id="setBtn" type="button" aria-label="Settings">⚙︎</button>
  </header>
  <section class="kit" id="kit">
-  <div class="pad" data-v="crash"><span>CRASH</span><small>L</small></div>
-  <div class="pad" data-v="open"><span>OPEN HAT</span><small>D</small></div>
-  <div class="pad" data-v="hat"><span>HI-HAT</span><small>F</small></div>
-  <div class="pad" data-v="tom"><span>FLOOR TOM</span><small>K</small></div>
   <div class="pad" data-v="snare"><span>SNARE</span><small>J</small></div>
+  <div class="pad" data-v="crash"><span>CRASH</span><small>L</small></div>
+  <div class="pad strip" data-v="tom"><b class="top">HIGH TOM</b><i style="top:25%"></i><i style="top:50%"></i><i style="top:75%"></i><span>FLOOR TOM</span><small>K</small></div>
+  <div class="pad strip" data-v="hat"><b class="top">OPEN</b><span>HI-HAT · CLOSED</span><small>F</small></div>
   <div class="pad" data-v="kick"><span>KICK</span><small>SPACE</small></div>
  </section>
 </main>
@@ -115,11 +118,11 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 <div class="sheet" id="start">
  <div class="card">
   <h1>Drums</h1>
-  <p>Rest the phone on your <b>knee or foot</b>. Stomp like you're on a kick pedal and the phone's motion sensor plays the <b>kick</b>. Everything else is on the screen. Crash, open hat and floor tom stay on the screen.</p>
+  <p>Rest the phone on your <b>knee or foot</b>. Stomp like you're on a kick pedal for the <b>kick</b>, and knock the <b>top-left corner</b> of the phone for the <b>snare</b>. The bottom strips play hi-hat (closed at the bottom, open at the top) and toms (floor tom at the bottom). Crash, open hat and floor tom stay on the screen.</p>
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
-  <p class="note" style="opacity:.6">Version 13 · fewer false kicks</p>
+  <p class="note" style="opacity:.6">Version 14 · snare knock + hi-hat & tom strips</p>
  </div>
 </div>
 
@@ -144,15 +147,15 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <div class="row"><label for="room">Room</label><input id="room" type="range" min="0" max="1" step="0.01"><output id="roomO"></output></div>
   <div class="row"><label for="kickPad">Show on-screen kick pad</label><input id="kickPad" type="checkbox"></div>
   <div class="row"><label for="kneeOn">Phone sensor</label><input id="kneeOn" type="checkbox"></div>
-  <div class="row" hidden><label for="zonesOn">Edge taps</label><input id="zonesOn" type="checkbox"></div>
-  <p class="note">The sensor plays the kick only. The edge-tap version is saved at <a href="/drums/v9/" style="color:var(--gold)">/drums/v9</a>.</p>
+  <div class="row"><label for="zonesOn">Knock top-left corner = snare</label><input id="zonesOn" type="checkbox"></div>
+  <p class="note">Off = the phone only plays the kick. The older edge-tap version is saved at <a href="/drums/v9/" style="color:var(--gold)">/drums/v9</a>.</p>
   <div class="row"><label for="bpm">Metronome</label><input id="bpm" type="range" min="40" max="220" step="1"><output id="bpmO"></output></div>
   <button class="btn" id="metroBtn" type="button">Start metronome</button>
   <button class="btn" id="midiBtn" type="button">Connect MIDI controller</button>
   <p class="note" id="midiNote"></p>
-  <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash · <kbd>;</kbd> ride</p>
+  <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash</p>
   <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
-  <p class="note" style="opacity:.6">Version 13</p>
+  <p class="note" style="opacity:.6">Version 14</p>
   <button class="btn primary" id="setDone" type="button">Done</button>
  </div>
 </div>
@@ -167,12 +170,12 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <div id="zoneOnly" hidden>
   <h3>Your hits</h3>
   <p class="note" id="tuneScore"></p>
-  <p class="note">Wrong drum? Tap the right one: <b>K</b> kick · <b>H</b> hi-hat · <b>S</b> snare · <b>K+H</b> / <b>K+S</b> both at once · <b>✕</b> not a hit.</p>
+  <p class="note">Wrong drum? Tap the right one: <b>K</b> kick · <b>S</b> snare · <b>✕</b> not a hit.</p>
   <div id="tuneLog"></div>
   <h3>Teach one drum more</h3>
   <p class="note">Adds six more hits of just that drum. The number is how many it knows.</p>
   <div class="chips" id="tuneTeach"></div>
-  <div class="row"><label for="tuneCombos">Combo hits (experimental)</label><input id="tuneCombos" type="checkbox"></div>
+  <div class="row" hidden><label for="tuneCombos">Combo hits (experimental)</label><input id="tuneCombos" type="checkbox"></div>
   </div>
   <h3>Drum volumes</h3>
   <div id="tuneMix"></div>
@@ -184,7 +187,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 
 <script>
 "use strict";
-const VERSION = "13";
+const VERSION = "14";
 // GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
 (async () => {
   try {
@@ -215,7 +218,8 @@ S.tune = Object.assign({hold:240, gap:80, picky:1.8, combos:false}, S.tune || {}
 S.mix = S.mix || {};
 if (S.ver !== 8 && S.ver !== 9){ S.sens = Math.max(S.sens || 1, 1.6); }
 if (S.ver !== 10 && S.ver !== 12){ S.zones = false; S.cal = null; }
-if (S.ver !== 12){ if (S.tune.hold <= 200) S.tune.hold = 240; S.ver = 12; }   // v10: sensor plays the kick only; recalibrate once
+if (S.ver !== 12 && S.ver !== 14){ if (S.tune.hold <= 200) S.tune.hold = 240; }
+if (S.ver !== 14){ S.zones = true; S.zcal = null; S.tune.combos = false; S.ver = 14; }   // v14: sensor = kick + top-left snare; calibrate once   // v10: sensor plays the kick only; recalibrate once
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
 
 const $ = id => document.getElementById(id);
@@ -314,7 +318,21 @@ const DESIGN = {
     const t = noise(c,.02); chain(t, filt(c,"bandpass",4000,1.2), vca(c,.35,.0005,.008), out); t.start(0);
   },
   hat(c,out){ DESIGN.hatCore(c,out,.06,1); },
-  open(c,out){ DESIGN.hatCore(c,out,.75,.95); },
+  open(c,out){
+    // wide-open hat: bright sizzle that keeps ringing, with a metallic shimmer on top
+    const L = 3.4;
+    const env = (peak, tau) => { const g = c.createGain(); g.gain.setValueAtTime(0,0); g.gain.linearRampToValueAtTime(peak,.0015); g.gain.setValueAtTime(peak,.006); g.gain.setTargetAtTime(0,.006,tau); return g; };
+    const n = noise(c, L);
+    const lp = filt(c,"lowpass",16000,.4); lp.frequency.setValueAtTime(16000,0); lp.frequency.setTargetAtTime(9500,.05,1.2);
+    chain(n, filt(c,"highpass",5200,.6), filt(c,"peaking",8800,.8,5), filt(c,"peaking",12500,.9,3), lp, env(.85, .95), out); n.start(0);
+    const n2 = noise(c, L), rm = c.createGain(); rm.gain.value = 0;
+    for (const f of [3310, 4470, 5890, 7130, 8610, 10240]){ const o = c.createOscillator(); o.frequency.value = f*rand(.99,1.01); const og = c.createGain(); og.gain.value = .16; chain(o, og, rm.gain); o.start(0); }
+    chain(n2, rm, filt(c,"bandpass",8200,.6), env(.6, .8), out); n2.start(0);
+    const mix = c.createGain(); mix.gain.value = .05;
+    for (const r of [2, 3, 4.16, 5.43, 6.79, 8.21]){ const o = c.createOscillator(); o.type="square"; o.frequency.value = 40*r*rand(.995,1.005); o.connect(mix); o.start(0); }
+    chain(mix, filt(c,"bandpass",10000,.7), filt(c,"highpass",7000), env(.7, .55), out);
+    const t = noise(c,.02); chain(t, filt(c,"bandpass",4200,1.2), vca(c,.35,.0005,.008), out); t.start(0);
+  },
   tom(c, out){
     const v = rand(-1,1);
     const bus = c.createGain(); chain(bus, shaper(c,1.3), out);
@@ -393,7 +411,7 @@ const DESIGN = {
 
 
 };
-const LEN = {kick:.7, snare:.5, hat:.18, open:1.0, tom:1.15, crash:2.6, ride:4.6};
+const LEN = {kick:.7, snare:.5, hat:.18, open:3.4, tom:1.15, crash:2.6, ride:4.6};
 
 async function renderVoice(name, sr){
   const c = new OfflineAudioContext(1, Math.ceil(LEN[name]*sr), sr);
@@ -454,15 +472,18 @@ async function initAudio(){
   ready = true;
 }
 
-function play(name, vel=1){
+function play(name, vel=1, opt={}){
   if (!ready) return;
   if (ctx.state !== "running") ctx.resume();
   vel = Math.max(.05, Math.min(1, vel));
   const list = BUF[name]; const buf = list[(rr[name]++) % list.length];
   const t = ctx.currentTime;
+  if (!opt.tau && name === "open") opt.tau = 0;
   const src = ctx.createBufferSource(); src.buffer = buf;
-  src.playbackRate.value = 1 + rand(-.006,.006);
+  src.playbackRate.value = (opt.rate || 1) * (1 + rand(-.006,.006));
   const g = ctx.createGain(); g.gain.value = Math.pow(vel, 1.5);
+  // half-open hi-hat: same open hat, cut shorter the more closed it is
+  if (opt.tau){ g.gain.setValueAtTime(Math.pow(vel,1.5), t + .012); g.gain.setTargetAtTime(0, t + .012, opt.tau); }
   // softer hits are darker, like a real drum
   const lp = ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value = 1800 + 18000*vel*vel; lp.Q.value = .5;
   chain(src, lp, g, BUS[name]);
@@ -475,6 +496,19 @@ function play(name, vel=1){
   src.start(t);
 }
 
+/* hi-hat strip: bottom = closed, higher = more open, top = wide open and ringing */
+function playHat(o, vel){
+  o = Math.max(0, Math.min(1, o));
+  if (o < .14) return play("hat", vel);
+  const tau = .07 + 1.9*Math.pow((o-.14)/.86, 1.8);   // how long it rings
+  play("open", vel*(.85 + .15*o), o > .97 ? {} : {tau});
+}
+/* tom strip: floor tom at the bottom, higher toms going up */
+const TOM_STEPS = [0, 4, 7, 11];                       // semitones above the floor tom
+function playTom(o, vel){
+  const i = Math.max(0, Math.min(TOM_STEPS.length-1, Math.floor(o*TOM_STEPS.length)));
+  play("tom", vel, {rate: Math.pow(2, TOM_STEPS[i]/12)});
+}
 /* ============================================================
    PADS
    ============================================================ */
@@ -490,13 +524,15 @@ document.querySelectorAll(".pad").forEach(el => {
     // hits near the middle of a pad are a touch louder; slight humanize
     const dc = Math.hypot(x-.5, y-.5);
     const vel = Math.min(1, .82 + .18*(1-dc*1.4) + rand(-.04,.04));
-    // cymbal pad: middle = ride ping, outer part = crash it
-    play(v, vel);
+    if (v === "hat") playHat(1 - y, vel);
+    else if (v === "tom") playTom(1 - y, vel);
+    else play(v, vel);
     flash(v, x, y);
     if (calTapPhase) calTapNote();
   }, {passive:false});
 });
 function flash(v, x=.5, y=.5){
+  if (v === "open") v = "hat";
   const el = padEls[v]; if (!el) return;
   el.style.setProperty("--x", (x*100)+"%"); el.style.setProperty("--y", (y*100)+"%");
   el.classList.remove("flashing"); void el.offsetWidth; el.classList.add("flashing");
@@ -659,7 +695,7 @@ function onMotion(e){
     const block = lastWasKick ? S.tune.hold : S.tune.gap;
     if (now - hitT < 120) hitPeak = Math.max(hitPeak, s.m);
     // right after a hit the phone keeps wobbling in your hand; a new hit then has to be at least half as strong
-    const ringing = now - hitT < 320 && s.m < hitPeak*.5;
+    const ringing = now - hitT < 380 && s.m < hitPeak*.6;
     // decide on the very first reading over the line: your real data sorts best there, and it's instant
     if (armed && !ringing && s.m > thr && now - lastKick > block){
       armed = false; armedAt = now; pend = {s}; decide(z);
@@ -742,7 +778,7 @@ function openCal(){
   calRun++; calReturnToTune = !$("tune").hidden; $("tune").hidden = true;
   $("cal").hidden = false; $("calCopy").hidden = true; $("calGo").hidden = false; $("calCancel").textContent = "Cancel"; $("calGo").textContent = "Begin";
   calShow(S.zones ? "Calibrate the phone" : "Calibrate the kick", S.zones
-    ? `Hold the phone exactly how you'll play, on your <b>right knee</b>, screen up. It learns: holding still, your <b>kick</b>, a tap on the <b>right side</b> (hi-hat), a knock on the <b>top edge</b> (snare)${S.tune.combos ? ", then <b>kick + hat</b> and <b>kick + snare</b> together" : ""}. About ${S.tune.combos ? "a minute" : "40 seconds"}.`
+    ? `Rest the phone where you'll play it (knee or foot). It learns: holding still, your <b>kick</b>, and a knock on the <b>top-left corner</b> (snare), then your screen taps. About 35 seconds.`
     : "Rest the phone on your <b>knee or foot</b> exactly how you'll play. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
 }
 function closeCal(){ calRun++; rawHook = null; calTapPhase = false; $("cal").hidden = true; if (calReturnToTune){ calReturnToTune = false; openTune(); } }
@@ -785,9 +821,9 @@ function evExamples(ev, thr){
   return {hit: ex(main), extra: pts.filter(i => i !== main).slice(0,2).map(ex)};
 }
 const STEPTEXT = {
-  kick: "Play the kick with your knee like you would on a pedal. Normal strength, steady.",
+  kick: "Play the kick like you would on a pedal. Normal strength, steady.",
   hat: "Keep your foot still. Tap the <b>right side</b> of the phone: short, firm hits, the way you'd play the hat.",
-  snare: "Now knock the <b>top edge</b> of the phone (the end farthest from you): short, firm hits.",
+  snare: "Keep your foot still. Knock the <b>top-left corner</b> of the phone: short, firm hits, like a snare.",
   kickhat: "Now <b>kick and tap the right side at the same moment</b>, like beat one of a groove.",
   kicksnare: "Now <b>kick and knock the top edge at the same moment</b>.",
 };
@@ -809,7 +845,7 @@ async function runCal(){
   if (!motionSeen || still.length < 5) return calFail("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.");
   const noiseMag = pct(still.map(s => s.m), .98);
   const prov = Math.max(noiseMag*3, .8);
-  const order = S.zones ? ["kick","hat","snare", ...(S.tune.combos ? ["kickhat","kicksnare"] : [])] : ["kick"];
+  const order = S.zones ? ["kick","snare"] : ["kick"];
   const steps = order.length + 2;
 
   const evs = {};
@@ -945,8 +981,7 @@ function buildTune(){
     mix.appendChild(row);
   }
   const teach = $("tuneTeach"); teach.innerHTML = "";
-  for (const n of ZONES){
-    if (!S.tune.combos && n.length > 5) continue;
+  for (const n of activeZones()){
     const b = document.createElement("button"); b.type = "button"; b.className = "chip";
     const c = S.zcal && S.zcal.train && S.zcal.train[n] ? S.zcal.train[n].length : 0;
     b.innerHTML = `${ZNAME[n]} <small>${c}</small>`;
@@ -975,7 +1010,7 @@ function renderLog(){
     const conf = h.taught ? "" : h.name ? (h.conf > .8 ? "sure" : h.conf > .55 ? "fairly sure" : "a guess") : "";
     row.innerHTML = `<div class="hl"><b>${what}</b><small>${conf}</small></div><div class="hb"></div>`;
     const hb = row.querySelector(".hb");
-    if (!h.taught) for (const n of [...ZONES.filter(x => S.tune.combos || x.length <= 5), "none"]){
+    if (!h.taught) for (const n of [...activeZones(), "none"]){
       const b = document.createElement("button"); b.type = "button"; b.textContent = ZSHORT[n];
       b.title = ZNAME[n];
       if (n === h.name) b.className = "cur";
@@ -996,7 +1031,7 @@ function correct(h, n){
 }
 function buildTeachCounts(){
   const z = S.zcal; [...$("tuneTeach").children].forEach((b, i) => {
-    const n = ZONES.filter(x => S.tune.combos || x.length <= 5)[i]; if (!n) return;
+    const n = activeZones()[i]; if (!n) return;
     b.querySelector("small").textContent = z && z.train && z.train[n] ? z.train[n].length : 0;
   });
 }
@@ -1015,6 +1050,7 @@ async function teachMore(n){
   calShow("Learned", `Added ${add.length} more ${ZNAME[n].toLowerCase()} hits.`);
   $("calCancel").textContent = "Back to Tune";
 }
+const activeZones = () => ["kick","snare"];
 function openTune(){ buildTune(); $("tune").hidden = false; }
 function applyMix(){ for (const [n, cfg] of Object.entries(VOICES)) if (BUS[n]) BUS[n].gain.value = cfg.gain * (S.mix[n] ?? (n === "ride" ? (S.mix.crash ?? 1) : 1)); }
 

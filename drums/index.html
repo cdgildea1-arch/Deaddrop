@@ -119,7 +119,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
-  <p class="note" style="opacity:.6">Version 12 · new layout, tighter combos</p>
+  <p class="note" style="opacity:.6">Version 13 · fewer false kicks</p>
  </div>
 </div>
 
@@ -152,7 +152,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <p class="note" id="midiNote"></p>
   <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash · <kbd>;</kbd> ride</p>
   <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
-  <p class="note" style="opacity:.6">Version 12</p>
+  <p class="note" style="opacity:.6">Version 13</p>
   <button class="btn primary" id="setDone" type="button">Done</button>
  </div>
 </div>
@@ -184,7 +184,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 
 <script>
 "use strict";
-const VERSION = "12";
+const VERSION = "13";
 // GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
 (async () => {
   try {
@@ -211,10 +211,11 @@ addEventListener("load", unzoom);
 const STORE = "drums.v1";
 const S = Object.assign({vol:1, room:.35, sens:1.6, tune:{}, mix:{}, kickPad:false, knee:true, zones:false, zcal:null, bpm:90, cal:null},
   (() => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } })());
-S.tune = Object.assign({hold:200, gap:80, picky:1.8, combos:false}, S.tune || {});
+S.tune = Object.assign({hold:240, gap:80, picky:1.8, combos:false}, S.tune || {});
 S.mix = S.mix || {};
 if (S.ver !== 8 && S.ver !== 9){ S.sens = Math.max(S.sens || 1, 1.6); }
-if (S.ver !== 10){ S.zones = false; S.cal = null; S.ver = 10; }   // v10: sensor plays the kick only; recalibrate once
+if (S.ver !== 10 && S.ver !== 12){ S.zones = false; S.cal = null; }
+if (S.ver !== 12){ if (S.tune.hold <= 200) S.tune.hold = 240; S.ver = 12; }   // v10: sensor plays the kick only; recalibrate once
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
 
 const $ = id => document.getElementById(id);
@@ -617,7 +618,8 @@ function thresholdNow(now){
   let thr = cal ? cal.thr : 3.2;
   thr /= S.sens;
   // during a pad tap, only ask for a bit more than normal, so kick + crash / kick + snare together still land
-  if (cal && now - lastTouch < 90) thr = Math.max(thr, Math.min(cal.tapGate, cal.full/1.15*.5));
+  // a pad tap shakes the phone (your log: 4.3–5.0); a real kick with a pad is still 6+, so ask for ~60% of a normal kick
+  if (cal && now - lastTouch < 90) thr = Math.max(thr, cal.full/1.15*.6);
   return thr;
 }
 function sensorHit(name, vel){
@@ -671,7 +673,7 @@ function onMotion(e){
   sig = k; if (k > sigShow) sigShow = k;
   const thr = thresholdNow(now);
   if (now - hitT < 120) hitPeak = Math.max(hitPeak, k);
-  const ringing = now - hitT < 320 && k < hitPeak*.5;   // in-hand wobble after a kick
+  const ringing = now - hitT < 380 && k < hitPeak*.6;   // leg bounce-back after a kick (your log: 4.3 at 0.22 s, 5.8 at 0.26 s)
   if (armed && !ringing && k > thr && now - lastKick > S.tune.hold){
     const full = S.cal ? S.cal.full : 9;
     sensorHit("kick", Math.min(1, .38 + .62*Math.min(1, k/full)));

@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Drums</title>
+<link rel="icon" type="image/png" href="/your-move-assets/move-192.png">
+<style>
+:root{color-scheme:dark;--bg:#0f1012;--ink:#f3ede0;--dim:#9c958a;--line:#2a2b2f;--gold:#ffcf6e;--hot:#ff7a45}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+ font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body{position:fixed;inset:0}
+html,body{touch-action:manipulation}
+main,header,.kit{touch-action:none}
+button,a,input,label{touch-action:manipulation}
+.sheet,.card{touch-action:pan-y}
+main{width:100%;height:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;
+ padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+header{display:flex;align-items:center;gap:8px;min-height:44px}
+header a,header button{color:var(--ink);background:#1d1e22;border:1px solid var(--line);border-radius:999px;
+ min-height:40px;padding:0 14px;font:600 14px system-ui;text-decoration:none;display:inline-flex;align-items:center;cursor:pointer}
+header .spacer{flex:1}
+#kickStat{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+#kickStat .lbl{font:700 12px system-ui;letter-spacing:.08em;color:var(--dim);white-space:nowrap}
+#meter{flex:1 1 0;width:0;height:14px;min-width:40px;border-radius:7px;background:#1a1b1e;border:1px solid var(--line);display:block}
+#kickDot{width:14px;height:14px;border-radius:50%;background:#333;flex:none;transition:background .25s}
+#kickDot.on{background:var(--hot);transition:none}
+
+.kit{display:grid;gap:8px;min-height:0;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1.25fr;
+ grid-template-areas:"crash open" "hat tom" "snare snare"}
+.kit.kickpad{grid-template-rows:1fr 1fr 1.25fr .8fr;grid-template-areas:"crash open" "hat tom" "snare snare" "kick kick"}
+@media (orientation:landscape){
+ .kit{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;grid-template-areas:"crash open tom" "hat snare tom"}
+ .kit.kickpad{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:1fr 1fr;grid-template-areas:"crash open tom kick" "hat snare tom kick"}
+}
+.pad{position:relative;border-radius:18px;border:1px solid #ffffff14;display:flex;align-items:flex-end;justify-content:flex-start;
+ padding:12px 14px;touch-action:none;cursor:pointer;overflow:hidden;
+ background:radial-gradient(circle at 50% 45%,var(--c2),var(--c1) 72%);box-shadow:inset 0 -6px 18px #0006,inset 0 1px 0 #ffffff12}
+.pad{min-width:0;min-height:0}
+@media (hover:none){.pad small{display:none}}
+.pad span{font:750 15px system-ui;letter-spacing:.04em;text-shadow:0 1px 3px #000a;pointer-events:none}
+.pad small{position:absolute;top:10px;right:12px;font:600 11px ui-monospace,monospace;color:#ffffff55;pointer-events:none}
+.pad::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--x,50%) var(--y,50%),#fff 0,#fff0 60%);opacity:0;pointer-events:none}
+.pad.hit::after{animation:flash .22s ease-out}
+@keyframes flash{from{opacity:.55}to{opacity:0}}
+.pad[data-v=crash]{grid-area:crash;--c1:#3a2e12;--c2:#6b5420}
+.pad[data-v=open]{grid-area:open;--c1:#2f2a16;--c2:#5a5026}
+.pad[data-v=hat]{grid-area:hat;--c1:#33301c;--c2:#665d2c}
+.pad[data-v=tom]{grid-area:tom;--c1:#2a1c22;--c2:#5a3341}
+.pad[data-v=snare]{grid-area:snare;--c1:#25272c;--c2:#555963}
+.pad[data-v=kick]{grid-area:kick;--c1:#2a1611;--c2:#5e2c1e;display:none}
+.kit.kickpad .pad[data-v=kick]{display:flex}
+
+/* overlays */
+.sheet{position:fixed;inset:0;z-index:10;background:#0b0c0ef2;display:flex;align-items:center;justify-content:center;
+ padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.sheet[hidden]{display:none}
+.card{width:min(440px,100%);max-height:100%;overflow:auto;background:#17181b;border:1px solid var(--line);border-radius:22px;padding:22px}
+.card h1{margin:0 0 6px;font:700 34px/1 Georgia,serif;letter-spacing:-.03em}
+.card h2{margin:0 0 8px;font:700 22px Georgia,serif}
+.card p{margin:8px 0;color:var(--dim);font-size:15px;line-height:1.45}
+.card p b{color:var(--ink)}
+.btn{display:block;width:100%;min-height:52px;margin-top:10px;border-radius:14px;border:1px solid var(--line);
+ background:#24252a;color:var(--ink);font:650 16px system-ui;cursor:pointer}
+.btn.primary{background:var(--gold);color:#1c1608;border-color:transparent}
+.btn.ghost{background:transparent}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0}
+.row label{font:600 14px system-ui}
+.row input[type=range]{flex:1;max-width:220px;accent-color:var(--gold)}
+.row output{font:600 13px ui-monospace,monospace;color:var(--dim);min-width:44px;text-align:right}
+.row input[type=checkbox]{width:22px;height:22px;accent-color:var(--gold)}
+.big{font:800 64px/1 system-ui;text-align:center;margin:18px 0 6px;color:var(--gold);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.dots i{width:16px;height:16px;border-radius:50%;background:#2c2d31}
+.dots i.on{background:var(--hot)}
+.note{font-size:13px!important}
+.warn{color:#ffb38a!important}
+.card.wide{width:min(560px,100%)}
+.card h3{margin:18px 0 4px;font:700 15px system-ui;letter-spacing:.04em;color:var(--gold)}
+#bigMeter{width:100%;height:28px;border-radius:8px;background:#1a1b1e;border:1px solid var(--line);display:block;margin-top:6px}
+.trow .row{margin:12px 0 0}.trow .note{margin:2px 0 0!important}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#24252a;color:var(--ink);font:600 14px system-ui}
+.chip small{color:var(--dim);margin-left:4px}
+.hit{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.hl{display:flex;flex-direction:column;min-width:0}.hl b{font-size:14px}.hl small{color:var(--dim);font-size:12px}
+.hb{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.hb button{min-width:38px;min-height:36px;border-radius:9px;border:1px solid var(--line);background:#24252a;color:var(--ink);font:650 12px system-ui;padding:0 6px}
+.hb button.cur{background:#4a3c1c;border-color:var(--gold)}
+kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #333;border-radius:5px;padding:1px 5px;color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+ <header>
+  <a href="/">‹</a>
+  <div id="kickStat"><span class="lbl">KICK</span><canvas id="meter" width="300" height="28"></canvas><span id="kickDot"></span></div>
+  <button id="tuneBtn" type="button">Tune</button>
+  <button id="setBtn" type="button" aria-label="Settings">⚙︎</button>
+ </header>
+ <section class="kit" id="kit">
+  <div class="pad" data-v="crash"><span>CRASH</span><small>L</small></div>
+  <div class="pad" data-v="open"><span>OPEN HAT</span><small>D</small></div>
+  <div class="pad" data-v="hat"><span>HI-HAT</span><small>F</small></div>
+  <div class="pad" data-v="tom"><span>FLOOR TOM</span><small>K</small></div>
+  <div class="pad" data-v="snare"><span>SNARE</span><small>J</small></div>
+  <div class="pad" data-v="kick"><span>KICK</span><small>SPACE</small></div>
+ </section>
+</main>
+
+<!-- start -->
+<div class="sheet" id="start">
+ <div class="card">
+  <h1>Drums</h1>
+  <p>Set the phone flat on your <b>right knee</b>, screen up. Stomp like you're on a kick pedal for the <b>kick</b>, tap the <b>right side</b> for the <b>hi-hat</b>, and knock the <b>top edge</b> for the <b>snare</b>. Hold it however you'll play. Calibration learns your grip. Crash, open hat and floor tom stay on the screen.</p>
+  <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
+  <button class="btn" id="startPads" type="button">Start without the sensor</button>
+  <p class="note" id="startNote"></p>
+  <p class="note" style="opacity:.6">Version 9 · tuned on your real hits</p>
+ </div>
+</div>
+
+<!-- calibration -->
+<div class="sheet" id="cal" hidden>
+ <div class="card">
+  <h2 id="calTitle">Calibrate the kick</h2>
+  <p id="calText"></p>
+  <div class="big" id="calBig"></div>
+  <div class="dots" id="calDots"></div>
+  <button class="btn primary" id="calGo" type="button">Begin</button>
+  <button class="btn" id="calCopy" type="button" hidden>Copy sensor data for Claude</button>
+  <button class="btn ghost" id="calCancel" type="button">Cancel</button>
+ </div>
+</div>
+
+<!-- settings -->
+<div class="sheet" id="settings" hidden>
+ <div class="card">
+  <h2>Settings</h2>
+  <div class="row"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1.5" step="0.01"><output id="volO"></output></div>
+  <div class="row"><label for="room">Room</label><input id="room" type="range" min="0" max="1" step="0.01"><output id="roomO"></output></div>
+  <div class="row"><label for="kickPad">Show on-screen kick pad</label><input id="kickPad" type="checkbox"></div>
+  <div class="row"><label for="kneeOn">Phone sensor</label><input id="kneeOn" type="checkbox"></div>
+  <div class="row"><label for="zonesOn">Right side = hi-hat, top edge = snare</label><input id="zonesOn" type="checkbox"></div>
+  <div class="row"><label for="bpm">Metronome</label><input id="bpm" type="range" min="40" max="220" step="1"><output id="bpmO"></output></div>
+  <button class="btn" id="metroBtn" type="button">Start metronome</button>
+  <button class="btn" id="midiBtn" type="button">Connect MIDI controller</button>
+  <p class="note" id="midiNote"></p>
+  <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash · <kbd>;</kbd> ride</p>
+  <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
+  <p class="note" style="opacity:.6">Version 9</p>
+  <button class="btn primary" id="setDone" type="button">Done</button>
+ </div>
+</div>
+
+<!-- tune -->
+<div class="sheet" id="tune" hidden>
+ <div class="card wide">
+  <h2>Tune</h2>
+  <canvas id="bigMeter" width="600" height="40"></canvas>
+  <p class="note">Bar = how hard the phone is moving. White line = where a hit counts. Keep playing while you adjust.</p>
+  <div id="tuneSliders"></div>
+  <h3>Your hits</h3>
+  <p class="note" id="tuneScore"></p>
+  <p class="note">Wrong drum? Tap the right one: <b>K</b> kick · <b>H</b> hi-hat · <b>S</b> snare · <b>K+H</b> / <b>K+S</b> both at once · <b>✕</b> not a hit.</p>
+  <div id="tuneLog"></div>
+  <h3>Teach one drum more</h3>
+  <p class="note">Adds six more hits of just that drum. The number is how many it knows.</p>
+  <div class="chips" id="tuneTeach"></div>
+  <div class="row"><label for="tuneCombos">Combo hits (experimental)</label><input id="tuneCombos" type="checkbox"></div>
+  <h3>Drum volumes</h3>
+  <div id="tuneMix"></div>
+  <button class="btn" id="tuneCal" type="button">Full calibration</button>
+  <button class="btn" id="tuneCopy" type="button">Copy sensor data for Claude</button>
+  <button class="btn primary" id="tuneDone" type="button">Done</button>
+ </div>
+</div>
+
+<script>
+"use strict";
+const VERSION = "9";
+// GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
+(async () => {
+  try {
+    const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
+    const m = (await r.text()).match(/const VERSION = "([^"]+)"/);
+    if (m && m[1] !== VERSION && !sessionStorage.getItem("drums.reloaded." + m[1])){
+      sessionStorage.setItem("drums.reloaded." + m[1], "1");
+      location.replace(location.pathname + "?v=" + m[1]);
+    }
+  } catch {}
+})();
+// if the page is stuck zoomed in, snap it back to normal size
+function unzoom(){
+  const vv = window.visualViewport; if (!vv || vv.scale <= 1.01) return;
+  const meta = document.querySelector('meta[name=viewport]'), c = meta.content;
+  meta.content = "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover";
+  setTimeout(() => { meta.content = c; }, 300);
+}
+if (window.visualViewport) visualViewport.addEventListener("resize", () => setTimeout(unzoom, 50));
+addEventListener("load", unzoom);
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+const STORE = "drums.v9archive";
+const S = Object.assign({vol:1, room:.35, sens:1.6, tune:{}, mix:{}, kickPad:false, knee:true, zones:true, zcal:null, bpm:90, cal:null},
+  (() => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } })());
+S.tune = Object.assign({hold:200, gap:80, picky:1.8, combos:false}, S.tune || {});
+S.mix = S.mix || {};
+if (S.ver !== 8 && S.ver !== 9){ S.sens = Math.max(S.sens || 1, 1.6); }
+if (S.ver !== 9){ S.zcal = null; S.tune.combos = false; S.ver = 9; }   // v9 learns hits differently: recalibrate once
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   AUDIO ENGINE — every drum is synthesized once into buffers
+   (3 round-robin variants each) so a hit is just a buffer play.
+   ============================================================ */
+let ctx, master, comp, revIn, revOut, ready = false;
+const BUF = {};          // name -> [AudioBuffer, ...]
+const BUS = {};          // name -> {dry, send}
+const rr = {};           // round-robin counters
+let openHats = [];       // live open-hat gains, choked by closed hat
+
+const VOICES = {
+  kick:  {pan: 0,    send:.06, gain:1.05},
+  snare: {pan:-.06,  send:.30, gain:.95},
+  hat:   {pan:-.38,  send:.10, gain:.55},
+  open:  {pan:-.38,  send:.14, gain:.55},
+  tom:   {pan: .42,  send:.24, gain:1.0},
+  crash: {pan:-.5,   send:.16, gain:.7},
+  ride:  {pan:-.5,   send:.14, gain:.6},
+};
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+
+function noiseBuf(c, dur){
+  const n = Math.ceil(dur*c.sampleRate), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+  for (let i=0;i<n;i++) d[i] = Math.random()*2-1;
+  return b;
+}
+function noise(c, dur){ const s = c.createBufferSource(); s.buffer = noiseBuf(c, dur); return s; }
+function shaper(c, amt){
+  const ws = c.createWaveShaper(), n = 2048, k = new Float32Array(n);
+  for (let i=0;i<n;i++){ const x = i/(n-1)*2-1; k[i] = Math.tanh(x*amt)/Math.tanh(amt); }
+  ws.curve = k; ws.oversample = "2x"; return ws;
+}
+function filt(c, type, f, q=0.707, g=0){ const b = c.createBiquadFilter(); b.type=type; b.frequency.value=f; b.Q.value=q; b.gain.value=g; return b; }
+function vca(c, peak, attack, decay, t0=0){
+  const g = c.createGain(); g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0+attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+attack+decay);
+  return g;
+}
+function chain(...n){ for (let i=0;i<n.length-1;i++) n[i].connect(n[i+1]); return n[n.length-1]; }
+
+/* --- individual drum designs --- */
+const DESIGN = {
+  kick(c, out){
+    const v = rand(-1,1);
+    // body: sine with a fast pitch drop, driven a little for punch
+    const o = c.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(150*(1+v*.03), 0);
+    o.frequency.exponentialRampToValueAtTime(58, .045);
+    o.frequency.exponentialRampToValueAtTime(43, .38);
+    chain(o, vca(c, 1, .002, .55), shaper(c, 1.8), out);
+    // sub weight
+    const sub = c.createOscillator(); sub.type="sine"; sub.frequency.setValueAtTime(48,0); sub.frequency.exponentialRampToValueAtTime(40,.4);
+    chain(sub, vca(c, .35, .006, .45), out);
+    // beater: felt slap + click
+    const n = noise(c, .05);
+    chain(n, filt(c,"bandpass", 3200*(1+v*.08), .9), vca(c, .55, .0008, .018), out);
+    const n2 = noise(c, .06);
+    chain(n2, filt(c,"lowpass", 900), vca(c, .5, .001, .035), out);
+    o.start(0); sub.start(0); n.start(0); n2.start(0);
+  },
+  snare(c, out){
+    const v = rand(-1,1);
+    const bus = c.createGain(); bus.gain.value = 1; chain(bus, shaper(c, 1.4), out);
+    // shell tones
+    const a = c.createOscillator(); a.type="triangle"; a.frequency.setValueAtTime(205*(1+v*.02),0); a.frequency.exponentialRampToValueAtTime(178,.06);
+    chain(a, vca(c,.85,.001,.11), bus);
+    const b = c.createOscillator(); b.type="sine"; b.frequency.setValueAtTime(335*(1+v*.02),0); b.frequency.exponentialRampToValueAtTime(300,.05);
+    chain(b, vca(c,.45,.001,.07), bus);
+    // stick crack
+    const cr = noise(c,.04);
+    chain(cr, filt(c,"bandpass",2400,1.1), vca(c,1.1,.0005,.022), bus);
+    // snare wires
+    const w = noise(c,.5);
+    chain(w, filt(c,"highpass",1500), filt(c,"peaking",5200,1,5), filt(c,"lowpass",11000), vca(c,.75,.0015,.24+v*.02), bus);
+    // a little low wire rattle
+    const w2 = noise(c,.3);
+    chain(w2, filt(c,"bandpass",800,.7), vca(c,.3,.002,.12), bus);
+    a.start(0); b.start(0); cr.start(0); w.start(0); w2.start(0);
+  },
+  hatCore(c, out, decay, bright){
+    const v = rand(-1,1);
+    const base = 40*(1+v*.01);
+    const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+    const mix = c.createGain(); mix.gain.value = .22;
+    for (const r of ratios){ const o = c.createOscillator(); o.type="square"; o.frequency.value = base*r; o.connect(mix); o.start(0); }
+    const n = noise(c, decay+.3); const ng = c.createGain(); ng.gain.value = .55; chain(n, ng); n.start(0);
+    const sum = c.createGain(); mix.connect(sum); ng.connect(sum);
+    chain(sum, filt(c,"bandpass",9500*bright,.6), filt(c,"highpass",6800), filt(c,"peaking",12000,1,4), vca(c,1,.0008,decay), out);
+    // stick tick on the hat
+    const t = noise(c,.02); chain(t, filt(c,"bandpass",4000,1.2), vca(c,.35,.0005,.008), out); t.start(0);
+  },
+  hat(c,out){ DESIGN.hatCore(c,out,.06,1); },
+  open(c,out){ DESIGN.hatCore(c,out,.75,.95); },
+  tom(c, out){
+    const v = rand(-1,1);
+    const bus = c.createGain(); chain(bus, shaper(c,1.3), out);
+    const o = c.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(118*(1+v*.015),0); o.frequency.exponentialRampToValueAtTime(84,.12); o.frequency.exponentialRampToValueAtTime(76,.9);
+    chain(o, vca(c,1,.002,.95), bus);
+    const o2 = c.createOscillator(); o2.type="sine";
+    o2.frequency.setValueAtTime(190,0); o2.frequency.exponentialRampToValueAtTime(128,.15);
+    chain(o2, vca(c,.32,.002,.35), bus);
+    const o3 = c.createOscillator(); o3.type="triangle"; o3.frequency.setValueAtTime(265,0); o3.frequency.exponentialRampToValueAtTime(190,.1);
+    chain(o3, vca(c,.15,.001,.16), bus);
+    const h = noise(c,.08); chain(h, filt(c,"bandpass",1300,.9), vca(c,.45,.0006,.03), bus);
+    const sk = noise(c,.4); chain(sk, filt(c,"lowpass",700), vca(c,.22,.002,.2), bus);
+    o.start(0); o2.start(0); o3.start(0); h.start(0); sk.start(0);
+  },
+  /* dark, washy ride (K Custom-style): ~80 inharmonic overtones, each with its own fade and bloom */
+  cymbal(c, out, o){
+    const L = o.L;
+    const lo = Math.log(o.fLo), hi = Math.log(o.fHi);
+    const parts = [];
+    for (let p=0; p<o.P; p++){
+      const u = Math.random(), f = Math.exp(lo + u*(hi-lo));
+      // dark tilt: strongest 1–4 kHz, gentle above, quiet at the top
+      let a = Math.pow(f/1000, -.35) * rand(.35, 1);
+      if (f > 6000) a *= .55; if (f < 500) a *= .6;
+      const tau = (o.tLo + (o.tHi-o.tLo)*Math.pow(1-u, 1.4)) * rand(.7, 1.25);
+      const rise = f > 1800 ? o.bloom*rand(.4,1.6) : .002;
+      parts.push({f, a, tau, rise, am: Math.random() < .25 ? rand(2.5, 7) : 0});
+      if (Math.random() < .45) parts.push({f: f + rand(.6, 3.5), a: a*rand(.4,.9), tau: tau*rand(.8,1.1), rise, am:0}); // beating twin
+    }
+    for (const b of o.bell || []) parts.push({f:b[0], a:b[1], tau:b[2], rise:.001, am:0});
+    const lp = filt(c, "lowpass", o.lp0, .5);
+    lp.frequency.setValueAtTime(o.lp0, 0); lp.frequency.exponentialRampToValueAtTime(o.lp1, L);
+    const bus = c.createGain(); chain(bus, filt(c,"highpass",230), filt(c,"peaking",2800,.7,2.5), lp, out);
+    const sg = c.createGain(); sg.gain.value = o.tone*.35; sg.connect(bus);
+    for (const q of parts){
+      const osc = c.createOscillator(); osc.frequency.value = q.f;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, 0);
+      g.gain.linearRampToValueAtTime(q.a, Math.max(.001, q.rise*3));
+      g.gain.setTargetAtTime(0, Math.max(.001, q.rise*3), q.tau);
+      if (q.am){ const lfo = c.createOscillator(); lfo.frequency.value = q.am; const lg = c.createGain(); lg.gain.value = q.a*.3; chain(lfo, lg, g.gain); lfo.start(0); }
+      chain(osc, g, sg); osc.start(Math.random()*.0005); osc.stop(Math.min(L, q.rise*3 + q.tau*7));
+    }
+    // airy wash that swells in just after the hit
+    const n = noise(c, L);
+    const ng = c.createGain(); ng.gain.setValueAtTime(.0001,0); ng.gain.exponentialRampToValueAtTime(o.wash, o.washRise); ng.gain.exponentialRampToValueAtTime(.0001, L*.9);
+    chain(n, filt(c,"bandpass",4200,.45), filt(c,"highpass",1500), ng, bus); n.start(0);
+    // stick on metal
+    const t = noise(c,.04);
+    chain(t, filt(c,"bandpass",o.tick,1.4), vca(c,o.tickAmt,.0004,.012), bus); t.start(0);
+  },
+  ride(c, out){
+    DESIGN.cymbal(c, out, {L:4.6, P:70, fLo:320, fHi:9500, tLo:.45, tHi:4.2, bloom:.03, lp0:9000, lp1:5000,
+      tone:1, wash:.05, washRise:.08, tick:5200, tickAmt:.9,
+      bell:[[rand(640,700),.9,1.6],[rand(1010,1080),.6,1.2],[rand(1560,1650),.35,.8]]});
+  },
+  crash(c, out){
+    // fast, bright, full: no low partials (that's what made it ring like a gong), quick bloom, ~2s tail
+    DESIGN.cymbal(c, out, {L:2.4, P:110, fLo:1100, fHi:13000, tLo:.18, tHi:.75, bloom:.012, lp0:15000, lp1:6500,
+      tone:.9, wash:.55, washRise:.012, tick:4800, tickAmt:.6});
+    // body: the "splash" of air that makes it sound full
+    const b = noise(c, .9); chain(b, filt(c,"bandpass",2300,.55), vca(c,.45,.002,.55), out); b.start(0);
+    const h = noise(c, 1.6); chain(h, filt(c,"highpass",7000), vca(c,.28,.004,1.1), out); h.start(0);
+  },
+
+};
+const LEN = {kick:.7, snare:.5, hat:.18, open:1.0, tom:1.15, crash:2.4, ride:4.6};
+
+async function renderVoice(name, sr){
+  const c = new OfflineAudioContext(1, Math.ceil(LEN[name]*sr), sr);
+  const out = c.createGain(); out.connect(c.destination);
+  DESIGN[name](c, out);
+  const buf = await c.startRendering();
+  // normalize peak so voice gains are predictable
+  const d = buf.getChannelData(0); let pk = 0; for (let i=0;i<d.length;i++){ const a=Math.abs(d[i]); if(a>pk) pk=a; }
+  if (pk>0){ const k = .9/pk; for (let i=0;i<d.length;i++) d[i]*=k; }
+  // tiny fade-out tail
+  const f = Math.min(d.length, Math.floor(sr*.01)); for (let i=0;i<f;i++) d[d.length-1-i] *= i/f;
+  return buf;
+}
+
+function makeImpulse(c, secs, decay){
+  const n = Math.floor(secs*c.sampleRate), b = c.createBuffer(2, n, c.sampleRate);
+  for (let ch=0; ch<2; ch++){
+    const d = b.getChannelData(ch); let lp = 0;
+    for (let i=0;i<n;i++){
+      const t = i/n;
+      // early reflections in the first 40ms, then a smooth diffuse tail; darkened with a one-pole lowpass
+      const er = i < c.sampleRate*.04 && Math.random() < .006 ? (Math.random()*2-1)*1.5 : 0;
+      const x = (Math.random()*2-1)*Math.pow(1-t, decay) + er;
+      lp += (x - lp)*.35; d[i] = lp;
+    }
+  }
+  return b;
+}
+
+async function initAudio(){
+  if (ctx) { if (ctx.state !== "running") await ctx.resume(); return; }
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  ctx = new (window.AudioContext || window.webkitAudioContext)({latencyHint:"interactive"});
+  if (ctx.state !== "running") ctx.resume();
+  comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = .004; comp.release.value = .14;
+  master = ctx.createGain(); master.gain.value = S.vol;
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .08;
+  chain(comp, master, lim, ctx.destination);
+  revIn = ctx.createGain(); const conv = ctx.createConvolver(); conv.buffer = makeImpulse(ctx, 1.4, 3.2);
+  revOut = ctx.createGain(); revOut.gain.value = S.room*1.4;
+  chain(revIn, filt(ctx,"highpass",220), conv, revOut, comp);
+  for (const [name, cfg] of Object.entries(VOICES)){
+    const g = ctx.createGain(); g.gain.value = cfg.gain;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p){ p.pan.value = cfg.pan; chain(g, p, comp); } else g.connect(comp);
+    const s = ctx.createGain(); s.gain.value = cfg.send; g.connect(s); s.connect(revIn);
+    BUS[name] = g; rr[name] = 0;
+  }
+  applyMix();
+  const sr = ctx.sampleRate;
+  const jobs = [];
+  for (const name of Object.keys(VOICES)){
+    BUF[name] = [];
+    for (let i=0;i<3;i++) jobs.push(renderVoice(name, sr).then(b => BUF[name].push(b)));
+  }
+  await Promise.all(jobs);
+  ready = true;
+}
+
+function play(name, vel=1){
+  if (!ready) return;
+  if (ctx.state !== "running") ctx.resume();
+  vel = Math.max(.05, Math.min(1, vel));
+  const list = BUF[name]; const buf = list[(rr[name]++) % list.length];
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  src.playbackRate.value = 1 + rand(-.006,.006);
+  const g = ctx.createGain(); g.gain.value = Math.pow(vel, 1.5);
+  // softer hits are darker, like a real drum
+  const lp = ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value = 1800 + 18000*vel*vel; lp.Q.value = .5;
+  chain(src, lp, g, BUS[name]);
+  if (name === "hat" || name === "open"){
+    // closing the hat (or re-hitting it) chokes ringing open hats
+    for (const og of openHats){ try { og.gain.cancelScheduledValues(t); og.gain.setValueAtTime(og.gain.value, t); og.gain.linearRampToValueAtTime(0, t+.035); } catch {} }
+    openHats = [];
+    if (name === "open"){ openHats.push(g); src.onended = () => { openHats = openHats.filter(x => x!==g); }; }
+  }
+  src.start(t);
+}
+
+/* ============================================================
+   PADS
+   ============================================================ */
+let lastTouch = -1e9;
+const padEls = {};
+document.querySelectorAll(".pad").forEach(el => {
+  const v = el.dataset.v; padEls[v] = el;
+  el.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    if (v !== "kick") lastTouch = performance.now();
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left)/r.width, y = (e.clientY - r.top)/r.height;
+    // hits near the middle of a pad are a touch louder; slight humanize
+    const dc = Math.hypot(x-.5, y-.5);
+    const vel = Math.min(1, .82 + .18*(1-dc*1.4) + rand(-.04,.04));
+    // cymbal pad: middle = ride ping, outer part = crash it
+    play(v, vel);
+    flash(v, x, y);
+    if (calTapPhase) calTapNote();
+  }, {passive:false});
+});
+function flash(v, x=.5, y=.5){
+  const el = padEls[v]; if (!el) return;
+  el.style.setProperty("--x", (x*100)+"%"); el.style.setProperty("--y", (y*100)+"%");
+  el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+}
+document.addEventListener("contextmenu", e => e.preventDefault());
+// iOS ignores user-scalable=no, so block pinch and double-tap zoom by hand
+for (const ev of ["gesturestart","gesturechange","gestureend","dblclick"]) document.addEventListener(ev, e => e.preventDefault(), {passive:false});
+document.addEventListener("touchmove", e => { if (e.touches.length > 1 || !e.target.closest(".card")) e.preventDefault(); }, {passive:false});
+document.addEventListener("touchend", e => { if (!e.target.closest("button,a,input,label,.card")) e.preventDefault(); }, {passive:false});
+$("kit").addEventListener("touchstart", e => e.preventDefault(), {passive:false});
+
+const KEYS = {" ":"kick", b:"kick", f:"hat", d:"open", j:"snare", k:"tom", l:"crash", ";":"ride"};
+addEventListener("keydown", e => {
+  if (e.repeat || e.metaKey || e.ctrlKey) return;
+  const v = KEYS[e.key.toLowerCase()]; if (!v) return;
+  e.preventDefault(); play(v, .95); flash(v === "ride" ? "crash" : v); if (v==="kick") kickLight();
+});
+
+/* ============================================================
+   PHONE SENSOR: knee kick, right-side hi-hat, top-edge snare,
+   plus learned combo hits (kick+hat, kick+snare)
+   ============================================================ */
+let motionOn = false, motionSeen = false;
+let grav = null;                     // gravity estimate if the browser gives no linear accel
+let sig = 0, sigShow = 0;            // current detection signal (for meters)
+let armed = true, lastKick = -1e9, lastWasKick = false, armedAt = 0, pend = null, lastPk = 0, hitT = -1e9, hitPeak = 0;
+let rawHook = null;                  // calibration taps into raw samples
+const REFRACT = 115;                 // ms between kicks (kick-only mode)
+const hist = [];                     // recent samples {v,m,rot,t}
+const ZONES = ["kick","hat","snare","kickhat","kicksnare"];
+const ZNAME = {kick:"Kick", hat:"Hi-hat", snare:"Snare", kickhat:"Kick + hat", kicksnare:"Kick + snare", none:"Not a hit"};
+const ZSHORT = {kick:"K", hat:"H", snare:"S", kickhat:"K+H", kicksnare:"K+S", none:"✕"};
+const ZPLAY = {kick:["kick"], hat:["hat"], snare:["snare"], kickhat:["kick","hat"], kicksnare:["kick","snare"]};
+const hitLog = [];                   // recent sensor hits for the Tune screen
+
+function linearAccel(e){
+  const a = e.acceleration;
+  if (a && a.x != null) return [a.x||0, a.y||0, a.z||0];
+  const g = e.accelerationIncludingGravity; if (!g || g.x == null) return null;
+  const v = [g.x||0, g.y||0, g.z||0];
+  if (!grav) grav = v.slice();
+  for (let i=0;i<3;i++) grav[i] += (v[i]-grav[i])*.08;
+  return [v[0]-grav[0], v[1]-grav[1], v[2]-grav[2]];
+}
+function signalOf(vec, cal){
+  if (!cal) return Math.hypot(vec[0],vec[1],vec[2]);
+  const p = vec[0]*cal.axis[0] + vec[1]*cal.axis[1] + vec[2]*cal.axis[2];
+  return cal.signed ? p*cal.sign : Math.abs(p);
+}
+
+/* features of the sample at index i, using only what's known at that moment */
+function featAt(arr, i){
+  const s = arr[i], m = s.m || 1e-6, p = arr[i-1] || s;
+  let pe = 0, pn = 0;
+  for (let j=i-1; j>=0 && s.t - arr[j].t < 220; j--){ if (s.t - arr[j].t > 20){ pe += arr[j].m*arr[j].m; pn++; } }
+  const pre = pn ? Math.sqrt(pe/pn)/m : 0;
+  return [
+    s.v[0]/m, s.v[1]/m, s.v[2]/m,                 // direction of the jolt
+    p.v[0]/m, p.v[1]/m, p.v[2]/m,                 // the reading just before (lead-in)
+    Math.log(m), pre, Math.log1p(s.rot/60)        // strength, wind-up, spin
+  ].map(x => +x.toFixed(4));
+}
+/* Where would the live trigger make a decision? Same rule live and in calibration:
+   cross the threshold, then ride up to the peak (at most 2 more readings) and decide there. */
+function triggerPoints(arr, from, thr){
+  const pts = []; let arm = true, pend = null, at = 0, lastPk = 0;
+  for (let i=Math.max(1,from); i<arr.length; i++){
+    const s = arr[i];
+    if (pend){
+      if (s.m > arr[pend.i].m && pend.n < 2){ pend.i = i; pend.n++; if (pend.n >= 2){ pts.push(pend.i); lastPk = arr[pend.i].m; pend = null; } continue; }
+      pts.push(pend.i); lastPk = arr[pend.i].m; pend = null;
+    }
+    // a jolt much bigger than the last one (wind-up, then the real impact) always counts
+    if ((arm || s.m > lastPk*2) && s.m > thr){ arm = false; at = s.t; pend = {i, n:0}; }
+    else if (!arm && (s.m < thr*.45 || s.t - at > 260)) arm = true;
+  }
+  if (pend) pts.push(pend.i);
+  return pts;
+}
+const FW = [2.2,2.2,2.2, 1,1,1, .35,1,.9];         // direction matters most
+function fdist(a, b, sd){ let d=0; for (let k=0;k<a.length;k++){ const x=(a[k]-b[k])/sd[k]; d += FW[k]*x*x; } return Math.sqrt(d); }
+
+/* the model is just every example you've taught it; a new hit goes with its 3 nearest neighbours */
+function rebuildModel(z){
+  const real = ZONES.filter(n => (z.train[n]||[]).length >= 2);
+  const dim = 9, cent = {};
+  for (const n of real){ const a = z.train[n]; cent[n] = Array.from({length:dim}, (_,k) => a.reduce((x,e)=>x+e.f[k],0)/a.length); }
+  z.sd = Array.from({length:dim}, (_,k) => {
+    let ss=0, c=0; for (const n of real) for (const e of z.train[n]){ ss += (e.f[k]-cent[n][k])**2; c++; }
+    return Math.max(Math.sqrt(ss/Math.max(1,c-real.length)), k<6 ? .1 : k === 6 ? .3 : .14);
+  });
+  const nn = [];
+  for (const n of real){ const a = z.train[n]; a.forEach((e,i) => { let best=1e9; a.forEach((o,j) => { if (i!==j) best = Math.min(best, fdist(e.f,o.f,z.sd)); }); if (best<1e9) nn.push(best); }); }
+  z.rejectR = Math.max(4.5, 3*pct(nn, .9));
+  z.full = {};
+  for (const n of ZONES){ const a = z.train[n]||[]; z.full[n] = a.length ? Math.max(z.trig*1.5, med(a.map(e=>e.m))*1.3) : z.trig*3; }
+}
+function classify(f, z, skip){
+  const ds = [];
+  for (const n of [...ZONES, "none"]) (z.train[n]||[]).forEach(e => { if (e !== skip) ds.push([fdist(f, e.f, z.sd), n]); });
+  if (!ds.length) return {name:null, conf:0};
+  ds.sort((a,b) => a[0]-b[0]);
+  const votes = {}; let tot = 0;
+  for (const [d,n] of ds.slice(0,3)){ const w = 1/(d+.35); votes[n] = (votes[n]||0)+w; tot += w; }
+  const name = Object.keys(votes).sort((a,b)=>votes[b]-votes[a])[0];
+  const conf = votes[name]/tot;
+  if (ds[0][0] > z.rejectR*S.tune.picky) return {name:null, conf, unsure:true, guess:name};
+  if (name === "none") return {name:null, conf, ignored:true};
+  return {name, conf};
+}
+
+function thresholdNow(now){
+  if (S.zones){
+    const z = S.zcal; let thr = (z ? z.trig : 2.5)/S.sens;
+    if (z && now - lastTouch < 90) thr = Math.max(thr, z.screenGate);
+    return thr;
+  }
+  const cal = S.cal;
+  let thr = cal ? cal.thr : 3.2;
+  thr /= S.sens;
+  if (cal && now - lastTouch < 90) thr = Math.max(thr, cal.tapGate);
+  return thr;
+}
+function sensorHit(name, vel){
+  for (const d of (ZPLAY[name] || [name])){
+    play(d, vel);
+    if (d === "kick"){ flash("kick"); kickLight(); } else flash(d);
+  }
+}
+function decide(z){
+  const ps = pend.s; pend = null; hitT = ps.t; hitPeak = ps.m;
+  const i = hist.lastIndexOf(ps); if (i < 1) return;
+  const f = featAt(hist, i);
+  const res = classify(f, z);
+  if (res.name){
+    const vel = Math.min(1, .4 + .6*Math.min(1, ps.m/z.full[res.name]));
+    sensorHit(res.name, vel); lastKick = ps.t; lastWasKick = res.name.startsWith("kick");
+  }
+  if (res.ignored) return;            // wind-ups and bounce-backs it already knows to skip
+  hitLog.unshift({f, m:+ps.m.toFixed(3), t:ps.t, ...res});
+  if (hitLog.length > 12) hitLog.pop();
+  if (!$("tune").hidden) renderLog();
+}
+function onMotion(e){
+  motionSeen = true;
+  const vec = linearAccel(e); if (!vec) return;
+  const now = performance.now();
+  const r = e.rotationRate;
+  const s = {v:vec, m:Math.hypot(vec[0],vec[1],vec[2]), rot: r ? Math.hypot(r.alpha||0, r.beta||0, r.gamma||0) : 0, t:now};
+  hist.push(s); if (hist.length > 30) hist.shift();
+  if (rawHook) { rawHook(s); return; }
+  if (!S.knee) return;
+
+  if (S.zones){
+    const z = S.zcal; if (!z || !z.train) return;
+    sig = s.m; if (s.m > sigShow) sigShow = s.m;
+    const thr = thresholdNow(now);
+    const block = lastWasKick ? S.tune.hold : S.tune.gap;
+    if (now - hitT < 120) hitPeak = Math.max(hitPeak, s.m);
+    // right after a hit the phone keeps wobbling in your hand; a new hit then has to be at least half as strong
+    const ringing = now - hitT < 320 && s.m < hitPeak*.5;
+    // decide on the very first reading over the line: your real data sorts best there, and it's instant
+    if (armed && !ringing && s.m > thr && now - lastKick > block){
+      armed = false; armedAt = now; pend = {s}; decide(z);
+    } else if (!armed && (s.m < (z.trig/S.sens)*.45 || now - armedAt > 260)){
+      armed = true;
+    }
+    return;
+  }
+
+  const k = signalOf(vec, S.cal);
+  sig = k; if (k > sigShow) sigShow = k;
+  const thr = thresholdNow(now);
+  if (armed && k > thr && now - lastKick > REFRACT){
+    const full = S.cal ? S.cal.full : 9;
+    sensorHit("kick", Math.min(1, .38 + .62*Math.min(1, k/full)));
+    lastKick = now; armed = false;
+  } else if (!armed && k < thr*.45){
+    armed = true;
+  }
+}
+let kickTimer;
+function kickLight(){ const d=$("kickDot"); d.classList.add("on"); clearTimeout(kickTimer); kickTimer=setTimeout(()=>d.classList.remove("on"),90); }
+
+async function enableMotion(){
+  if (typeof DeviceMotionEvent === "undefined") return "none";
+  try {
+    if (typeof DeviceMotionEvent.requestPermission === "function"){
+      const r = await DeviceMotionEvent.requestPermission();
+      if (r !== "granted") return "denied";
+    }
+  } catch { return "denied"; }
+  if (!motionOn){ addEventListener("devicemotion", onMotion); motionOn = true; }
+  return "ok";
+}
+
+/* meters (header + Tune screen) */
+const meters = [$("meter"), $("bigMeter")].map(c => ({c, x:c.getContext("2d")}));
+function drawMeter(){
+  const thr = thresholdNow(performance.now());
+  const full = S.zones ? (S.zcal && S.zcal.full ? Math.max(...Object.values(S.zcal.full)) : 9) : (S.cal ? S.cal.full : 9);
+  const scale = Math.max(thr*2.5, full*1.2);
+  for (const {c, x} of meters){
+    if (c.id === "bigMeter" && $("tune").hidden) continue;
+    const w = c.width, h = c.height;
+    x.clearRect(0,0,w,h);
+    x.fillStyle = sigShow > thr ? "#ff7a45" : "#c9a24f";
+    x.fillRect(0, 0, w*Math.min(1, sigShow/scale), h);
+    x.fillStyle = "#ffffffcc"; x.fillRect(Math.min(w-3, w*thr/scale), 0, 3, h);
+  }
+  sigShow *= .86;
+  requestAnimationFrame(drawMeter);
+}
+requestAnimationFrame(drawMeter);
+
+/* ============================================================
+   CALIBRATION
+   still → kick → hat → snare → (kick+hat → kick+snare) → screen
+   ============================================================ */
+let calTapPhase = false, calRun = 0, lastCalData = null, calReturnToTune = false;
+const calTaps = [];
+let calRecent = [];
+function calTapNote(){
+  const now = performance.now();
+  // the shake from a tap can land a hair before the touch registers, so look back a little too
+  const pk = calRecent.filter(r => now - r.t < 45).reduce((m,r) => Math.max(m, r.s), 0);
+  calTaps.push({t:now, pk});
+}
+function med(a){ const b=[...a].sort((x,y)=>x-y); return b.length ? b[Math.floor(b.length/2)] : 0; }
+function pct(a,p){ const b=[...a].sort((x,y)=>x-y); return b.length ? b[Math.min(b.length-1, Math.floor(b.length*p))] : 0; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function calShow(title, text, big="", dots=0, lit=0){
+  $("calTitle").textContent = title; $("calText").innerHTML = text; $("calBig").textContent = big;
+  $("calDots").innerHTML = Array.from({length:dots},(_,i)=>`<i class="${i<lit?"on":""}"></i>`).join("");
+}
+function openCal(){
+  calRun++; calReturnToTune = !$("tune").hidden; $("tune").hidden = true;
+  $("cal").hidden = false; $("calCopy").hidden = true; $("calGo").hidden = false; $("calCancel").textContent = "Cancel"; $("calGo").textContent = "Begin";
+  calShow(S.zones ? "Calibrate the phone" : "Calibrate the kick", S.zones
+    ? `Hold the phone exactly how you'll play, on your <b>right knee</b>, screen up. It learns: holding still, your <b>kick</b>, a tap on the <b>right side</b> (hi-hat), a knock on the <b>top edge</b> (snare)${S.tune.combos ? ", then <b>kick + hat</b> and <b>kick + snare</b> together" : ""}. About ${S.tune.combos ? "a minute" : "40 seconds"}.`
+    : "Sit how you'll play with the phone flat on your <b>right knee</b>, screen up. Three quick steps: hold still, kick a few times, then tap the pads. Takes about 20 seconds.");
+}
+function closeCal(){ calRun++; rawHook = null; calTapPhase = false; $("cal").hidden = true; if (calReturnToTune){ calReturnToTune = false; openTune(); } }
+function calFail(title, text){ rawHook = null; calShow(title, text); $("calGo").hidden=false; $("calGo").textContent="Try again"; }
+
+/* records N separate jolts; each event keeps the readings before it plus the jolt itself */
+async function recordEvents(alive, N, prov, voice, title, text, maxMs=18000){
+  const evs = [];
+  let cur = null, quietSince = 0;
+  rawHook = s => {
+    if (s.m > prov){
+      if (!cur){ cur = {arr: hist.slice(-14)}; cur.start = cur.arr.length-1; if (voice) sensorHit(voice, .9); }
+      else cur.arr.push(s);
+      quietSince = s.t;
+    } else if (cur){
+      if (s.t - quietSince > 150){ evs.push(cur); cur = null; }
+      else cur.arr.push(s);
+    }
+  };
+  const t0 = performance.now();
+  while (alive() && evs.length < N && performance.now()-t0 < maxMs){
+    calShow(title, text, `${evs.length}/${N}`, N, evs.length);
+    await sleep(100);
+  }
+  rawHook = null;
+  return evs;
+}
+const evPeak = ev => ev.arr.slice(ev.start).reduce((b,s) => s.m > b.m ? s : b);
+/* turn a recorded jolt into a training example, read at the same point the live trigger would fire */
+/* the first reading over the live trigger line, exactly what live play decides on */
+function onsetExample(ev, thr){
+  for (let i=Math.max(1, ev.start-3); i<ev.arr.length; i++) if (ev.arr[i].m > thr) return {f: featAt(ev.arr, i), m: +ev.arr[i].m.toFixed(3)};
+  return null;
+}
+function evExamples(ev, thr){
+  const pts = triggerPoints(ev.arr, ev.start-3, thr);
+  if (!pts.length) return null;
+  const main = pts.reduce((b,i) => ev.arr[i].m > ev.arr[b].m ? i : b, pts[0]);
+  const ex = i => ({f: featAt(ev.arr, i), m: +ev.arr[i].m.toFixed(3)});
+  return {hit: ex(main), extra: pts.filter(i => i !== main).slice(0,2).map(ex)};
+}
+const STEPTEXT = {
+  kick: "Play the kick with your knee like you would on a pedal. Normal strength, steady.",
+  hat: "Keep your foot still. Tap the <b>right side</b> of the phone: short, firm hits, the way you'd play the hat.",
+  snare: "Now knock the <b>top edge</b> of the phone (the end farthest from you): short, firm hits.",
+  kickhat: "Now <b>kick and tap the right side at the same moment</b>, like beat one of a groove.",
+  kicksnare: "Now <b>kick and knock the top edge at the same moment</b>.",
+};
+const STEPN = {kick:8, hat:8, snare:8, kickhat:6, kicksnare:6};
+
+async function runCal(){
+  const run = ++calRun;
+  const alive = () => run === calRun;
+  $("calGo").hidden = true;
+  const st = await enableMotion();
+  if (st !== "ok") return calFail("No motion sensor", st==="denied" ? "Motion access was blocked. On iPhone, reload the page and tap <b>Allow</b> when asked." : "This device doesn't report motion. Use the on-screen kick pad (Settings).");
+  grav = null;
+
+  // 1: stillness
+  const still = [];
+  rawHook = s => still.push(s);
+  for (let i=3;i>0 && alive();i--){ calShow("1 · Hold still", "Phone on your knee, held how you'll play. Don't move for a moment.", i); await sleep(800); }
+  if (!alive()) return;
+  if (!motionSeen || still.length < 5) return calFail("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.");
+  const noiseMag = pct(still.map(s => s.m), .98);
+  const prov = Math.max(noiseMag*3, .8);
+  const order = S.zones ? ["kick","hat","snare", ...(S.tune.combos ? ["kickhat","kicksnare"] : [])] : ["kick"];
+  const steps = order.length + 2;
+
+  const evs = {};
+  for (let k=0; k<order.length; k++){
+    const n = order[k];
+    if (k) { await sleep(600); if (!alive()) return; }
+    evs[n] = await recordEvents(alive, STEPN[n], prov, n, `${k+2} of ${steps} · ${ZNAME[n]}`, STEPTEXT[n]);
+    if (!alive()) return;
+    if (evs[n].length < 3) return calFail(`Didn't catch enough: ${ZNAME[n]}`, `Only felt ${evs[n].length}. Hit a little firmer. A quick knock, not a press.`);
+  }
+  const kickEv = evs.kick;
+
+  // last: screen taps, so pad hits don't set off sensor drums
+  calTaps.length = 0; calTapPhase = true; calRecent = [];
+  let calTmp = null;
+  const sigFn = s => S.zones ? s.m : signalOf(s.v, calTmp);
+  if (!S.zones){
+    // principal axis of the kick peaks (sign-free), via power iteration on the scatter matrix
+    const kicks = kickEv.map(ev => evPeak(ev).v);
+    const M = [[0,0,0],[0,0,0],[0,0,0]];
+    for (const k of kicks) for (let i=0;i<3;i++) for (let j=0;j<3;j++) M[i][j] += k[i]*k[j];
+    let ax = [.3,.4,.86];
+    for (let it=0; it<40; it++){
+      const n = [0,1,2].map(i => M[i][0]*ax[0]+M[i][1]*ax[1]+M[i][2]*ax[2]);
+      const l = Math.hypot(...n) || 1; ax = n.map(x=>x/l);
+    }
+    const proj = kicks.map(k => k[0]*ax[0]+k[1]*ax[1]+k[2]*ax[2]);
+    const pos = proj.filter(p=>p>0).length, neg = proj.length-pos;
+    calTmp = {axis:ax, signed: Math.max(pos,neg)/proj.length >= .8, sign: pos >= neg ? 1 : -1};
+  }
+  rawHook = s => {
+    const v = sigFn(s);
+    calRecent.push({t:s.t, s:v}); if (calRecent.length > 12) calRecent.shift();
+    for (const t of calTaps) if (s.t - t.t < 110 && v > t.pk) t.pk = v;
+  };
+  $("cal").style.pointerEvents = "none"; $("cal").style.background = "#0b0c0e99";
+  const t1 = performance.now();
+  while (alive() && performance.now()-t1 < 6000){
+    const left = Math.ceil((6000-(performance.now()-t1))/1000);
+    calShow(`${steps} of ${steps} · Screen pads`, "Play the pads on the screen like normal: <b>no kicking, no edge knocks</b>. This teaches it to ignore screen hits.", left);
+    await sleep(150);
+  }
+  $("cal").style.pointerEvents = ""; $("cal").style.background = "";
+  calTapPhase = false; rawHook = null;
+  if (!alive()) return;
+  await sleep(150);
+  const tapPk = calTaps.length ? pct(calTaps.map(t=>t.pk), .85) : 0;
+
+  if (!S.zones){
+    const kickMed = med(kickEv.map(ev => signalOf(evPeak(ev).v, calTmp)));
+    const noiseSig = pct(still.map(s => signalOf(s.v, calTmp)), .98);
+    let thr = Math.max(noiseSig + .35*(kickMed - noiseSig), noiseSig*1.6, .6);
+    let tapGate = Math.max(thr, tapPk*1.3), warn = "";
+    if (tapGate > kickMed*.9){ tapGate = kickMed*.9; warn = `<p class="warn">Your taps shake the phone almost as hard as your kicks. Kick a little firmer or tap a little lighter.</p>`; }
+    if (tapPk > thr) thr = Math.max(thr, Math.min(tapPk*1.05, kickMed*.6));
+    S.cal = {...calTmp, thr, tapGate, full:kickMed*1.15, at:Date.now()};
+    S.knee = true; save(); syncSettings();
+    calShow("Locked in", `Kick strength read at <b>${kickMed.toFixed(1)}</b> vs. a stillness floor of <b>${noiseSig.toFixed(2)}</b>. If it misses, raise <b>Sensitivity</b> in Tune; if it double-fires, lower it.${warn}`);
+    $("calGo").hidden = true; $("calCancel").textContent = "Play";
+    return;
+  }
+
+  // ---- zone model ----
+  const peaks = order.map(n => med(evs[n].map(ev => evPeak(ev).m)));
+  const trig = Math.max(noiseMag*3, .7, .35*Math.min(...peaks));
+  const live = trig / S.sens;          // where the live trigger will actually fire
+  const train = {none: []};
+  for (const n of order) train[n] = evs[n].map(ev => onsetExample(ev, live)).filter(Boolean);
+  if (order.some(n => train[n].length < 3)) return calFail("Some hits were too soft", "A few hits barely moved the phone. Try again with firmer taps.");
+  const minPeak = Math.min(...peaks);
+  let screenGate = Math.max(live, tapPk*1.3);
+  if (screenGate > minPeak*.9) screenGate = minPeak*.9;
+  const z = {trig, train, screenGate, at:Date.now()};
+  rebuildModel(z);
+  const score = scoreModel(z);
+  S.zcal = z;
+  const pack = es => es.map(ev => ev.arr.map(q => [+q.v[0].toFixed(2), +q.v[1].toFixed(2), +q.v[2].toFixed(2), Math.round(q.rot), Math.round(q.t)]));
+  lastCalData = {v:VERSION, ua:navigator.userAgent, noise:+noiseMag.toFixed(3), trig:+trig.toFixed(2), sens:S.sens, screenTaps:+tapPk.toFixed(2), score,
+    raw: Object.fromEntries(order.map(n => [n, pack(evs[n])]))};
+  $("calCopy").hidden = false;
+  S.knee = true; save(); syncSettings();
+  const lines = order.map(n => { const [a,b] = score[n]; return `${ZNAME[n]} <b>${a}/${b}</b>`; }).join(" · ");
+  const weak = order.filter(n => score[n][0] < score[n][1]*.75);
+  let msg = `How well it told your hits apart: ${lines}.`;
+  if (weak.length) msg += `<p class="warn">${weak.map(n=>ZNAME[n]).join(", ")} got mixed up. You can fix that in <b>Tune</b>: play, and when it picks the wrong drum, tap the right one to teach it.</p>`;
+  else msg += `<p>Play away. Open <b>Tune</b> to fine-tune it. When it picks the wrong drum there, tap the right one to teach it.</p>`;
+  calShow(weak.length ? "Almost" : "Locked in", msg);
+  $("calGo").hidden = true;
+  $("calCancel").textContent = "Play";
+}
+/* leave-one-out: classify each taught example using all the others */
+function scoreModel(z){
+  const score = {};
+  for (const n of ZONES){
+    const a = z.train[n] || []; if (!a.length) continue;
+    let ok = 0; for (const e of a){ const r = classify(e.f, {...z, rejectR:1e9}, e); if (r.name === n) ok++; }
+    score[n] = [ok, a.length];
+  }
+  return score;
+}
+
+/* ============================================================
+   TUNE SCREEN: sliders, per-drum volume, live hit log with
+   tap-to-correct, and "teach more" for any one drum
+   ============================================================ */
+const TUNE_SLIDERS = [
+  ["sens",  "Sensitivity", .5, 3, .05, () => S.sens, v => { S.sens = v; }, v => v.toFixed(2)+"×", "Higher picks up lighter hits. Too high and it fires on its own."],
+  ["hold",  "Quiet after a kick", 80, 350, 5, () => S.tune.hold, v => { S.tune.hold = v; }, v => Math.round(v)+" ms", "Stops the leg's bounce-back from playing a second drum. Lower = faster double kicks."],
+  ["gap",   "Gap between taps", 40, 160, 5, () => S.tune.gap, v => { S.tune.gap = v; }, v => Math.round(v)+" ms", "Lower lets you play faster hi-hats. Too low and one knock plays twice."],
+  ["picky", "Unsure hits", .5, 3, .05, () => S.tune.picky, v => { S.tune.picky = v; }, v => v < 1 ? "skip more" : v > 2.2 ? "play anyway" : "balanced", "Left: skips hits it isn't sure about. Right: plays its best guess."],
+];
+const MIX = [["kick","Kick"],["snare","Snare"],["hat","Hi-hat"],["open","Open hat"],["tom","Floor tom"],["crash","Crash"]];
+function buildTune(){
+  const box = $("tuneSliders"); box.innerHTML = "";
+  for (const [id, label, mn, mx, step, get, set, fmt, help] of TUNE_SLIDERS){
+    const row = document.createElement("div"); row.className = "trow";
+    row.innerHTML = `<div class="row"><label>${label}</label><input type="range" min="${mn}" max="${mx}" step="${step}"><output></output></div><p class="note">${help}</p>`;
+    const inp = row.querySelector("input"), out = row.querySelector("output");
+    inp.value = get(); out.textContent = fmt(+inp.value);
+    inp.oninput = () => { set(+inp.value); out.textContent = fmt(+inp.value); save(); syncSettings(); };
+    box.appendChild(row);
+  }
+  const mix = $("tuneMix"); mix.innerHTML = "";
+  for (const [k, label] of MIX){
+    const row = document.createElement("div"); row.className = "row";
+    row.innerHTML = `<label>${label}</label><input type="range" min="0" max="1.6" step="0.02"><output></output>`;
+    const inp = row.querySelector("input"), out = row.querySelector("output");
+    inp.value = S.mix[k] ?? 1; out.textContent = Math.round(inp.value*100)+"%";
+    inp.oninput = () => { S.mix[k] = +inp.value; out.textContent = Math.round(inp.value*100)+"%"; applyMix(); save(); };
+    mix.appendChild(row);
+  }
+  const teach = $("tuneTeach"); teach.innerHTML = "";
+  for (const n of ZONES){
+    if (!S.tune.combos && n.length > 5) continue;
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip";
+    const c = S.zcal && S.zcal.train && S.zcal.train[n] ? S.zcal.train[n].length : 0;
+    b.innerHTML = `${ZNAME[n]} <small>${c}</small>`;
+    b.onclick = () => teachMore(n);
+    teach.appendChild(b);
+  }
+  $("tuneCombos").checked = S.tune.combos;
+  renderLog();
+  renderScore();
+}
+function renderScore(){
+  const z = S.zcal;
+  if (!S.zones){ $("tuneScore").textContent = "Kick-only mode. Turn on edge taps in Settings to use the hit list."; return; }
+  if (!z || !z.train){ $("tuneScore").innerHTML = "Not calibrated yet. Tap <b>Full calibration</b> below."; return; }
+  const sc = scoreModel(z);
+  $("tuneScore").innerHTML = "Sorting accuracy on what you've taught it: " + Object.entries(sc).map(([n,[a,b]]) => `${ZNAME[n]} <b>${a}/${b}</b>`).join(" · ");
+}
+function renderLog(){
+  const box = $("tuneLog");
+  if (!hitLog.length){ box.innerHTML = `<p class="note">Play a few hits with the phone. Each one shows up here. If it picked the wrong drum, tap the right one and it learns.</p>`; return; }
+  box.innerHTML = "";
+  for (const h of hitLog){
+    const row = document.createElement("div"); row.className = "hit";
+    const what = h.taught ? `Taught: ${ZNAME[h.taught]}` : h.name ? `${ZNAME[h.name]}` : h.unsure ? `Skipped (maybe ${ZNAME[h.guess]})` : "Ignored";
+    const conf = h.taught ? "" : h.name ? (h.conf > .8 ? "sure" : h.conf > .55 ? "fairly sure" : "a guess") : "";
+    row.innerHTML = `<div class="hl"><b>${what}</b><small>${conf}</small></div><div class="hb"></div>`;
+    const hb = row.querySelector(".hb");
+    if (!h.taught) for (const n of [...ZONES.filter(x => S.tune.combos || x.length <= 5), "none"]){
+      const b = document.createElement("button"); b.type = "button"; b.textContent = ZSHORT[n];
+      b.title = ZNAME[n];
+      if (n === h.name) b.className = "cur";
+      b.onclick = () => correct(h, n);
+      hb.appendChild(b);
+    }
+    box.appendChild(row);
+  }
+}
+function correct(h, n){
+  const z = S.zcal; if (!z) return;
+  (z.train[n] = z.train[n] || []).push({f:h.f, m:h.m, peak:h.m, fixed:1});
+  // keep each drum's examples from growing without limit; drop the oldest uncorrected ones first
+  const a = z.train[n]; while (a.length > 30){ const i = a.findIndex(e => !e.fixed); a.splice(i < 0 ? 0 : i, 1); }
+  rebuildModel(z); h.taught = n; save();
+  if (n !== "none") sensorHit(n, .8);
+  renderLog(); renderScore(); buildTeachCounts();
+}
+function buildTeachCounts(){
+  const z = S.zcal; [...$("tuneTeach").children].forEach((b, i) => {
+    const n = ZONES.filter(x => S.tune.combos || x.length <= 5)[i]; if (!n) return;
+    b.querySelector("small").textContent = z && z.train && z.train[n] ? z.train[n].length : 0;
+  });
+}
+async function teachMore(n){
+  const z = S.zcal;
+  if (!z || !z.train){ openCal(); return; }
+  calRun++; const run = calRun, alive = () => run === calRun;
+  calReturnToTune = true; $("tune").hidden = true;
+  $("cal").hidden = false; $("calGo").hidden = true; $("calCopy").hidden = true; $("calCancel").textContent = "Cancel";
+  const st = await enableMotion(); if (st !== "ok"){ calFail("No motion sensor", "Motion access is off."); return; }
+  const evs = await recordEvents(alive, 6, Math.max(.7, z.trig*.8), n, `Teach: ${ZNAME[n]}`, STEPTEXT[n] + " Six more.");
+  if (!alive()) return;
+  const add = evs.map(ev => onsetExample(ev, z.trig/S.sens)).filter(Boolean);
+  (z.train[n] = z.train[n] || []).push(...add);
+  rebuildModel(z); save();
+  calShow("Learned", `Added ${add.length} more ${ZNAME[n].toLowerCase()} hits.`);
+  $("calCancel").textContent = "Back to Tune";
+}
+function openTune(){ buildTune(); $("tune").hidden = false; }
+function applyMix(){ for (const [n, cfg] of Object.entries(VOICES)) if (BUS[n]) BUS[n].gain.value = cfg.gain * (S.mix[n] ?? (n === "ride" ? (S.mix.crash ?? 1) : 1)); }
+
+/* ============================================================
+   METRONOME + MIDI
+   ============================================================ */
+let metro = null, clickBuf = null;
+function clickBuffer(accent){
+  const sr = ctx.sampleRate, n = Math.floor(sr*.03), b = ctx.createBuffer(1,n,sr), d = b.getChannelData(0);
+  const f = accent ? 1760 : 1320;
+  for (let i=0;i<n;i++) d[i] = Math.sin(2*Math.PI*f*i/sr) * Math.exp(-i/(sr*.006)) * .5;
+  return b;
+}
+function toggleMetro(){
+  if (metro){ clearInterval(metro.id); metro = null; $("metroBtn").textContent = "Start metronome"; return; }
+  if (!ctx) return;
+  clickBuf = [clickBuffer(true), clickBuffer(false)];
+  metro = {next: ctx.currentTime+.08, beat:0};
+  metro.id = setInterval(() => {
+    while (metro && metro.next < ctx.currentTime + .12){
+      const s = ctx.createBufferSource(); s.buffer = clickBuf[metro.beat%4===0?0:1]; s.connect(master); s.start(metro.next);
+      metro.next += 60/S.bpm; metro.beat++;
+    }
+  }, 25);
+  $("metroBtn").textContent = "Stop metronome";
+}
+const GM = {35:"kick",36:"kick",37:"snare",38:"snare",40:"snare",42:"hat",44:"hat",46:"open",
+  49:"crash",52:"crash",55:"crash",57:"crash",51:"ride",53:"ride",59:"ride",41:"tom",43:"tom",45:"tom",47:"tom",48:"tom",50:"tom"};
+async function connectMidi(){
+  const note = $("midiNote");
+  if (!navigator.requestMIDIAccess){ note.textContent = "This browser doesn't support MIDI (iPhone Safari doesn't). Chrome on Android or a computer does."; return; }
+  try {
+    const acc = await navigator.requestMIDIAccess();
+    const hook = () => {
+      let n = 0;
+      acc.inputs.forEach(inp => { n++; inp.onmidimessage = m => {
+        const [st, d1, d2] = m.data;
+        if ((st & 0xf0) === 0x90 && d2 > 0){ const v = GM[d1]; if (v){ play(v, d2/127); flash(v === "ride" ? "crash" : v); if (v==="kick") kickLight(); } }
+      }; });
+      note.textContent = n ? `Listening to ${n} MIDI input${n>1?"s":""}. Standard drum notes (36 kick, 38 snare, 42/46 hats, 43 tom, 49 crash, 51 ride).` : "No MIDI devices found. Plug one in. It'll connect automatically.";
+    };
+    acc.onstatechange = hook; hook();
+  } catch { note.textContent = "MIDI access was blocked."; }
+}
+
+/* ============================================================
+   UI WIRING
+   ============================================================ */
+function syncSettings(){
+  $("vol").value = S.vol; $("volO").textContent = Math.round(S.vol*100)+"%";
+  $("room").value = S.room; $("roomO").textContent = Math.round(S.room*100)+"%";
+  $("bpm").value = S.bpm; $("bpmO").textContent = S.bpm;
+  $("kickPad").checked = S.kickPad; $("kneeOn").checked = S.knee; $("zonesOn").checked = S.zones;
+  $("kit").classList.toggle("kickpad", S.kickPad);
+  $("kickStat").style.opacity = S.knee ? 1 : .35;
+  if (master) master.gain.value = S.vol;
+  if (revOut) revOut.gain.value = S.room*1.4;
+}
+$("vol").oninput  = e => { S.vol = +e.target.value; syncSettings(); save(); };
+$("room").oninput = e => { S.room = +e.target.value; syncSettings(); save(); };
+$("bpm").oninput  = e => { S.bpm = +e.target.value; syncSettings(); save(); };
+$("kickPad").onchange = e => { S.kickPad = e.target.checked; syncSettings(); save(); };
+$("kneeOn").onchange = async e => { S.knee = e.target.checked; if (S.knee) await enableMotion(); syncSettings(); save(); };
+$("zonesOn").onchange = e => { S.zones = e.target.checked; save(); syncSettings(); if ((S.zones && !(S.zcal && S.zcal.train)) || (!S.zones && !S.cal)){ $("settings").hidden = true; openCal(); } };
+$("metroBtn").onclick = toggleMetro;
+$("midiBtn").onclick = connectMidi;
+$("setBtn").onclick = () => { $("settings").hidden = false; };
+$("setDone").onclick = () => { $("settings").hidden = true; };
+$("tuneBtn").onclick = () => openTune();
+$("tuneDone").onclick = () => { $("tune").hidden = true; };
+$("tuneCal").onclick = () => openCal();
+$("tuneCombos").onchange = e => { S.tune.combos = e.target.checked; save(); buildTune(); };
+$("tuneCopy").onclick = async () => {
+  const txt = "DRUMS SENSOR DATA " + JSON.stringify({v:VERSION, ua:navigator.userAgent, sens:S.sens, tune:S.tune, model:S.zcal, log:hitLog, cal:lastCalData});
+  try { await navigator.clipboard.writeText(txt); $("tuneCopy").textContent = "Copied. Paste it to Claude"; }
+  catch { try { await navigator.share({text: txt}); } catch { prompt("Copy this:", txt); } }
+};
+$("calGo").onclick = () => { $("calCopy").hidden = true; runCal(); };
+$("calCopy").onclick = async () => {
+  if (!lastCalData) return;
+  const txt = "DRUMS SENSOR DATA " + JSON.stringify(lastCalData);
+  try { await navigator.clipboard.writeText(txt); $("calCopy").textContent = "Copied — paste it to Claude"; }
+  catch { try { await navigator.share({text: txt}); } catch { prompt("Copy this:", txt); } }
+};
+$("calCancel").onclick = () => { closeCal(); $("calCancel").textContent = "Cancel"; };
+
+let wake = null;
+async function keepAwake(){ try { if (navigator.wakeLock){ wake = await navigator.wakeLock.request("screen"); } } catch {} }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible"){ keepAwake(); if (ctx && ctx.state!=="running") ctx.resume(); } });
+
+async function begin(withKnee){
+  $("startNote").textContent = "Tuning the drums…";
+  const motionP = withKnee ? enableMotion() : Promise.resolve("skip");   // must be called inside the tap on iPhone
+  await initAudio();
+  const st = await motionP;
+  keepAwake();
+  $("start").hidden = true;
+  if (withKnee){
+    if (st === "ok"){ S.knee = true; if (S.zones ? !(S.zcal && S.zcal.train) : !S.cal) openCal(); }
+    else { S.knee = false; S.kickPad = true; $("startNote").textContent = ""; alert(st==="denied" ? "Motion access was blocked, so the on-screen kick pad is turned on. Reload to try again." : "No motion sensor here, so the on-screen kick pad is turned on."); }
+  } else { S.knee = false; S.kickPad = true; }
+  save(); syncSettings();
+}
+$("startKnee").onclick = () => begin(true);
+$("startPads").onclick = () => begin(false);
+if (!window.isSecureContext) $("startNote").textContent = "Heads up: the motion sensor only works over https.";
+syncSettings();
+</script>
+</body>
+</html>

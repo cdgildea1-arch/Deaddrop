@@ -122,7 +122,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
-  <p class="note" style="opacity:.6">Version 8 · combo hits + Tune screen</p>
+  <p class="note" style="opacity:.6">Version 9 · tuned on your real hits</p>
  </div>
 </div>
 
@@ -154,7 +154,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <p class="note" id="midiNote"></p>
   <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash · <kbd>;</kbd> ride</p>
   <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
-  <p class="note" style="opacity:.6">Version 8</p>
+  <p class="note" style="opacity:.6">Version 9</p>
   <button class="btn primary" id="setDone" type="button">Done</button>
  </div>
 </div>
@@ -173,7 +173,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <h3>Teach one drum more</h3>
   <p class="note">Adds six more hits of just that drum. The number is how many it knows.</p>
   <div class="chips" id="tuneTeach"></div>
-  <div class="row"><label for="tuneCombos">Combo hits (kick + hat, kick + snare)</label><input id="tuneCombos" type="checkbox"></div>
+  <div class="row"><label for="tuneCombos">Combo hits (experimental)</label><input id="tuneCombos" type="checkbox"></div>
   <h3>Drum volumes</h3>
   <div id="tuneMix"></div>
   <button class="btn" id="tuneCal" type="button">Full calibration</button>
@@ -184,7 +184,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 
 <script>
 "use strict";
-const VERSION = "8";
+const VERSION = "9";
 // GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
 (async () => {
   try {
@@ -211,9 +211,10 @@ addEventListener("load", unzoom);
 const STORE = "drums.v1";
 const S = Object.assign({vol:1, room:.35, sens:1.6, tune:{}, mix:{}, kickPad:false, knee:true, zones:true, zcal:null, bpm:90, cal:null},
   (() => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } })());
-S.tune = Object.assign({hold:200, gap:80, picky:1.8, combos:true}, S.tune || {});
+S.tune = Object.assign({hold:200, gap:80, picky:1.8, combos:false}, S.tune || {});
 S.mix = S.mix || {};
-if (S.ver !== 8){ S.sens = Math.max(S.sens || 1, 1.6); if (S.zcal && !S.zcal.train) S.zcal = null; S.ver = 8; }
+if (S.ver !== 8 && S.ver !== 9){ S.sens = Math.max(S.sens || 1, 1.6); }
+if (S.ver !== 9){ S.zcal = null; S.tune.combos = false; S.ver = 9; }   // v9 learns hits differently: recalibrate once
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
 
 const $ = id => document.getElementById(id);
@@ -509,7 +510,7 @@ addEventListener("keydown", e => {
 let motionOn = false, motionSeen = false;
 let grav = null;                     // gravity estimate if the browser gives no linear accel
 let sig = 0, sigShow = 0;            // current detection signal (for meters)
-let armed = true, lastKick = -1e9, lastWasKick = false, armedAt = 0, pend = null, lastPk = 0;
+let armed = true, lastKick = -1e9, lastWasKick = false, armedAt = 0, pend = null, lastPk = 0, hitT = -1e9, hitPeak = 0;
 let rawHook = null;                  // calibration taps into raw samples
 const REFRACT = 115;                 // ms between kicks (kick-only mode)
 const hist = [];                     // recent samples {v,m,rot,t}
@@ -614,7 +615,7 @@ function sensorHit(name, vel){
   }
 }
 function decide(z){
-  const ps = pend.s; pend = null; lastPk = ps.m;
+  const ps = pend.s; pend = null; hitT = ps.t; hitPeak = ps.m;
   const i = hist.lastIndexOf(ps); if (i < 1) return;
   const f = featAt(hist, i);
   const res = classify(f, z);
@@ -641,13 +642,13 @@ function onMotion(e){
     const z = S.zcal; if (!z || !z.train) return;
     sig = s.m; if (s.m > sigShow) sigShow = s.m;
     const thr = thresholdNow(now);
-    if (pend){
-      if (s.m > pend.s.m && pend.n < 2){ pend.s = s; pend.n++; if (pend.n >= 2) decide(z); return; }
-      decide(z);
-    }
     const block = lastWasKick ? S.tune.hold : S.tune.gap;
-    if ((armed || s.m > lastPk*2) && s.m > thr && now - lastKick > block){
-      armed = false; armedAt = now; pend = {s, n:0};
+    if (now - hitT < 120) hitPeak = Math.max(hitPeak, s.m);
+    // right after a hit the phone keeps wobbling in your hand; a new hit then has to be at least half as strong
+    const ringing = now - hitT < 320 && s.m < hitPeak*.5;
+    // decide on the very first reading over the line: your real data sorts best there, and it's instant
+    if (armed && !ringing && s.m > thr && now - lastKick > block){
+      armed = false; armedAt = now; pend = {s}; decide(z);
     } else if (!armed && (s.m < (z.trig/S.sens)*.45 || now - armedAt > 260)){
       armed = true;
     }
@@ -754,6 +755,11 @@ async function recordEvents(alive, N, prov, voice, title, text, maxMs=18000){
 }
 const evPeak = ev => ev.arr.slice(ev.start).reduce((b,s) => s.m > b.m ? s : b);
 /* turn a recorded jolt into a training example, read at the same point the live trigger would fire */
+/* the first reading over the live trigger line, exactly what live play decides on */
+function onsetExample(ev, thr){
+  for (let i=Math.max(1, ev.start-3); i<ev.arr.length; i++) if (ev.arr[i].m > thr) return {f: featAt(ev.arr, i), m: +ev.arr[i].m.toFixed(3)};
+  return null;
+}
 function evExamples(ev, thr){
   const pts = triggerPoints(ev.arr, ev.start-3, thr);
   if (!pts.length) return null;
@@ -854,10 +860,7 @@ async function runCal(){
   const trig = Math.max(noiseMag*3, .7, .35*Math.min(...peaks));
   const live = trig / S.sens;          // where the live trigger will actually fire
   const train = {none: []};
-  for (const n of order){
-    train[n] = [];
-    for (const ev of evs[n]){ const r = evExamples(ev, live); if (!r) continue; train[n].push(r.hit); train.none.push(...r.extra); }
-  }
+  for (const n of order) train[n] = evs[n].map(ev => onsetExample(ev, live)).filter(Boolean);
   if (order.some(n => train[n].length < 3)) return calFail("Some hits were too soft", "A few hits barely moved the phone. Try again with firmer taps.");
   const minPeak = Math.min(...peaks);
   let screenGate = Math.max(live, tapPk*1.3);
@@ -985,10 +988,8 @@ async function teachMore(n){
   const st = await enableMotion(); if (st !== "ok"){ calFail("No motion sensor", "Motion access is off."); return; }
   const evs = await recordEvents(alive, 6, Math.max(.7, z.trig*.8), n, `Teach: ${ZNAME[n]}`, STEPTEXT[n] + " Six more.");
   if (!alive()) return;
-  const add = [];
-  for (const ev of evs){ const r = evExamples(ev, z.trig/S.sens); if (!r) continue; add.push(r.hit); z.train.none.push(...r.extra); }
+  const add = evs.map(ev => onsetExample(ev, z.trig/S.sens)).filter(Boolean);
   (z.train[n] = z.train[n] || []).push(...add);
-  while (z.train.none.length > 60) z.train.none.shift();
   rebuildModel(z); save();
   calShow("Learned", `Added ${add.length} more ${ZNAME[n].toLowerCase()} hits.`);
   $("calCancel").textContent = "Back to Tune";

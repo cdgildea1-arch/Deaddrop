@@ -37,6 +37,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .game{grid-column:span 2}
 .game.wide{grid-column:span 3}
 .game.full{grid-column:1/-1}
+.game.trio{grid-column:span 2}
 /* Your move: saved games waiting on you glow gold with a "Your turn" tag; ones waiting on the other person get a quiet tag */
 .game.waiting{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffd273,0 0 22px 4px #ffd27399;animation:yourturn 1.8s ease-in-out infinite}
 @keyframes yourturn{50%{box-shadow:0 0 0 2px var(--table),0 0 0 clamp(4px,1vw,5px) #ffe7a8,0 0 30px 8px #ffd273cc}}
@@ -103,6 +104,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .wavelength{--surface:#3f4f8f;--text:#fdf3df;--stamp:#ffcf6e}
 .butterflies{--surface:#c9577f;--text:#fff1f4;--stamp:#ffe0e8}
 .after-dark{--surface:#3a0a14;--text:#ffd9d0;--stamp:#ff8a7a}
+.marble{--surface:#2c4a63;--text:#eef7ff;--stamp:#9fd8ff}
+.orb{width:1.05em;height:1.05em;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff 0 7%,#9fe3ff 16%,#2f9be0 45%,#0b3a6b 80%);box-shadow:.06em .1em .14em #0007,inset -.06em -.08em .12em #0006}
 @media (min-width:700px){main{padding-inline:30px}}
 @media (max-height:490px){
  main{padding-block:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-bottom));gap:7px}
@@ -114,6 +117,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 @media (orientation:landscape) and (min-width:560px){
  .shelf{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto repeat(2,minmax(0,1fr)) auto repeat(3,minmax(0,1fr))}
  .game,.game.wide{grid-column:span 3}
+ .shelf>.game:nth-child(-n+7){grid-column:span 2}
+ .game.trio{grid-column:span 4}
  .game.full{grid-column:span 6}
  .game{--label-size:clamp(11px,min(2.65vw,3.8dvh),21px)}
 }
@@ -142,8 +147,9 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game uno" data-game="uno" href="/uno/"><span class="mark" aria-hidden="true"><span>UNO!</span></span><strong>UNO</strong></a>
   <a class="game guess" data-game="guess-who" href="/guess-who/"><span class="mark" aria-hidden="true"><span class="paper">?</span></span><strong>Guess Who?</strong></a>
   <a class="game scrabble" data-game="scrabble" href="/scrabble/"><span class="mark" aria-hidden="true"><span class="paper">S<small>1</small></span></span><strong>Scrabble</strong></a>
-  <a class="game dots wide" data-game="dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
-  <a class="game mahjong wide" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
+  <a class="game dots trio" data-game="dots" href="/dots/"><span class="mark" aria-hidden="true"><span class="dot-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><strong>Dots &amp; Boxes</strong></a>
+  <a class="game mahjong trio" href="/mahjong/"><span class="mark" aria-hidden="true"><span class="paper">發</span></span><strong>Mahjong</strong></a>
+  <a class="game marble trio" href="/marble/"><span class="mark" aria-hidden="true"><span class="orb"></span></span><strong>Marble</strong></a>
   <h2>2P</h2>
   <a class="game duet" data-game="duet" href="/duet/"><span class="mark" aria-hidden="true">••</span><strong>Codenames Duet</strong></a>
   <a class="game changed" href="/mini/?game=what-changed"><span class="mark" aria-hidden="true">◫</span><strong>What Changed?</strong></a>

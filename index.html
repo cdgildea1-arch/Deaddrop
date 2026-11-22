@@ -135,6 +135,13 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .notify[hidden]{display:none}
 .notify-note{display:block;margin-top:6px;color:#9aa0a6;font:500 12px/1.35 system-ui,sans-serif}
 .notify-note[hidden]{display:none}
+.ask-badge{border:1px solid #ffffff1f;border-radius:20px;background:#1e2127;color:#fff;padding:22px 20px 16px;max-width:320px;width:calc(100% - 48px);text-align:center;font:15px/1.4 system-ui,sans-serif}
+.ask-badge::backdrop{background:#000a}
+.ask-badge h2{margin:0 0 6px;font-size:19px}
+.ask-badge p{margin:0 0 16px;color:#b8bcc2}
+.ask-badge button{display:block;width:100%;margin-top:8px;padding:11px;border:0;border-radius:12px;font:600 16px system-ui,sans-serif;cursor:pointer}
+.ask-badge .yes{background:#ff3b30;color:#fff}
+.ask-badge .no{background:transparent;color:#9aa0a6}
 .room-unread{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#ff3b30;color:#fff;font:700 11px/18px system-ui,sans-serif;vertical-align:middle}
 </style>
 <link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
@@ -168,6 +175,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game after-dark wide" data-game="after-dark" href="/after-dark/"><span class="mark" aria-hidden="true">🔥</span><strong>After Dark</strong></a>
  </nav>
 </main>
+<dialog class="ask-badge"><h2>Show new messages on the app icon?</h2><p>A red number on Your Move when your friend sends a message. Tap Allow on the next screen.</p>
+<button class="yes" type="button">Allow</button><button class="no" type="button">Not now</button></dialog>
 <script type="module">
 
 // Your move: ask the games server which saved games are waiting on this phone (same room as the games and chat).
@@ -199,6 +208,11 @@ import('/your-move-chat/unread.mjs?v=push1').then(({startUnread,onUnread,pushSta
   btn.disabled=false;btn.textContent='Turn on app-icon badge for messages';await showPush();
   if(await pushState().catch(()=>'')==='on'){note.hidden=false;note.textContent='Badge is on. For badge only (no pop-ups): iPhone Settings → Notifications → Your Move → turn off Lock Screen, Notification Center, Banners and Sounds; leave Badges on.'}};
  showPush();document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPush()});
+ // First open: ask with our own pop-up (iPhone shows its Allow prompt only after a tap). "Not now" waits 3 days.
+ const ask=document.querySelector('.ask-badge'),later=+localStorage.getItem('your-move.badge.later')||0;
+ pushState().then(s=>{if(s==='off'&&Date.now()-later>3*864e5&&ask.showModal)ask.showModal()}).catch(()=>{});
+ ask.querySelector('.no').onclick=()=>{localStorage.setItem('your-move.badge.later',Date.now());ask.close()};
+ ask.querySelector('.yes').onclick=()=>{ask.close();btn.click()};
  const where={pounce:'/Pounce/',speed:'/speed/',hearts:'/hearts/',uno:'/uno/','guess-who':'/guess-who/',scrabble:'/scrabble/',dots:'/dots/',
   mahjong:'/mahjong/','mahjong-daily':'/mahjong/','mahjong-level4':'/mahjong/',duet:'/duet/','what-changed':'/mini/?game=what-changed',
   warmer:'/mini/?game=warmer','hide-a-dot':'/mini/?game=hide-a-dot','draw-together':'/mini/?game=draw-together','quick-draw':'/sketch/',

@@ -75,7 +75,7 @@ async function poll(){
  catch(e){text('chatError',e.message)}
  finally{pollBusy=false}
 }
-async function join(){
+async function join(auto=false){
  const name=$('#name').value.trim(), code=$('#code').value.trim().toUpperCase();
  if(!name)return text('notice','Enter your name first.');
  if(!/^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(code))return text('notice','Enter your room code.');
@@ -86,9 +86,11 @@ async function join(){
   const data=await call('join',candidate);
   room=candidate;save('pounce.room',room);save('pounce.name',name);
   practice=false;info=null;messages=[];remote=null;over=false;table.forget();absorb(data);
-  show('lobby');connect();await enterRoom();
+  // Reopening the app: check for a game in progress before showing the lobby, so you land right back at the table.
+  if(auto)$('#lobby').style.visibility='hidden';
+  show('lobby');connect();await enterRoom();$('#lobby').style.visibility='';
  }catch(e){text('notice',e.message)}
- finally{$('#join').disabled=false}
+ finally{$('#join').disabled=false;$('#lobby').style.visibility=''}
 }
 function send(event,payload){if(connected)channel.send({type:'broadcast',event,payload}).catch(()=>{})}
 function track(){if(connected)channel.track({sid,name:room.name,ready}).catch(()=>{})}
@@ -252,7 +254,7 @@ $('#handNext').onclick=()=>{handPage++;render()};
 $('#draw').onclick=()=>submit('draw');
 $('#pass').onclick=()=>submit('pass');
 $('#again').onclick=start;
-$('#join').onclick=join;
+$('#join').onclick=()=>join();
 $('#practice').onclick=()=>{practice=true;start()};
 $('#ready').onclick=()=>{ready=!ready;track();renderLobby();if(ready)send('hello',{})};
 $('#start').onclick=start;
@@ -287,6 +289,7 @@ setInterval(()=>{if(!document.hidden)poll()},3500);
 setInterval(()=>{if(!document.hidden)refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 renderChat();
-// Rejoin the saved room on open (e.g. 25800852) so you don't type the code every time. "Back to menu" still lets
+// Rejoin the saved room on open (e.g. 25800852) so you don't type the code every time; a game in progress opens
+// straight to the table. "Back to menu" still lets
 // you switch rooms or play the computers; the code stays filled in.
-if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join();}
+if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join(true);}

@@ -131,13 +131,17 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 .game[data-move-unread]{position:relative;overflow:visible}
 .game[data-move-unread]::after{content:attr(data-move-unread);position:absolute;top:-6px;right:-6px;z-index:3;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#ff3b30;color:#fff;font:700 11px/20px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #15171b;pointer-events:none}
 .room-unread[hidden]{display:none}
+.notify{display:block;margin-top:8px;padding:7px 12px;border:1px solid #ff3b3066;border-radius:999px;background:#ff3b301f;color:#fff;font:600 13px/1.2 system-ui,sans-serif;cursor:pointer}
+.notify[hidden]{display:none}
+.notify-note{display:block;margin-top:6px;color:#9aa0a6;font:500 12px/1.35 system-ui,sans-serif}
+.notify-note[hidden]{display:none}
 .room-unread{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#ff3b30;color:#fff;font:700 11px/18px system-ui,sans-serif;vertical-align:middle}
 </style>
 <link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
 <body>
 <main>
  <header>
-  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p></div>
+  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p><button class="notify" type="button" hidden>🔔 Turn on message notifications</button><span class="notify-note" hidden></span></div>
   <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
@@ -181,7 +185,19 @@ async function yourMove(){
 yourMove();
 setInterval(()=>{if(!document.hidden)yourMove()},30000);
 // Unread chat: red counts on game tiles, a pill for the room chat, and the Home Screen icon badge.
-import('/your-move-chat/unread.mjs?v=badge1').then(({startUnread,onUnread})=>{
+import('/your-move-chat/unread.mjs?v=push1').then(({startUnread,onUnread,pushState,enablePush})=>{
+ // Notifications: a button while they're off (iPhone only asks after a tap), a short note when something is in the way.
+ const btn=document.querySelector('.notify'),note=document.querySelector('.notify-note');
+ const notes={'home-screen':'For message notifications, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',
+  denied:'Notifications are blocked. Turn them on in iPhone Settings → Notifications → Your Move.'};
+ async function showPush(){
+  const s=await pushState().catch(()=>'unsupported');
+  btn.hidden=s!=='off';note.hidden=!notes[s];note.textContent=notes[s]||'';
+ }
+ btn.onclick=async()=>{btn.disabled=true;btn.textContent='Turning on…';
+  try{await enablePush(true)}catch(e){note.hidden=false;note.textContent='Couldn’t turn on notifications: '+(e.message||e)}
+  btn.disabled=false;btn.textContent='🔔 Turn on message notifications';showPush();};
+ showPush();document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPush()});
  const where={pounce:'/Pounce/',speed:'/speed/',hearts:'/hearts/',uno:'/uno/','guess-who':'/guess-who/',scrabble:'/scrabble/',dots:'/dots/',
   mahjong:'/mahjong/','mahjong-daily':'/mahjong/','mahjong-level4':'/mahjong/',duet:'/duet/','what-changed':'/mini/?game=what-changed',
   warmer:'/mini/?game=warmer','hide-a-dot':'/mini/?game=hide-a-dot','draw-together':'/mini/?game=draw-together','quick-draw':'/sketch/',

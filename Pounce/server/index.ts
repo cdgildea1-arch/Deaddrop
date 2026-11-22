@@ -1,6 +1,8 @@
 // Pounce chat rooms. Deployed as Supabase Edge Function `pounce-chat` (verify_jwt off: auth is done here).
 // A 6-character room code (or a reserved 8-digit one) invites one friend; each device holds its own random 96-bit seat key.
 // Only SHA-256 hashes of seat keys are stored. The table has RLS on and no public grants.
+// Push: phones sign up with op 'push-sub'; each new message is pushed to the other seat's phones (pounce_push_v1).
+import { sendPush, makeVapidKeys } from './webpush.ts';
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
 const gameThreads = new Set(['pounce','speed','scrabble','guess-who','hearts','uno','duet','dots','mahjong','mahjong-daily','mahjong-level4','what-changed','draw-together','warmer','hide-a-dot','quick-draw','same-word','wavelength','butterflies','after-dark']);
 const isToken = (x: unknown) => typeof x === 'string' && /^[a-f0-9]{24}$/.test(x);
@@ -9,16 +11,55 @@ const hash = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 const cleanName = (x: unknown, d: string) => (typeof x === 'string' ? x.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 18) : '') || d;
 
-async function db(path: string, method = 'GET', body?: unknown) {
+async function db(path: string, method = 'GET', body?: unknown, table = 'pounce_rooms_v1', prefer = 'return=representation') {
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const r = await fetch(Deno.env.get('SUPABASE_URL') + '/rest/v1/pounce_rooms_v1' + path, {
+  const r = await fetch(Deno.env.get('SUPABASE_URL') + '/rest/v1/' + table + path, {
     method,
-    headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: prefer },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!r.ok) throw new Error('Storage unavailable');
-  return await r.json();
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;
 }
+
+// ---------- push notifications ----------
+const pushHosts = /^(web\.push\.apple\.com|fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9-]+\.notify\.windows\.com)$/;
+const threadUrl: Record<string, string> = { room: '/', pounce: '/Pounce/', speed: '/speed/', hearts: '/hearts/', uno: '/uno/', 'guess-who': '/guess-who/',
+  scrabble: '/scrabble/', dots: '/dots/', mahjong: '/mahjong/', 'mahjong-daily': '/mahjong/', 'mahjong-level4': '/mahjong/', duet: '/duet/',
+  'what-changed': '/mini/?game=what-changed', warmer: '/mini/?game=warmer', 'hide-a-dot': '/mini/?game=hide-a-dot', 'draw-together': '/mini/?game=draw-together',
+  'quick-draw': '/sketch/', 'same-word': '/same-word/', wavelength: '/wavelength/', butterflies: '/butterflies/', 'after-dark': '/after-dark/' };
+let vapid: { publicKey: string; privateKey: string } | null = null;
+async function vapidKeys() {
+  if (vapid) return vapid;
+  let row = (await db('?id=eq.1', 'GET', undefined, 'pounce_push_keys'))[0];
+  if (!row) {
+    const k = await makeVapidKeys();
+    await db('?on_conflict=id', 'POST', { id: 1, public_key: k.publicKey, private_key: k.privateKey }, 'pounce_push_keys', 'resolution=ignore-duplicates,return=minimal');
+    row = (await db('?id=eq.1', 'GET', undefined, 'pounce_push_keys'))[0];
+  }
+  return vapid = { publicKey: row.public_key, privateKey: row.private_key };
+}
+const validSub = (s: any) => s && typeof s.endpoint === 'string' && s.endpoint.length < 1000 && /^https:\/\//.test(s.endpoint)
+  && pushHosts.test(new URL(s.endpoint).hostname) && typeof s.keys?.p256dh === 'string' && typeof s.keys?.auth === 'string'
+  && s.keys.p256dh.length < 200 && s.keys.auth.length < 100;
+async function notify(row: any, fromSeat: number, thread: string, text: string) {
+  try {
+    const to = 1 - fromSeat;
+    const subs = await db(`?code=eq.${row.code}&seat=eq.${to}`, 'GET', undefined, 'pounce_push_v1');
+    if (!subs.length) return;
+    const keys = await vapidKeys();
+    const name = row.names?.[fromSeat] || 'Your friend';
+    const data = { title: name, body: text.length > 140 ? text.slice(0, 139) + '…' : text, thread, url: threadUrl[thread] || '/', ts: Date.now() };
+    await Promise.all(subs.map(async (s: any) => {
+      try {
+        const status = await sendPush(s.sub, data, keys, 'https://centralarchive.online');
+        if (status === 404 || status === 410) await db('?endpoint=eq.' + encodeURIComponent(s.endpoint), 'DELETE', undefined, 'pounce_push_v1', 'return=minimal');
+      } catch (_e) { /* one bad phone shouldn't stop the others */ }
+    }));
+  } catch (_e) { /* push is best-effort */ }
+}
+const later = (p: Promise<unknown>) => { try { (globalThis as any).EdgeRuntime?.waitUntil(p); } catch (_e) { /* runs anyway */ } };
 
 // Kill switch: each seat can wipe a chat for itself. `cleared[seat][thread]` is the time up to which that seat no longer
 // gets messages back, on any device. The other person's copy is untouched.
@@ -57,6 +98,7 @@ Deno.serve(async (req: Request) => {
       const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { host_hash: /^[0-9]{8}$/.test(b.code) ? 'unclaimed' : secretHash, guest_hash: null,
         names: ['', ''], messages: [], game_threads: {}, cleared: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
+      await db('?code=eq.' + b.code, 'DELETE', undefined, 'pounce_push_v1', 'return=minimal').catch(() => {});
       return reply({ reset: true });
     }
     // Reserved rooms (8-digit codes) start with host_hash 'unclaimed'; the first join takes the first seat.
@@ -88,6 +130,16 @@ Deno.serve(async (req: Request) => {
     if (seat < 0) return reply({ error: 'This phone is not part of that room.' }, 403);
     if (b.op === 'get' || b.op === 'join') return reply(view(row, seat, after));
 
+    if (b.op === 'push-key') return reply({ key: (await vapidKeys()).publicKey });
+    if (b.op === 'push-sub') {
+      if (!validSub(b.sub)) return reply({ error: 'That notification sign-up isn’t valid.' }, 400);
+      const ep = encodeURIComponent(b.sub.endpoint);
+      if (b.off === true) { await db('?endpoint=eq.' + ep, 'DELETE', undefined, 'pounce_push_v1', 'return=minimal'); return reply({ push: false }); }
+      await db('?on_conflict=endpoint', 'POST', { endpoint: b.sub.endpoint, code: b.code, seat, updated_at: new Date().toISOString(),
+        sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } } }, 'pounce_push_v1', 'resolution=merge-duplicates,return=minimal');
+      return reply({ push: true, seat });
+    }
+
     // Unread badges: times of the other person's messages in each chat (after this seat's Swipe), newest 50 per chat.
     if (b.op === 'unread') {
       const other = 1 - seat;
@@ -118,7 +170,7 @@ Deno.serve(async (req: Request) => {
         const ts = Math.max(Date.now(), (messages.at(-1)?.ts || 0) + 1);
         const game_threads = { ...row.game_threads, [b.game]: [...messages, { id: b.id, seat, text: b.text.trim(), ts }].slice(-300) };
         const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { game_threads, rev: row.rev + 1, updated_at: new Date().toISOString() });
-        if (rows.length) return reply(tableView(rows[0]));
+        if (rows.length) { later(notify(rows[0], seat, b.game, b.text.trim())); return reply(tableView(rows[0])); }
         row = (await db(path))[0];
       }
       return reply({ error: 'Busy room. Send again.' }, 409);
@@ -156,7 +208,7 @@ Deno.serve(async (req: Request) => {
       for (let attempt = 0; attempt < 3; attempt++) {
         const messages = [...row.messages, { id: b.id, seat, text: b.text.trim(), ts: Date.now() }].slice(-300);
         const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { messages, rev: row.rev + 1, updated_at: new Date().toISOString() });
-        if (rows.length) return reply(view(rows[0], seat, after));
+        if (rows.length) { later(notify(rows[0], seat, 'room', b.text.trim())); return reply(view(rows[0], seat, after)); }
         row = (await db(path))[0];
         if (row.messages.some((m: any) => m.id === b.id)) return reply(view(row, seat, after));
       }

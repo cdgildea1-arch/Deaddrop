@@ -141,7 +141,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 <body>
 <main>
  <header>
-  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p><button class="notify" type="button" hidden>🔔 Turn on message notifications</button><span class="notify-note" hidden></span></div>
+  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p><button class="notify" type="button" hidden>Turn on app-icon badge for messages</button><span class="notify-note" hidden></span></div>
   <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
@@ -188,15 +188,16 @@ setInterval(()=>{if(!document.hidden)yourMove()},30000);
 import('/your-move-chat/unread.mjs?v=push1').then(({startUnread,onUnread,pushState,enablePush})=>{
  // Notifications: a button while they're off (iPhone only asks after a tap), a short note when something is in the way.
  const btn=document.querySelector('.notify'),note=document.querySelector('.notify-note');
- const notes={'home-screen':'For message notifications, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',
-  denied:'Notifications are blocked. Turn them on in iPhone Settings → Notifications → Your Move.'};
+ const notes={'home-screen':'For a message badge on the app icon, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',
+  denied:'The badge needs Your Move allowed in iPhone Settings → Notifications → Your Move (you can leave everything off except Badges).'};
  async function showPush(){
   const s=await pushState().catch(()=>'unsupported');
   btn.hidden=s!=='off';note.hidden=!notes[s];note.textContent=notes[s]||'';
  }
  btn.onclick=async()=>{btn.disabled=true;btn.textContent='Turning on…';
   try{await enablePush(true)}catch(e){note.hidden=false;note.textContent='Couldn’t turn on notifications: '+(e.message||e)}
-  btn.disabled=false;btn.textContent='🔔 Turn on message notifications';showPush();};
+  btn.disabled=false;btn.textContent='Turn on app-icon badge for messages';await showPush();
+  if(await pushState().catch(()=>'')==='on'){note.hidden=false;note.textContent='Badge is on. For badge only (no pop-ups): iPhone Settings → Notifications → Your Move → turn off Lock Screen, Notification Center, Banners and Sounds; leave Badges on.'}};
  showPush();document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPush()});
  const where={pounce:'/Pounce/',speed:'/speed/',hearts:'/hearts/',uno:'/uno/','guess-who':'/guess-who/',scrabble:'/scrabble/',dots:'/dots/',
   mahjong:'/mahjong/','mahjong-daily':'/mahjong/','mahjong-level4':'/mahjong/',duet:'/duet/','what-changed':'/mini/?game=what-changed',

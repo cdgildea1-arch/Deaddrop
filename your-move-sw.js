@@ -1,4 +1,6 @@
-// Your Move background worker: push notifications + Home Screen icon badge for chat messages.
+// Your Move background worker: keeps the Home Screen icon badge counting chat messages while the app is closed.
+// iPhone only lets a closed web app change its badge from a push, and every push must post a notification, so it
+// posts a quiet, generic one. Turn off Alerts and Sounds for Your Move in iPhone Settings and only the badge shows.
 // No fetch handler on purpose — it never touches page loads or caching for anything on the site.
 const BADGE_CACHE = 'your-move-badge', BADGE_KEY = '/__your-move-badge';
 async function readBadge() {
@@ -17,9 +19,9 @@ self.addEventListener('push', e => {
   e.waitUntil((async () => {
     const n = (await readBadge()) + 1;
     await writeBadge(n);
-    // iPhone requires a visible notification for every push, so always show one.
-    await self.registration.showNotification(d.title || 'Your Move', {
-      body: d.body || 'New message', tag: 'your-move-' + (d.thread || 'room'), renotify: true,
+    // Required by iPhone for every push. Quiet, no message text, one per chat (replaced, not stacked).
+    await self.registration.showNotification('Your Move', {
+      body: 'New message', tag: 'your-move-' + (d.thread || 'room'), silent: true,
       icon: '/your-move-assets/move-192.png', badge: '/your-move-assets/move-192.png',
       data: { url: d.url || '/' }, timestamp: d.ts || Date.now(),
     });

@@ -136,7 +136,7 @@ export function startUnread(every = 10000) {
   startMoves(Math.max(every, 15000));
 }
 
-// ---------- in-app pop-up + ding (while the app is open; no permission needed) ----------
+// ---------- in-app ding (while the app is open; no permission needed) ----------
 const gameNames = { room: 'Room', pounce: 'Pounce', speed: 'Speed', scrabble: 'Scrabble', 'guess-who': 'Guess Who?', hearts: 'Hearts', uno: 'UNO',
   duet: 'Codenames Duet', dots: 'Dots & Boxes', 'same-word': 'Same Word', wavelength: 'Wavelength', butterflies: 'Butterflies', 'after-dark': 'After Dark',
   'quick-draw': 'Quick Draw', 'what-changed': 'What Changed?', 'draw-together': 'Draw Together', warmer: 'Warmer', 'hide-a-dot': 'Hide a Dot',
@@ -164,24 +164,8 @@ export function ding() {
   } catch {}
   try { navigator.vibrate?.(60); } catch {}
 }
-let popEl = null, popTimer = 0;
-export function popUp(text, url) {
-  if (!popEl) {
-    popEl = document.createElement('button');
-    popEl.type = 'button';
-    popEl.setAttribute('role', 'status');
-    popEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translate(-50%,-140%);z-index:2147483000;'
-      + 'max-width:calc(100% - 24px);padding:12px 18px;border:1px solid #ffffff26;border-radius:16px;background:#1e2127f2;color:#fff;'
-      + 'font:600 15px/1.3 system-ui,sans-serif;box-shadow:0 8px 28px #0008;transition:transform .28s ease;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)';
-    document.body.appendChild(popEl);
-  }
-  popEl.textContent = '🔔 ' + text;
-  popEl.onclick = () => { popEl.style.transform = 'translate(-50%,-140%)'; if (url && location.pathname + location.search !== url) location.assign(url); };
-  requestAnimationFrame(() => { popEl.style.transform = 'translate(-50%,0)'; });
-  clearTimeout(popTimer);
-  popTimer = setTimeout(() => { popEl.style.transform = 'translate(-50%,-140%)'; }, 5000);
-  ding();
-}
+// No banner: the in-app signal is just the ding (red counts on tiles and Chat buttons already show where).
+function popUp() { ding(); }
 // "Your move": ask the games server which saved games wait on this phone; pop up when one newly becomes yours.
 // The game already on screen is skipped (it updates itself).
 const gamesApi = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/your-move-games';

@@ -287,3 +287,6 @@ setInterval(()=>{if(!document.hidden)poll()},3500);
 setInterval(()=>{if(!document.hidden)refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 renderChat();
+// Rejoin the saved room on open (e.g. 25800852) so you don't type the code every time. "Back to menu" still lets
+// you switch rooms or play the computers; the code stays filled in.
+if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join();}

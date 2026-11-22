@@ -99,6 +99,7 @@ Deno.serve(async (req: Request) => {
         names: ['', ''], messages: [], game_threads: {}, cleared: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
       await db('?code=eq.' + b.code, 'DELETE', undefined, 'pounce_push_v1', 'return=minimal').catch(() => {});
+      await db('?code=eq.' + b.code, 'DELETE', undefined, 'pounce_loc_v1', 'return=minimal').catch(() => {});
       return reply({ reset: true });
     }
     // Reserved rooms (8-digit codes) start with host_hash 'unclaimed'; the first join takes the first seat.
@@ -138,6 +139,24 @@ Deno.serve(async (req: Request) => {
       await db('?on_conflict=endpoint', 'POST', { endpoint: b.sub.endpoint, code: b.code, seat, updated_at: new Date().toISOString(),
         sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } } }, 'pounce_push_v1', 'resolution=merge-duplicates,return=minimal');
       return reply({ push: true, seat });
+    }
+
+    // Location sharing (opt-in, per seat). 'loc-set' saves this phone's spot, 'loc-get' returns the other seat's,
+    // 'loc-off' erases this seat's row. Spots older than 24 hours are not returned.
+    if (b.op === 'loc-set') {
+      const lat = Number(b.lat), lng = Number(b.lng), acc = Number(b.acc);
+      if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return reply({ error: 'Bad location.' }, 400);
+      await db('?on_conflict=code,seat', 'POST', { code: b.code, seat, lat, lng, acc: isFinite(acc) ? Math.min(acc, 100000) : null,
+        updated_at: new Date().toISOString() }, 'pounce_loc_v1', 'resolution=merge-duplicates,return=minimal');
+      return reply({ sharing: true });
+    }
+    if (b.op === 'loc-off') { await db(`?code=eq.${b.code}&seat=eq.${seat}`, 'DELETE', undefined, 'pounce_loc_v1', 'return=minimal'); return reply({ sharing: false }); }
+    if (b.op === 'loc-get') {
+      const rows = await db(`?code=eq.${b.code}`, 'GET', undefined, 'pounce_loc_v1');
+      const fresh = (r: any) => !!r && Date.now() - Date.parse(r.updated_at) < 24 * 3600e3;
+      const theirs = rows.find((r: any) => r.seat === 1 - seat), mine = rows.find((r: any) => r.seat === seat);
+      return reply({ name: row.names?.[1 - seat] || 'Your friend', mine: fresh(mine),
+        theirs: fresh(theirs) ? { lat: theirs.lat, lng: theirs.lng, acc: theirs.acc, ts: Date.parse(theirs.updated_at) } : null });
     }
 
     // Unread badges: times of the other person's messages in each chat (after this seat's Swipe), newest 50 per chat.

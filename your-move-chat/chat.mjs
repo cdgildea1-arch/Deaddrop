@@ -1,4 +1,4 @@
-import { startUnread, onUnread, markSeen, askForIconBadge } from './unread.mjs?v=badge1';
+import { startUnread, onUnread, markSeen, askForIconBadge } from './unread.mjs?v=push1';
 const slot = document.documentElement.dataset.moveChat;
 const api = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';

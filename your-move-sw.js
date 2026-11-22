@@ -1,4 +1,5 @@
-// Your Move background worker: keeps the Home Screen icon badge counting chat messages while the app is closed.
+// Your Move background worker: keeps the Home Screen icon badge counting chat messages while the app is closed,
+// and shows a "Your move" alert (with sound) when the other player hands you a turn.
 // iPhone only lets a closed web app change its badge from a push, and every push must post a notification, so it
 // posts a quiet, generic one. Turn off Alerts and Sounds for Your Move in iPhone Settings and only the badge shows.
 // No fetch handler on purpose — it never touches page loads or caching for anything on the site.
@@ -17,6 +18,15 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data?.text() }; }
   e.waitUntil((async () => {
+    // "Your move" pushes from the games server: a real alert with sound. They don't change the message badge.
+    if (d.kind === 'move') {
+      await self.registration.showNotification(d.title || 'Your move', {
+        body: d.body || 'It’s your turn.', tag: 'your-move-turn-' + (d.game || 'game'), renotify: true, silent: false,
+        icon: '/your-move-assets/move-192.png', badge: '/your-move-assets/move-192.png',
+        data: { url: d.url || '/' }, timestamp: d.ts || Date.now(),
+      });
+      return;
+    }
     const n = (await readBadge()) + 1;
     await writeBadge(n);
     // Required by iPhone for every push. Quiet, no message text, one per chat (replaced, not stacked).

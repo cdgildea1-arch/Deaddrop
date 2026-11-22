@@ -148,7 +148,7 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
 <body>
 <main>
  <header>
-  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p><button class="notify" type="button" hidden>Turn on app-icon badge for messages</button><span class="notify-note" hidden></span></div>
+  <div><h1>Your Move<span class="period">.</span></h1><p>Pick a game<span class="room-unread" hidden></span></p><button class="notify" type="button" hidden>Turn on “your move” dings</button><span class="notify-note" hidden></span></div>
   <button class="shuffle" type="button">Surprise me</button>
  </header>
  <nav class="shelf" aria-label="Games">
@@ -175,8 +175,8 @@ header p{margin:5px 0 0;color:var(--dim);font-size:clamp(11px,2.9vw,14px)}
   <a class="game after-dark wide" data-game="after-dark" href="/after-dark/"><span class="mark" aria-hidden="true">🔥</span><strong>After Dark</strong></a>
  </nav>
 </main>
-<dialog class="ask-badge"><h2>Show new messages on the app icon?</h2><p>A red number on Your Move when your friend sends a message. Tap Allow on the next screen.</p>
-<button class="yes" type="button">Allow</button><button class="no" type="button">Not now</button></dialog>
+<dialog class="ask-badge"><h2>Want a ding when it’s your move?</h2><p>Your Move will ding when it’s your turn in any game, and new messages show as a red number on the app icon. Tap Allow on the next screen.</p>
+<button class="yes" type="button">Yes, ding me</button><button class="no" type="button">Not now</button></dialog>
 <script type="module">
 
 // Your move: ask the games server which saved games are waiting on this phone (same room as the games and chat).
@@ -197,16 +197,16 @@ setInterval(()=>{if(!document.hidden)yourMove()},30000);
 import('/your-move-chat/unread.mjs?v=read1').then(({startUnread,onUnread,pushState,enablePush})=>{
  // Notifications: a button while they're off (iPhone only asks after a tap), a short note when something is in the way.
  const btn=document.querySelector('.notify'),note=document.querySelector('.notify-note');
- const notes={'home-screen':'For a message badge on the app icon, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',
-  denied:'The badge needs Your Move allowed in iPhone Settings → Notifications → Your Move (you can leave everything off except Badges).'};
+ const notes={'home-screen':'For “your move” dings and a message badge, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',
+  denied:'Dings and the badge need Your Move allowed in iPhone Settings → Notifications → Your Move (turn on Allow Notifications, Sounds and Badges).'};
  async function showPush(){
   const s=await pushState().catch(()=>'unsupported');
   btn.hidden=s!=='off';note.hidden=!notes[s];note.textContent=notes[s]||'';
  }
  btn.onclick=async()=>{btn.disabled=true;btn.textContent='Turning on…';
   try{await enablePush(true)}catch(e){note.hidden=false;note.textContent='Couldn’t turn on notifications: '+(e.message||e)}
-  btn.disabled=false;btn.textContent='Turn on app-icon badge for messages';await showPush();
-  if(await pushState().catch(()=>'')==='on'){note.hidden=false;note.textContent='Badge is on. For badge only (no pop-ups): iPhone Settings → Notifications → Your Move → turn off Lock Screen, Notification Center, Banners and Sounds; leave Badges on.'}};
+  btn.disabled=false;btn.textContent='Turn on “your move” dings';await showPush();
+  if(await pushState().catch(()=>'')==='on'){note.hidden=false;note.textContent='You’re set: a ding when it’s your move, and a red number on the app icon for new messages.'}};
  showPush();document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPush()});
  // First open: ask with our own pop-up (iPhone shows its Allow prompt only after a tap). "Not now" waits 3 days.
  const ask=document.querySelector('.ask-badge'),later=+localStorage.getItem('your-move.badge.later')||0;

@@ -29,9 +29,18 @@ function counts(room) {
   }
   return { byThread, total };
 }
+let lastByThread = null; // per-thread unread counts from the previous check, to spot brand-new messages
 function publish(room) {
   const result = counts(room);
   if (!result) return;
+  if (lastByThread) {
+    const fresh = Object.entries(result.byThread).find(([t, n]) => n > (lastByThread[t] || 0));
+    if (fresh && !document.querySelector('dialog.move-chat[open]')) {
+      const t = fresh[0];
+      popUp(t === 'room' ? 'New message in the room chat' : 'New message in ' + (gameNames[t] || 'a game') + ' chat', threadUrl[t] || '/');
+    }
+  }
+  lastByThread = result.byThread;
   setIconBadge(result.total);
   for (const fn of listeners) fn(result);
 }
@@ -124,4 +133,79 @@ export function startUnread(every = 10000) {
   if (pushSupported() && Notification.permission === 'granted') enablePush(false).catch(() => {});
   setInterval(() => { if (!document.hidden) checkUnread(); }, every);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUnread(); });
+  startMoves(Math.max(every, 15000));
+}
+
+// ---------- in-app pop-up + ding (while the app is open; no permission needed) ----------
+const gameNames = { room: 'Room', pounce: 'Pounce', speed: 'Speed', scrabble: 'Scrabble', 'guess-who': 'Guess Who?', hearts: 'Hearts', uno: 'UNO',
+  duet: 'Codenames Duet', dots: 'Dots & Boxes', 'same-word': 'Same Word', wavelength: 'Wavelength', butterflies: 'Butterflies', 'after-dark': 'After Dark',
+  'quick-draw': 'Quick Draw', 'what-changed': 'What Changed?', 'draw-together': 'Draw Together', warmer: 'Warmer', 'hide-a-dot': 'Hide a Dot',
+  mahjong: 'Mahjong', 'mahjong-daily': 'Mahjong', 'mahjong-level4': 'Mahjong' };
+const threadUrl = { room: '/', pounce: '/Pounce/', speed: '/speed/', hearts: '/hearts/', uno: '/uno/', 'guess-who': '/guess-who/', scrabble: '/scrabble/',
+  dots: '/dots/', mahjong: '/mahjong/', 'mahjong-daily': '/mahjong/', 'mahjong-level4': '/mahjong/', duet: '/duet/', 'what-changed': '/mini/?game=what-changed',
+  warmer: '/mini/?game=warmer', 'hide-a-dot': '/mini/?game=hide-a-dot', 'draw-together': '/mini/?game=draw-together', 'quick-draw': '/sketch/',
+  'same-word': '/same-word/', wavelength: '/wavelength/', butterflies: '/butterflies/', 'after-dark': '/after-dark/' };
+// iPhone only lets a page make sound after the first tap, so the sound engine wakes up on the first touch.
+let audio = null;
+function wakeAudio() {
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch {}
+}
+addEventListener('pointerdown', wakeAudio, { capture: true, passive: true });
+export function ding() {
+  try {
+    if (!audio || audio.state !== 'running') return;
+    const t = audio.currentTime;
+    for (const [freq, at] of [[880, 0], [1318.5, 0.13]]) { // two soft bell notes
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t + at); g.gain.exponentialRampToValueAtTime(0.35, t + at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + at + 0.6);
+      o.connect(g).connect(audio.destination); o.start(t + at); o.stop(t + at + 0.65);
+    }
+  } catch {}
+  try { navigator.vibrate?.(60); } catch {}
+}
+let popEl = null, popTimer = 0;
+export function popUp(text, url) {
+  if (!popEl) {
+    popEl = document.createElement('button');
+    popEl.type = 'button';
+    popEl.setAttribute('role', 'status');
+    popEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translate(-50%,-140%);z-index:2147483000;'
+      + 'max-width:calc(100% - 24px);padding:12px 18px;border:1px solid #ffffff26;border-radius:16px;background:#1e2127f2;color:#fff;'
+      + 'font:600 15px/1.3 system-ui,sans-serif;box-shadow:0 8px 28px #0008;transition:transform .28s ease;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)';
+    document.body.appendChild(popEl);
+  }
+  popEl.textContent = '🔔 ' + text;
+  popEl.onclick = () => { popEl.style.transform = 'translate(-50%,-140%)'; if (url && location.pathname + location.search !== url) location.assign(url); };
+  requestAnimationFrame(() => { popEl.style.transform = 'translate(-50%,0)'; });
+  clearTimeout(popTimer);
+  popTimer = setTimeout(() => { popEl.style.transform = 'translate(-50%,-140%)'; }, 5000);
+  ding();
+}
+// "Your move": ask the games server which saved games wait on this phone; pop up when one newly becomes yours.
+// The game already on screen is skipped (it updates itself).
+const gamesApi = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/your-move-games';
+let mine = null, movesBusy = false;
+async function checkMoves() {
+  const room = currentRoom();
+  if (!room || movesBusy) return;
+  movesBusy = true;
+  try {
+    const r = await fetch(gamesApi, { method: 'POST', signal: AbortSignal.timeout(10000), headers: { 'Content-Type': 'application/json', apikey: apiKey },
+      body: JSON.stringify({ op: 'status', code: room.code, secret: room.secret, game: null }) });
+    const data = await r.json();
+    if (!r.ok || !Array.isArray(data.games)) return;
+    const now = new Set(data.games.filter(g => g.yours).map(g => g.game));
+    const here = document.documentElement.dataset.moveChat;
+    if (mine) {
+      const fresh = [...now].find(g => !mine.has(g) && g !== here);
+      if (fresh) popUp('Your move in ' + (gameNames[fresh] || 'a game'), threadUrl[fresh] || '/');
+    }
+    mine = now;
+  } catch {} finally { movesBusy = false; }
+}
+function startMoves(every) {
+  checkMoves();
+  setInterval(() => { if (!document.hidden) checkMoves(); }, every);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkMoves(); });
 }

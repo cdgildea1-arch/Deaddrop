@@ -18,6 +18,7 @@ import * as scrabble from './games/scrabble.mjs';
 import * as duet from './games/duet.mjs';
 import * as wavelength from './games/wavelength.mjs';
 import * as butterflies from './games/butterflies.mjs';
+import { sendPush } from './webpush.ts';
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,apikey', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Cache-Control': 'no-store' };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -116,6 +117,38 @@ const turnGames: Record<string, any> = {
     clientBot: (g: any) => !g.end && g.turn >= g.humans ? g.turn : -1,
   },
 };
+// ---------- "Your move" push ----------
+// Uses the phones the chat already signed up (pounce_push_v1) and the chat's own keys (pounce_push_keys), so a phone
+// that allowed notifications for messages gets turn alerts too, with no second ask.
+const gameNames: Record<string, string> = { dots: 'Dots & Boxes', hearts: 'Hearts', uno: 'UNO', 'guess-who': 'Guess Who?', scrabble: 'Scrabble',
+  duet: 'Codenames Duet', wavelength: 'Wavelength', butterflies: 'Butterflies', 'after-dark': 'After Dark' };
+const gameUrl: Record<string, string> = { dots: '/dots/', hearts: '/hearts/', uno: '/uno/', 'guess-who': '/guess-who/', scrabble: '/scrabble/',
+  duet: '/duet/', wavelength: '/wavelength/', butterflies: '/butterflies/', 'after-dark': '/after-dark/' };
+const later = (p: Promise<unknown>) => { try { (globalThis as any).EdgeRuntime?.waitUntil(p); } catch (_e) { /* runs anyway */ } };
+// True when this change hands the other person a turn they didn't have before.
+function handsOver(turn: any, before: any, after: any, other: number) {
+  try { return !turn.done(after) && !!turn.yourMove(after, other) && !(before && !turn.done(before) && turn.yourMove(before, other)); }
+  catch (_e) { return false; }
+}
+async function pushTurn(code: string, to: number, game: string, fromName: string, started: boolean) {
+  try {
+    const subs = await rest('pounce_push_v1', `?select=endpoint,sub&code=eq.${code}&seat=eq.${to}`);
+    if (!subs.length) return;
+    const k = (await rest('pounce_push_keys', '?select=public_key,private_key&id=eq.1'))[0];
+    if (!k) return;
+    const keys = { publicKey: k.public_key, privateKey: k.private_key };
+    const name = gameNames[game] || 'a game';
+    const data = { kind: 'move', game, title: 'Your move', url: gameUrl[game] || '/', ts: Date.now(),
+      body: started ? `${fromName} started ${name}. You're up!` : `${fromName} played. Your turn in ${name}.` };
+    await Promise.all(subs.map(async (s: any) => {
+      try {
+        const status = await sendPush(s.sub, data, keys, 'https://centralarchive.online');
+        if (status === 404 || status === 410) await rest('pounce_push_v1', '?endpoint=eq.' + encodeURIComponent(s.endpoint), 'DELETE', undefined, 'return=minimal');
+      } catch (_e) { /* one bad phone shouldn't stop the others */ }
+    }));
+  } catch (_e) { /* push is best-effort */ }
+}
+
 const liveGames = new Set(['speed', 'pounce', 'what-changed', 'warmer', 'hide-a-dot', 'draw-together', 'quick-draw', 'same-word']);
 
 async function rest(table: string, path: string, method = 'GET', body?: unknown, prefer = 'return=representation') {
@@ -201,6 +234,7 @@ Deno.serve(async (req: Request) => {
       const saved = await rest('your_move_games', '?on_conflict=code,game', 'POST',
         { code: b.code, game: b.game, live: room.live, state: g, rev, updated_at: new Date().toISOString() },
         'return=representation,resolution=merge-duplicates');
+      if (handsOver(turn, null, g, 1 - seat)) later(pushTurn(b.code, 1 - seat, b.game, names[seat], true));
       return reply(out(saved[0]));
     }
 
@@ -230,7 +264,10 @@ Deno.serve(async (req: Request) => {
         if (turn.bot) runBots(turn, g);
         const saved = await rest('your_move_games', path + '&rev=eq.' + row.rev, 'PATCH',
           { state: g, rev: row.rev + 1, updated_at: new Date().toISOString() });
-        if (saved.length) return reply(out(saved[0]));
+        if (saved.length) {
+          if (handsOver(turn, row.state, g, 1 - seat)) later(pushTurn(b.code, 1 - seat, b.game, names[seat], false));
+          return reply(out(saved[0]));
+        }
         row = await load(); // The other phone moved at the same moment; re-check against the newer game.
       }
       return reply({ ...out(row), error: 'Busy table. Try again.' }, 409);

@@ -175,6 +175,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 .msg.emo{font-size:36px;background:none!important;padding:0 4px}
 .msg time{display:block;font-size:10px;opacity:.55;margin-top:2px}
 .msg.pending{opacity:.55}
+.readrcpt{align-self:flex-end;font-size:11px;opacity:.55;margin:-2px 4px 4px}
 .sysmsg{align-self:center;font-size:13px;color:var(--muted);text-align:center;padding:4px 10px}
 .quick{display:flex;gap:6px;overflow-x:auto;flex:none;padding:6px 0;scrollbar-width:none}
 .quick::-webkit-scrollbar{display:none}
@@ -194,7 +195,7 @@ table.sc .tot{font-weight:700;font-size:18px}
 @media (max-height:700px){ .logo{font-size:44px} .fan{height:76px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
-<link rel="stylesheet" href="/your-move-chat/chat.css?v=badge1"><script type="module" src="/your-move-chat/chat.mjs?v=badge1"></script><link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
+<link rel="stylesheet" href="/your-move-chat/chat.css?v=read1"><script type="module" src="/your-move-chat/chat.mjs?v=read1"></script><link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script></head>
 <body>
 <div id="bg"></div>
 <div id="app">
@@ -1221,7 +1222,7 @@ async function chatCall(op, extra={}){
   finally{ clearTimeout(to); }
 }
 function absorb(v, full){
-  CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined; CH.live = v.live || null;
+  CH.names = v.names; CH.seat = v.seat; CH.joined = v.joined; CH.live = v.live || null; CH.theirRead = v.theirRead || null;
   connectLive(); refreshLobby(); pullLiveSave();
   if(full) CH.msgs = [];
   const have = new Set(CH.msgs.map(m=>m.id));
@@ -1237,7 +1238,8 @@ function absorb(v, full){
   updateBadge();
 }
 const friendName = () => CH.names[1-CH.seat] || 'Your friend';
-function markSeen(){ if(CH.msgs.length){ CH.seen = top(CH.msgs).ts; store.set('seen', CH.seen); } updateBadge(); }
+function markSeen(){ if(CH.msgs.length){ const ts = top(CH.msgs).ts; if(ts > (CH.seen||0) && CH.room) chatCall('read', {code:CH.room.code, secret:CH.room.secret, thread:'room', ts}).catch(()=>{}); CH.seen = ts; store.set('seen', CH.seen); } updateBadge(); }
+const readLabel = at => { const d = new Date(at), t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); return 'Read ' + (d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + t); };
 function unread(){ return CH.msgs.filter(m=>m.seat!==CH.seat && m.ts>CH.seen).length; }
 function updateBadge(){ const n = unread(); document.querySelectorAll('.chatBadge').forEach(b=>{ b.textContent = n>9?'9+':n; b.classList.toggle('hidden', !n); }); }
 let toastTimer = null;
@@ -1336,9 +1338,12 @@ function renderChat(scroll){
   } else {
     const me = CH.seat, fname = friendName();
     const all = CH.msgs.concat(CH.pending.map(p=>({...p, pend:true})));
+    // One-way read receipt (only the parent's phone gets CH.theirRead from the server).
+    const rUp = CH.theirRead?.upTo || 0, rId = rUp ? CH.msgs.filter(m=>m.seat===me && m.ts<=rUp).at(-1)?.id : null;
     const list = all.length ? all.map(m=>{
       const mine = m.seat===me, big = isBigEmoji(m.text);
-      return `<div class="msg ${mine?'me':''} ${big?'emo':''} ${m.pend?'pending':''}">${esc(m.text)}<time>${m.pend?'sending…':hhmm(m.ts)}</time></div>`;
+      return `<div class="msg ${mine?'me':''} ${big?'emo':''} ${m.pend?'pending':''}">${esc(m.text)}<time>${m.pend?'sending…':hhmm(m.ts)}</time></div>`
+        + (m.id===rId ? `<div class="readrcpt">${esc(readLabel(CH.theirRead.at))}</div>` : '');
     }).join('') : '';
     const sys = CH.joined ? (all.length?'':`<div class="sysmsg">${esc(fname)} is here. Say hi 👋</div>`)
       : `<div class="sysmsg">Waiting for your friend to join.<br>Send them code <b style="color:var(--gold);letter-spacing:2px">${CH.room.code}</b></div>`;

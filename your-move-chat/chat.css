@@ -29,6 +29,7 @@ html[data-move-chat] dialog.move-chat [hidden]{display:none!important}
 html[data-move-chat] dialog.move-chat [data-messages]{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 html[data-move-chat] dialog.move-chat [data-messages] article{max-width:86%;margin:6px 10% 6px 0;background:#303346;border-radius:13px;padding:9px 12px;overflow-wrap:anywhere;white-space:pre-wrap}
 html[data-move-chat] dialog.move-chat [data-messages] .mine{margin:6px 0 6px auto;background:#41405b}
+html[data-move-chat] dialog.move-chat .move-chat-read{margin:-2px 2px 8px auto;text-align:right;font-size:11px;opacity:.6}
 html[data-move-chat] dialog.move-chat article small{display:block;font-size:10px;color:#d8cde6;margin-bottom:2px}
 html[data-move-chat] dialog.move-chat :is(.move-chat-empty,[data-status]){color:#d0c4d8;font-size:13px;margin:4px 0}
 html[data-move-chat] dialog.move-chat [data-status]:empty{display:none}

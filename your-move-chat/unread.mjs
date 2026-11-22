@@ -69,6 +69,9 @@ export function markSeen(thread, ts) {
   seen[thread] = ts;
   write(seenKey(room), seen);
   publish(room);
+  // Read receipt (one-way: only the room's parent phone ever sees these; the server ignores the parent's own reads).
+  fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: apiKey },
+    body: JSON.stringify({ op: 'read', code: room.code, secret: room.secret, thread, ts }) }).catch(() => {});
 }
 // ---------- push notifications ----------
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;

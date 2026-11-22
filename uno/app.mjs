@@ -265,13 +265,16 @@ function leave(){
  show('menu');
 }
 $('#back').onclick=leave;$('#leaveLobby').onclick=leave;
+const readLabel = at => { const d = new Date(at), t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); return 'Read ' + (d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + t); };
 function renderChat(){
  $('#chatForm').hidden=!info;
  text('chatCode',info?'Room '+room.code+' · shared with the Central games':'Join a room to chat');
  const box=$('#messages'),near=box.scrollHeight-box.scrollTop-box.clientHeight<90;
- box.innerHTML=info?messages.map(m=>`<div class="msg ${m.seat===info.seat?'mine':''}"><small>${esc(info.names[m.seat]||'Player')}</small>${esc(m.text)}</div>`).join('')||'<p class="fine">Say hello.</p>':'<p class="fine">Join a friend to open the shared chat.</p>';
+ // One-way read receipt: only the parent's phone gets info.theirRead from the server.
+ const rUp=info?.theirRead?.upTo||0,rId=rUp?messages.filter(m=>m.seat===info.seat&&m.ts<=rUp).at(-1)?.id:null;
+ box.innerHTML=info?messages.map(m=>`<div class="msg ${m.seat===info.seat?'mine':''}"><small>${esc(info.names[m.seat]||'Player')}</small>${esc(m.text)}</div>`+(m.id===rId?`<p class="readrcpt">${esc(readLabel(info.theirRead.at))}</p>`:'')).join('')||'<p class="fine">Say hello.</p>':'<p class="fine">Join a friend to open the shared chat.</p>';
  if(near)box.scrollTop=box.scrollHeight;
- if($('#chat').open)seen=messages.at(-1)?.ts||0;
+ if($('#chat').open){const ts=messages.at(-1)?.ts||0;if(ts>seen&&info)call('read',{thread:'room',ts}).catch(()=>{});seen=ts;}
  text('chatToggle','Chat');
 }
 $('#chatToggle').onclick=()=>{$('#chat').showModal();renderChat();poll()};

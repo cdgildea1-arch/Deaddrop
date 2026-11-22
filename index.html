@@ -194,7 +194,7 @@ async function yourMove(){
 yourMove();
 setInterval(()=>{if(!document.hidden)yourMove()},30000);
 // Unread chat: red counts on game tiles, a pill for the room chat, and the Home Screen icon badge.
-import('/your-move-chat/unread.mjs?v=push1').then(({startUnread,onUnread,pushState,enablePush})=>{
+import('/your-move-chat/unread.mjs?v=read1').then(({startUnread,onUnread,pushState,enablePush})=>{
  // Notifications: a button while they're off (iPhone only asks after a tap), a short note when something is in the way.
  const btn=document.querySelector('.notify'),note=document.querySelector('.notify-note');
  const notes={'home-screen':'For a message badge on the app icon, add Your Move to your Home Screen (Share → Add to Home Screen) and open it from there.',

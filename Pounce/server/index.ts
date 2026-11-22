@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
       const seated = row.host_hash === secretHash || row.guest_hash === secretHash;
       if (!seated && !/^[0-9]{8}$/.test(b.code)) return reply({ error: 'This phone is not part of that room.' }, 403);
       const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { host_hash: /^[0-9]{8}$/.test(b.code) ? 'unclaimed' : secretHash, guest_hash: null,
-        names: ['', ''], messages: [], game_threads: {}, cleared: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
+        names: ['', ''], messages: [], game_threads: {}, cleared: {}, read: {}, live: crypto.randomUUID().replace(/-/g, ''), rev: row.rev + 1, updated_at: new Date().toISOString() });
       if (!rows.length) return reply({ error: 'The room changed. Try again.' }, 409);
       await db('?code=eq.' + b.code, 'DELETE', undefined, 'pounce_push_v1', 'return=minimal').catch(() => {});
       await db('?code=eq.' + b.code, 'DELETE', undefined, 'pounce_loc_v1', 'return=minimal').catch(() => {});
@@ -129,7 +129,28 @@ Deno.serve(async (req: Request) => {
       row = rows[0]; seat = 1;
     }
     if (seat < 0) return reply({ error: 'This phone is not part of that room.' }, 403);
-    if (b.op === 'get' || b.op === 'join') return reply(view(row, seat, after));
+    // One-way read receipts: only the phone whose key matches watch_hash (the parent) sees how far the other seat has
+    // read; that phone's own reads are never stored, and no other phone ever gets a `theirRead` field.
+    const watcher = !!row.watch_hash && row.watch_hash === secretHash;
+    const theirRead = (r: any, thread: string) => watcher ? { theirRead: r.read?.[1 - seat]?.[thread] || null } : {};
+    const v = (r: any) => ({ ...view(r, seat, after), ...theirRead(r, 'room') });
+    if (b.op === 'get' || b.op === 'join') return reply(v(row));
+
+    if (b.op === 'read') {
+      const thread = b.thread === 'room' ? 'room' : gameThreads.has(b.thread) ? b.thread : null;
+      const ts = Math.min(Number(b.ts) || 0, Date.now());
+      if (!thread || ts <= 0) return reply({ error: 'Choose a chat.' }, 400);
+      if (watcher) return reply({ ok: true }); // the parent's reads are never recorded
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const mine = row.read?.[seat] || {};
+        if ((mine[thread]?.upTo || 0) >= ts) return reply({ ok: true });
+        const read = { ...(row.read || {}), [seat]: { ...mine, [thread]: { upTo: ts, at: Date.now() } } };
+        const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { read, rev: row.rev + 1, updated_at: new Date().toISOString() });
+        if (rows.length) return reply({ ok: true });
+        row = (await db(path))[0];
+      }
+      return reply({ ok: false });
+    }
 
     if (b.op === 'push-key') return reply({ key: (await vapidKeys()).publicKey });
     if (b.op === 'push-sub') {
@@ -175,7 +196,7 @@ Deno.serve(async (req: Request) => {
         const messages = current.game_threads[b.game] || [];
         const from = Math.max(after, clearedAt(current, seat, b.game));
         return { code: current.code, seat, joined: !!current.guest_hash, names: current.names, live: current.live,
-          cursor: messages.at(-1)?.ts || 0, messages: messages.filter((m: any) => m.ts > from) };
+          cursor: messages.at(-1)?.ts || 0, messages: messages.filter((m: any) => m.ts > from), ...theirRead(current, b.game) };
       };
       if (b.op === 'table-get') return reply(tableView(row));
       if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500)
@@ -223,13 +244,13 @@ Deno.serve(async (req: Request) => {
 
     if (b.op === 'message') {
       if (!isToken(b.id) || typeof b.text !== 'string' || !b.text.trim() || b.text.length > 500) return reply({ error: 'Messages can be up to 500 characters.' }, 400);
-      if (row.messages.some((m: any) => m.id === b.id)) return reply(view(row, seat, after));
+      if (row.messages.some((m: any) => m.id === b.id)) return reply(v(row));
       for (let attempt = 0; attempt < 3; attempt++) {
         const messages = [...row.messages, { id: b.id, seat, text: b.text.trim(), ts: Date.now() }].slice(-300);
         const rows = await db(path + '&rev=eq.' + row.rev, 'PATCH', { messages, rev: row.rev + 1, updated_at: new Date().toISOString() });
-        if (rows.length) { later(notify(rows[0], seat, 'room', b.text.trim())); return reply(view(rows[0], seat, after)); }
+        if (rows.length) { later(notify(rows[0], seat, 'room', b.text.trim())); return reply(v(rows[0])); }
         row = (await db(path))[0];
-        if (row.messages.some((m: any) => m.id === b.id)) return reply(view(row, seat, after));
+        if (row.messages.some((m: any) => m.id === b.id)) return reply(v(row));
       }
       return reply({ error: 'Busy room. Send again.' }, 409);
     }

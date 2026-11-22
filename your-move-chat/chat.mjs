@@ -1,4 +1,4 @@
-import { startUnread, onUnread, markSeen, askForIconBadge } from './unread.mjs?v=push1';
+import { startUnread, onUnread, markSeen, askForIconBadge } from './unread.mjs?v=read1';
 const slot = document.documentElement.dataset.moveChat;
 const api = 'https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat';
 const apiKey = 'sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
@@ -83,9 +83,10 @@ function dayLabel(when) {
   if (days === 1) return 'Yesterday';
   return when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', ...(when.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
 }
+const readLabel = at => { const d = new Date(at), t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); return 'Read ' + (d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + t); };
 function showMessages(view) {
   const messages = view.messages.filter(message => message.ts > baseline);
-  const signature = new Date().toDateString() + ':' + mode + ':' + view.live + ':' + messages.map(message => message.id).join(',');
+  const signature = new Date().toDateString() + ':' + mode + ':' + view.live + ':' + messages.map(message => message.id).join(',') + ':' + (view.theirRead?.upTo || 0);
   if (signature === visibleSignature) return;
   visibleSignature = signature;
   feed.toggleAttribute('data-blank', messages.length === 0);
@@ -97,6 +98,9 @@ function showMessages(view) {
     empty.textContent = 'No messages yet.';
     feed.append(empty);
   }
+  // One-way read receipt: the server only sends `theirRead` to the parent's phone.
+  const readUpTo = view.theirRead?.upTo || 0;
+  const receiptFor = readUpTo ? messages.filter(m => m.seat === view.seat && m.ts <= readUpTo).at(-1)?.id : null;
   let lastDay = '';
   for (const message of messages) {
     const when = new Date(message.ts);
@@ -116,6 +120,12 @@ function showMessages(view) {
     content.textContent = message.text;
     article.append(name, content);
     feed.append(article);
+    if (message.id === receiptFor) {
+      const receipt = document.createElement('p');
+      receipt.className = 'move-chat-read';
+      receipt.textContent = readLabel(view.theirRead.at);
+      feed.append(receipt);
+    }
   }
   if (nearBottom) feed.scrollTop = feed.scrollHeight;
 }

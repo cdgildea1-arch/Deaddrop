@@ -125,7 +125,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <button class="btn primary" id="startKnee" type="button">Start with knee kick</button>
   <button class="btn" id="startPads" type="button">Start without the sensor</button>
   <p class="note" id="startNote"></p>
-  <p class="note" style="opacity:.6">Version 15 · no kick after snare knock</p>
+  <p class="note" style="opacity:.6">Version 16 · steadier calibration</p>
  </div>
 </div>
 
@@ -158,7 +158,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
   <p class="note" id="midiNote"></p>
   <p class="note">Keys: <kbd>Space</kbd> kick · <kbd>F</kbd> hat · <kbd>D</kbd> open hat · <kbd>J</kbd> snare · <kbd>K</kbd> floor tom · <kbd>L</kbd> crash</p>
   <p class="note">iPhone: if you hear nothing, flip the silent switch off. Lock rotation so the layout doesn't flip while it's on your knee.</p>
-  <p class="note" style="opacity:.6">Version 15</p>
+  <p class="note" style="opacity:.6">Version 16</p>
   <button class="btn primary" id="setDone" type="button">Done</button>
  </div>
 </div>
@@ -190,7 +190,7 @@ kbd{font:600 12px ui-monospace,monospace;background:#26272b;border:1px solid #33
 
 <script>
 "use strict";
-const VERSION = "15";
+const VERSION = "16";
 // GitHub Pages lets phones keep an old copy for a while; check for a newer one and swap it in
 (async () => {
   try {
@@ -850,8 +850,9 @@ async function runCal(){
   for (let i=3;i>0 && alive();i--){ calShow("1 · Hold still", "Phone where you'll play it. Don't move for a moment.", i); await sleep(800); }
   if (!alive()) return;
   if (!motionSeen || still.length < 5) return calFail("Sensor isn't sending data", "Your browser isn't giving motion readings. Make sure you're on <b>https://</b>, then reload. You can still use the on-screen kick pad.");
-  const noiseMag = pct(still.map(s => s.m), .98);
-  const prov = Math.max(noiseMag*3, .8);
+  // a hand on the phone wobbles a little; ignore stray bumps while holding still and cap how much it can raise the bar
+  const noiseMag = Math.min(pct(still.map(s => s.m), .9), 1.2);
+  const prov = Math.min(Math.max(noiseMag*2.5, .8), 2.5);
   const order = S.zones ? ["kick","snare"] : ["kick"];
   const steps = order.length + 2;
 
@@ -920,7 +921,7 @@ async function runCal(){
 
   // ---- zone model ----
   const peaks = order.map(n => med(evs[n].map(ev => evPeak(ev).m)));
-  const trig = Math.max(noiseMag*3, .7, .35*Math.min(...peaks));
+  const trig = Math.max(Math.min(noiseMag*2.5, .5*Math.min(...peaks)), .7, .35*Math.min(...peaks));
   const live = trig / S.sens;          // where the live trigger will actually fire
   const train = {none: []};
   for (const n of order) train[n] = evs[n].map(ev => onsetExample(ev, live)).filter(Boolean);

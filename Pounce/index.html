@@ -1119,7 +1119,7 @@ function startLive(){
 }
 function leaveLive(){
   if(LV.seat===0 && G && LV.inGame) sendState();
-  LV.inGame = false; LV.ready = false; LV.pending = []; LV.hold = false; LV.resumeReq = 0; clearTimeout(awayTimer); ME = 0; G = null; cdTok++;
+  LV.inGame = false; LV.ready = false; LV.unlocked = false; LV.pending = []; LV.hold = false; LV.resumeReq = 0; clearTimeout(awayTimer); ME = 0; G = null; cdTok++;
   track(); closeOverlay(); showScreen('menu');
 }
 // Cancel the game in this room for both phones and empty its seats, so you can both join fresh.
@@ -1145,31 +1145,55 @@ function afterReset(title, msg){
   });
 }
 function openLobby(){
+  // Play a friend always asks for the room code first, even when this phone is already in the room.
+  if(CH.room && !LV.unlocked){ LV.lobby = true; renderLobby(); return; }
   if(LV.offer && LV.seat===1){ const st = LV.offer; LV.offer = null; G = null; onLiveState(st); if(LV.inGame) return; }
   LV.lobby = true;
   if(CH.room && !CH.live) poll(true);
   connectLive();
   renderLobby();
-  if(!CH.room) rejoinSaved().then(ok => { if(ok){ connectLive(); refreshLobby(); } });
 }
-function refreshLobby(){ if(LV.lobby && !$('#overlay').classList.contains('hidden')) renderLobby(); }
+function refreshLobby(){ if(LV.lobby && !$('#overlay').classList.contains('hidden') && !$('#gateCode')) renderLobby(); }
 function renderLobby(){
   const back = `<button class="link" id="lobbyBack">Back</button>`;
+  if(CH.room && !LV.unlocked){
+    const saved = store.get('live', null), resume = saved && saved.code===CH.room.code && saved.st;
+    overlay(`<h2>Play a friend</h2><p>${resume?'You have a match in progress. ':''}Enter your room code to continue.</p>
+      <label for="gateCode">Room code</label>
+      <input class="field" id="gateCode" maxlength="8" placeholder="Enter room code" inputmode="numeric" autocomplete="off" autocapitalize="characters">
+      <button class="big" id="gateGo">Continue</button>
+      <div class="err" id="gateErr" role="status"></div>${back}`);
+    const go = async () => {
+      const code = $('#gateCode').value.toUpperCase().replace(/[^A-Z0-9]/g,''), error = $('#gateErr');
+      if(!CODE_RE.test(code)){ error.textContent = 'Enter your room code.'; return; }
+      if(code !== CH.room.code){
+        error.textContent = 'Connecting…'; $('#gateGo').disabled = true;
+        try{ leaveRoom(true); await joinRoom(code, store.get('name','')); }
+        catch(e){ error.textContent = e.message; $('#gateGo').disabled = false; LV.lobby = true; renderLobby(); return; }
+      }
+      LV.unlocked = true; openLobby();
+    };
+    $('#gateGo').onclick = go;
+    $('#gateCode').onkeydown = e => { if(e.key==='Enter') go(); };
+    $('#lobbyBack').onclick = () => { LV.lobby = false; closeOverlay(); };
+    setTimeout(() => $('#gateCode')?.focus(), 50);
+    return;
+  }
   if(!CH.room){
     overlay(`<h2>Play a friend</h2><p>Enter the same game code on both devices.</p>
       <label for="lobbyName">Your name</label>
       <input class="field" id="lobbyName" maxlength="18" placeholder="Your name" value="${esc(store.get('name',''))}" autocomplete="nickname">
       <label for="lobbyCode">Game code</label>
-      <input class="field" id="lobbyCode" maxlength="8" placeholder="Enter game code" value="${esc(lastCode())}" autocomplete="off" autocapitalize="characters">
+      <input class="field" id="lobbyCode" maxlength="8" placeholder="Enter game code" autocomplete="off" autocapitalize="characters">
       <button class="big" id="lobbyJoin">Join a friend</button>
-      <div class="err" id="lobbyErr" role="status">${rejoining?'Rejoining room '+esc(lastCode())+'…':''}</div>${back}`);
+      <div class="err" id="lobbyErr" role="status"></div>${back}`);
     const join = async () => {
       const name = $('#lobbyName').value.trim(), code = $('#lobbyCode').value.trim().toUpperCase();
       const error = $('#lobbyErr'), button = $('#lobbyJoin');
       if(!name || /^[0-9 ]+$/.test(name)){ error.textContent = 'Enter your name first.'; return; }
       if(!CODE_RE.test(code)){ error.textContent = 'Enter a valid game code.'; return; }
       error.textContent = 'Connecting…'; button.disabled = true;
-      try{ await joinRoom(code, name); renderLobby(); }
+      try{ await joinRoom(code, name); LV.unlocked = true; openLobby(); }
       catch(e){ error.textContent = e.message; button.disabled = false; }
     };
     $('#lobbyJoin').onclick = join;
@@ -1199,7 +1223,7 @@ function renderLobby(){
     const tg = $('#lobbyTarget'); if(tg) tg.onclick = e => { const b = e.target.closest('button'); if(!b) return; settings.target = +b.dataset.v; store.set('settings', settings); track(); renderLobby(); };
     $('#cancelRoomBtn').onclick = cancelRoom;
   }
-  $('#lobbyBack').onclick = () => { LV.lobby = false; LV.ready = false; track(); closeOverlay(); };
+  $('#lobbyBack').onclick = () => { LV.lobby = false; LV.ready = false; LV.unlocked = false; track(); closeOverlay(); };
 }
 
 /* ---------- chat with a friend ---------- */

@@ -19,7 +19,6 @@ function screen(playing){
  $('play').hidden=!playing;
 }
 $('name').value=read('pounce.name')||read('pounce.room')?.name||'';
-$('code').value=read('pounce.room')?.code||'';
 $('joinForm').onsubmit=async event=>{
  event.preventDefault();
  const name=$('name').value.trim(), code=$('code').value.trim().toUpperCase();
@@ -38,7 +37,7 @@ $('joinForm').onsubmit=async event=>{
 };
 $('leave').onclick=()=>{
  net?.close();room=net=peer=session=game=remote=draft=preview=pending=receipt=null;
- connected=false;pointer=null;$('code').value=read('pounce.room')?.code||'';$('guess').value='';screen(false);notice('');
+ connected=false;pointer=null;$('code').value='';$('guess').value='';screen(false);notice('');
 };
 function publish(){
  if(host()&&game)saves.put({game,session});

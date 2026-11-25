@@ -244,7 +244,7 @@ MahjongNavigation.guard(()=>{
 // Your Move room (e.g. 25800852): fill it in so you never have to type it.
 function yourMoveRoom(){try{const r=JSON.parse(localStorage.getItem('pounce.room')||'null');return r&&/^[0-9]{8}$/.test(r.code)?r.code:null}catch(e){return null}}
 const baseResetControls=resetRoomControls;
-resetRoomControls=function(){baseResetControls();const c=yourMoveRoom();if(c&&!$('roomCode').value)$('roomCode').value=c};
+resetRoomControls=function(){baseResetControls()};
 // Cancel game and reset room: frees both seats, deals a fresh game, then takes Player 1 on this phone.
 // The other phone joins again with the same code to become Player 2. Room messages stay.
 $('resetRoom').onclick=async()=>{
@@ -265,7 +265,7 @@ const incomingTable = MahjongNavigation.incoming('classic', normalizeRoomCode);
 $('mode').value='solo';
 fresh();
 syncControls();
-if(!$('roomCode').value&&yourMoveRoom())$('roomCode').value=yourMoveRoom();
+
 if (inviteCode) {
   $('quickOnline').click();
   $('connection').textContent='This link invites you to a game. Enter your name, then tap Join game.';

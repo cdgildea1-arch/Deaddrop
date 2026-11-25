@@ -149,7 +149,7 @@ $('#again').onclick=start;
 $('#join').onclick=join;
 $('#practice').onclick=()=>{practice=true;start()};
 $('#start').onclick=start;
-function leave(){
+function leave(){$('#code').value='';
  clearTimeout(botTimer);if(channel)client.removeChannel(channel);
  channel=null;connected=false;peer=null;busy=false;practice=false;game=remote=null;over=false;
  show('menu');
@@ -180,6 +180,6 @@ setInterval(()=>{if(!document.hidden&&screen!=='menu')refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&screen!=='menu')refresh()});
 renderChat();
 
-// Rejoin the saved room on open (e.g. 25800852) so the code never has to be typed again, game or no game.
-// A game in progress opens to the board; otherwise you land in the room's lobby. Back still goes to the menu.
-if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join();}
+// You always type the room code (e.g. 25800852) to get in. With a saved room the button reads "Continue";
+// typing the same code keeps your seat, and a game in progress opens straight to the board.
+if(room?.code){$('#code').value='';$('#code').placeholder='Enter room code to continue';$('#join').textContent='Continue';}

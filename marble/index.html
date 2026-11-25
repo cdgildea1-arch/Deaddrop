@@ -538,7 +538,7 @@ $('#resBody').onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(!a)
 const API='https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat',KEY='sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 let room=ls.get('pounce.room'),info=null,client=null,channel=null,connected=false,peer=null;const sid=hex();
 const live={ready:false,raceId:null,course:null,day:null,peerPos:null,peerDone:null,mine:null,peerName:null};
-$('#lname').value=room?.name||ls.get('pounce.name','');$('#lcode').value=room?.code||'';
+$('#lname').value=room?.name||ls.get('pounce.name','');$('#lcode').value='';
 async function call(op,extra={}){const r=await fetch(API,{method:'POST',signal:AbortSignal.timeout(10000),headers:{'Content-Type':'application/json',apikey:KEY},body:JSON.stringify({op,code:room?.code,secret:room?.secret,...extra})});const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'Connection failed.');return j}
 async function openLive(){const name=$('#lname').value.trim(),code=$('#lcode').value.trim().toUpperCase();if(!name)return note('Enter your name first.');
  if(!/^(?:[A-HJ-NP-Z2-9]{6}|[0-9]{8})$/.test(code))return note('Use an eight-digit code or a six-character room code.');

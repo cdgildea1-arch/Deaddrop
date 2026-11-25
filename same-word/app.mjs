@@ -17,6 +17,7 @@ const clock=()=>Date.now()+offset;
 function status(message=''){set('notice',message);$('notice').hidden=!message}
 function screen(playing){$('entry').hidden=playing;$('play').hidden=!playing}
 $('name').value=read('pounce.name')||read('pounce.room')?.name||'';
+$('code').value=read('pounce.room')?.code||'';
 $('joinForm').onsubmit=async event=>{
  event.preventDefault();
  const name=$('name').value.trim(), code=$('code').value.trim().toUpperCase();
@@ -31,7 +32,7 @@ $('joinForm').onsubmit=async event=>{
 };
 $('leave').onclick=()=>{
  net?.close();room=net=peer=session=state=remote=pending=null;
- connected=false;offset=0;resetInput();$('code').value='';screen(false);status();
+ connected=false;offset=0;resetInput();$('code').value=read('pounce.room')?.code||'';screen(false);status();
 };
 function resetInput(){sent=false;typed='';input.value='';revealKey=''}
 input.addEventListener('input',()=>{

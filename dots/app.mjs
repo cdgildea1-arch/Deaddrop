@@ -179,3 +179,7 @@ setInterval(()=>{if(!document.hidden)poll()},3500);
 setInterval(()=>{if(!document.hidden&&screen!=='menu')refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&screen!=='menu')refresh()});
 renderChat();
+
+// Rejoin the saved room on open (e.g. 25800852) so the code never has to be typed again, game or no game.
+// A game in progress opens to the board; otherwise you land in the room's lobby. Back still goes to the menu.
+if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join();}

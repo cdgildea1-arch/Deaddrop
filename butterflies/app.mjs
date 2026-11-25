@@ -180,3 +180,7 @@ function leave(){if(channel)client.removeChannel(channel);channel=null;connected
 $('#back').onclick=leave;$('#leaveLobby').onclick=leave;
 setInterval(()=>{if(!document.hidden&&!(document.activeElement===$('#text')))refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+
+// Rejoin the saved room on open (e.g. 25800852) so the code never has to be typed again, game or no game.
+// A game in progress opens to the board; otherwise you land in the room's lobby. Back still goes to the menu.
+if(room?.code){$('#code').value=room.code;if(room.secret&&$('#name').value.trim())join();}

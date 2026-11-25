@@ -6,7 +6,7 @@ const hex=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),v=>v.toStrin
 const API='https://lecudeiafwhyhufceurv.supabase.co/functions/v1/pounce-chat', KEY='sb_publishable_Q9ESUnHKw3-FPpGeTYRfSA_4sg55UMD';
 let room=read('pounce.room'), info=null, channel=null, client=null, connected=false, peer=null, ready=false, g=null, shown=null, practice=false, selected=null, pending=null, rev=-1, lastHost=0, lastTick=Date.now(), deadSince=0, nextBot=[], messages=[], seen=0, pollBusy=false, sound=false, audio=null;
 const sid=hex();let hostSid=null, peerSid=null, ack=0, seq=0, finishedGame=null, active='menu';
-$('#name').value=room?.name||read('pounce.name','');
+$('#name').value=room?.name||read('pounce.name','');$('#code').value=room?.code||'';
 const note=t=>$('#notice').textContent=t;
 const screen=s=>{active=s;for(const id of ['menu','lobby','game'])$('#'+id).hidden=id!==s;note('')};
 const mySeat=()=>practice?0:info?.seat??0;

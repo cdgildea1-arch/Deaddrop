@@ -21,6 +21,7 @@ txt('mark',marks[kind]);
 txt('detail',detail);
 txt('instructions',instructions);
 $('name').value=read('pounce.name') || read('pounce.room')?.name || '';
+$('code').value=read('pounce.room')?.code||'';
 
 const stage=$('stage'), button=$('mainAction');
 const canvas=document.createElement('canvas');
@@ -147,7 +148,7 @@ $('leave').onclick=()=>{
   resetDraft();
   renderedKey=null;
   stage.replaceChildren();
-  $('code').value='';
+  $('code').value=read('pounce.room')?.code||'';
   screen(false);
 };
 setInterval(()=>{

@@ -962,7 +962,7 @@ async function connectLive(){
     .on('broadcast', {event:'ctl'},   ({payload}) => onLiveCtl(payload))
     .on('broadcast', {event:'hello'}, () => { if(LV.seat===0 && LV.inGame) sendState(); })
     .on('broadcast', {event:'ping'},  () => { poll(false); })
-    .on('broadcast', {event:'reset'}, () => { const who = CH.names[1-CH.seat] || 'Your friend'; afterReset(); toast(who, 'reset the room. Join again to play.'); })
+    .on('broadcast', {event:'reset'}, () => { const who = CH.names[1-CH.seat] || 'Your friend'; afterReset(who, 'reset the room.'); })
     .on('presence',  {event:'sync'},  onPresence);
   ch.subscribe(status => {
     if(LV.ch !== ch) return;
@@ -1130,15 +1130,19 @@ async function cancelRoom(){
   liveSend('reset', {});
   try{ await chatCall('reset', {code:room.code, secret:room.secret}); }
   catch(e){ toast('Reset failed', e.message); return; }
-  afterReset();
-  toast('Room ' + room.code, 'is reset. Join again to play.');
+  afterReset('Room ' + room.code, 'is reset.');
 }
-function afterReset(){
+function afterReset(title, msg){
   store.del('live'); LV.fresh = false;
   const inLobby = LV.lobby;
   leaveRoom(true);
   closeOverlay(); G = null; showScreen('menu');
   if(inLobby){ LV.lobby = true; renderLobby(); }
+  // Same room, fresh seats: rejoin it right away so nobody has to type the code again.
+  rejoinSaved().then(ok => {
+    toast(title, ok ? msg + ' You\u2019re back in room ' + CH.room.code + '.' : msg + ' Join again to play.');
+    if(ok && LV.lobby){ connectLive(); refreshLobby(); }
+  });
 }
 function openLobby(){
   if(LV.offer && LV.seat===1){ const st = LV.offer; LV.offer = null; G = null; onLiveState(st); if(LV.inGame) return; }
@@ -1146,6 +1150,7 @@ function openLobby(){
   if(CH.room && !CH.live) poll(true);
   connectLive();
   renderLobby();
+  if(!CH.room) rejoinSaved().then(ok => { if(ok){ connectLive(); refreshLobby(); } });
 }
 function refreshLobby(){ if(LV.lobby && !$('#overlay').classList.contains('hidden')) renderLobby(); }
 function renderLobby(){
@@ -1155,9 +1160,9 @@ function renderLobby(){
       <label for="lobbyName">Your name</label>
       <input class="field" id="lobbyName" maxlength="18" placeholder="Your name" value="${esc(store.get('name',''))}" autocomplete="nickname">
       <label for="lobbyCode">Game code</label>
-      <input class="field" id="lobbyCode" maxlength="8" placeholder="Enter game code" autocomplete="off" autocapitalize="characters">
+      <input class="field" id="lobbyCode" maxlength="8" placeholder="Enter game code" value="${esc(lastCode())}" autocomplete="off" autocapitalize="characters">
       <button class="big" id="lobbyJoin">Join a friend</button>
-      <div class="err" id="lobbyErr" role="status"></div>${back}`);
+      <div class="err" id="lobbyErr" role="status">${rejoining?'Rejoining room '+esc(lastCode())+'…':''}</div>${back}`);
     const join = async () => {
       const name = $('#lobbyName').value.trim(), code = $('#lobbyCode').value.trim().toUpperCase();
       const error = $('#lobbyErr'), button = $('#lobbyJoin');
@@ -1249,10 +1254,11 @@ function toast(name, text){
 }
 async function poll(full){
   if(!CH.room || CH.busy) return;
-  CH.busy = true;
+  CH.busy = true; let later = false;
   try{ absorb(await chatCall('get', {code:CH.room.code, secret:CH.room.secret, after: full?0:CH.lastTs}), full); CH.err=''; }
-  catch(e){ CH.err = e.message; if(/not part|No room/.test(e.message)){ leaveRoom(true); CH.err = e.message; } }
+  catch(e){ CH.err = e.message; if(/not part|No room/.test(e.message)){ leaveRoom(true); CH.err = e.message; if(/not part/.test(e.message)) later = true; } }
   finally{ CH.busy = false; }
+  if(later && await rejoinSaved()){ CH.err = ''; if(LV.lobby){ connectLive(); refreshLobby(); } }
   if(CH.open) renderChat();
 }
 function schedulePoll(){
@@ -1278,12 +1284,33 @@ async function joinRoom(code, name){
   const v = await chatCall('join', {code, secret:room.secret, name});
   setRoom(room); absorb(v, true);
 }
+// The last room this phone was in ({code, name}). If the room gets reset or this phone loses its seat, rejoin the
+// same code with the same name (the server hands the old seat back), so the code never has to be typed twice.
+const lastCode = () => (store.get('lastRoom', null) || CH.room || {}).code || HOME_ROOM;
+let rejoining = null;
+function rejoinSaved(){
+  if(CH.room) return Promise.resolve(true);
+  const last = store.get('lastRoom', null), name = (last && last.name) || store.get('name', '');
+  if(!last || last.left || !CODE_RE.test(last.code) || !name) return Promise.resolve(false);
+  if(rejoining) return rejoining;
+  refreshLobby();
+  rejoining = (async () => {
+    for(let i = 0; i < 4; i++){
+      try{ await joinRoom(last.code, name); CH.err = ''; return true; }
+      catch(e){ if(!/changed|timed out|fetch|network/i.test(e.message)) return false; await new Promise(r => setTimeout(r, 400 + Math.random()*600)); }
+    }
+    return false;
+  })().finally(() => { rejoining = null; refreshLobby(); updateBadge(); if(CH.open) renderChat(); });
+  return rejoining;
+}
 function setRoom(room){
   CH.room = room; store.set('room', room); store.set('name', room.name);
+  store.set('lastRoom', {code:room.code, name:room.name});
   CH.seen = 0; store.set('seen', 0); CH.msgs = []; CH.lastTs = 0; CH.pending = [];
   schedulePoll();
 }
-function leaveRoom(silent){
+function leaveRoom(silent, manual){
+  if(manual){ const last = store.get('lastRoom', null); if(last) store.set('lastRoom', {...last, left:true}); }
   if(LV.inGame) leaveLive();
   disconnectLive(); CH.live = null;
   CH.room = null; store.del('room'); CH.msgs=[]; CH.pending=[]; CH.lastTs=0; clearTimeout(CH.timer); updateBadge();
@@ -1359,7 +1386,7 @@ function renderChat(scroll){
     inp.oninput = () => { renderChat.draft = inp.value; };
     $('#sendForm').onsubmit = e => { e.preventDefault(); const t = inp.value; inp.value=''; renderChat.draft=''; sendMsg(t); inp.focus(); };
     box.querySelectorAll('[data-q]').forEach(b => b.onclick = () => sendMsg(b.dataset.q));
-    $('#leaveRoom').onclick = () => { if(confirm('Leave this room? You’ll need a new code to chat again.')) leaveRoom(); };
+    $('#leaveRoom').onclick = () => { if(confirm('Leave this room? You’ll need to join a room again to chat.')) leaveRoom(false, true); };
     $('#shareRoom').onclick = shareRoom;
     const ml = $('#msgs');
     if(scroll !== false) ml.scrollTop = ml.scrollHeight;
@@ -1404,7 +1431,9 @@ document.addEventListener('your-move-chat-joined', e=>{
     const code = q.toUpperCase();
     if(CODE_RE.test(code)) document.documentElement.dataset.moveInvite = code;
   }
+  if(CH.room && !store.get('lastRoom', null)) store.set('lastRoom', {code:CH.room.code, name:CH.room.name});
   if(CH.room){ poll(true).then(schedulePoll); }
+  else rejoinSaved();
 })();
 
 showScreen('menu');

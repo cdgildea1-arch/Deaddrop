@@ -151,9 +151,50 @@ function restoreSwipeHub(doc) {
       display: grid; place-items: center; color: #a45353; transform: rotate(8deg);
     }
     .swipe-card-art--letter span::after { content: '♥'; }
+    .swipe-card-art--archive { background: radial-gradient(ellipse, #f8edda, #e4d2b1); }
+    .swipe-card-art--cards { background: radial-gradient(ellipse, #f5e7e5, #e5cacc); }
+    .swipe-card-art--drop { background: radial-gradient(ellipse, #e1e9f2, #b7c9dc); }
+    .swipe-card-art--ledger { background: radial-gradient(ellipse, #eef1e5, #cdd9c2); }
+    .swipe-card-art--jar { background: radial-gradient(ellipse, #eee9f5, #d7c9e5); }
+    .swipe-card-art--kit { background: radial-gradient(ellipse, #faeedc, #eacaba); }
+    .swipe-card-art--object span {
+      display: grid; place-items: center; width: 57px; height: 49px;
+      border: 1px solid #90745788; border-radius: 8px;
+      background: #fff9ec; font-size: 27px; line-height: 1;
+      transform: rotate(-8deg);
+    }
+    .swipe-card-art--cards span, .swipe-card-art--jar span { transform: rotate(8deg); }
+    .swipe-card-art--archive span { border-top: 5px solid #af8a57; }
+    .swipe-card-art--cards span { box-shadow: -5px 4px #e4bcc0, 0 5px 12px #503b3738; }
+    .swipe-card-art--drop span { background: #ecf2f7; border-color: #738aa1; }
+    .swipe-card-art--ledger span { border-left: 5px solid #7f9171; background: #f4f5eb; }
+    .swipe-card-art--jar span { background: #f5eff9; border-color: #a893b7; }
+    .swipe-card-art--kit span { border-top: 5px solid #ad695c; }
     @media (max-height: 560px) { .swipe-card-art { display: none; } }
   `;
   doc.head.append(styles);
+
+  const cardArt = {
+    'archive.html': ['archive', '🗂️'],
+    'cards.html': ['cards', '🃏'],
+    'deaddrop.html': ['drop', '🔏'],
+    'the_ledger.html': ['ledger', '📊'],
+    'pins.html': ['jar', '🫙'],
+    'emergency.html': ['kit', '🐧'],
+  };
+  for (const tile of carousel.querySelectorAll('.menu-item')) {
+    const name = new URL(tile.href, location.origin).searchParams.get('page');
+    const illustration = cardArt[name];
+    if (!illustration) continue;
+    const [artwork, symbol] = illustration;
+    const art = doc.createElement('div');
+    art.className = 'swipe-card-art swipe-card-art--object swipe-card-art--' + artwork;
+    art.setAttribute('aria-hidden', 'true');
+    const object = doc.createElement('span');
+    object.textContent = symbol;
+    art.append(object);
+    tile.querySelector('.lock-badge').before(art);
+  }
 
   for (const [label, icon, href, description, badge, artwork] of [
     ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '🔒 PDF passphrase required', 'book'],

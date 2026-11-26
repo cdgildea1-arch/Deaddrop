@@ -16,7 +16,7 @@ const sid=hex();
 // The same screen runs two games: Butterflies (sweet deck) and After Dark (its own page and saved game).
 const GAME=document.documentElement.dataset.moveChat||'butterflies';
 const DECK=GAME==='after-dark'?'dark':'sweet';
-const ICON=DECK==='dark'?'🔥':'🦋', UNIT=DECK==='dark'?'flames':'butterflies';
+const ICON=DECK==='dark'?'🌙':'🦋', UNIT=DECK==='dark'?'moons':'butterflies';
 const ask=(card,mystery,seat,partner)=>askDeck(card,mystery,seat,partner,g?.deck||DECK);
 const table=savedTable(GAME,()=>room,data=>{
  g=data.game;over=!!data.over;
@@ -161,7 +161,7 @@ function render(){
   if(g.hearts[1-me])$('#reveal').innerHTML+=`<p class="sent">${She} sent you a ${ICON}</p>`;
   status=g.ready[me]?'Waiting on '+other+' to read it…':(DECK==='dark'?'Did '+P().p+' answer turn you on?':'Did '+P().p+' answer give you butterflies?');
   $('#heart').setAttribute('aria-pressed',String(heart));
-  text('heart',heart?ICON+' Sent':DECK==='dark'?'🔥 That’s hot':'🦋 Give a butterfly');
+  text('heart',heart?ICON+' Sent':DECK==='dark'?'🌙 That’s hot':'🦋 Give a butterfly');
   $('#heart').disabled=$('#next').disabled=busy;
   text('next',g.round>=g.rounds?'See our jar':'Next question');
  }

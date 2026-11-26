@@ -22,7 +22,7 @@ const documents = {
   'confirmed-pins.html': '69e8423339ca402ff71adc5f8780b0d3a0e5f9140565638c8f74ebb30a511494',
   'previously-pinned.html': 'dbd36d427a9e4fa05a70229dac4528d2ac55f44cc0b762bfb88c9dc9f216eef8',
   'emergency.html': '6f55475c1b98b9e1f4d261031630b7dedd12d455defe632d54c18b309262c4df',
-  'after-the-last-page.html': 'f4fe3b80f7c9f736857df4207bc25029c5af89de99b76c098732db933bacda10',
+  'after-the-last-page.html': '72034b33e2531769a6e8d774eb20c6e16cf7366ded07aa6ab9f5a3c8e6c2e8e0',
   'places-that-became-ours.html': 'ab50b9ef569efb8140905543f65701e3997790a120a83f5a024c85b6eeb545d9',
   'surprise.html': '64fd8f98e80c8256855a316da63f5494f76576172217394683fa30c1585401df',
   'The_Archive_Illustrated_Ebook_Revised.pdf': '3043e9618e0715a1c1f75b77c03b8af95cca71199b3c5a54dc078272c35d2120',
@@ -209,7 +209,7 @@ function restoreSwipeHub(doc) {
   for (const [label, icon, href, description, badge, artwork] of [
     ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '🔒 PDF passphrase required', 'book'],
     ['Surprise', '💌', privateLink('surprise.html'), 'For You. A little something to open when you have a quiet moment.', '🔒 Passphrase required', 'letter'],
-    ['After the Last Page', '📖', privateLink('after-the-last-page.html'), 'Things we still wanna do. A few things I’m glad we did.', '🔒 Private Archive', 'book'],
+    ['After the Last Page', '📖', privateLink('after-the-last-page.html'), 'To be determined', '🔒 Private Archive', 'book'],
     ['Places That Became Ours', '🗺️', privateLink('places-that-became-ours.html'), 'A scrollable rewind of the places that became part of our story.', '🔒 Passphrase required', 'places'],
   ]) {
     const index = carousel.querySelectorAll('.menu-item').length;
@@ -264,6 +264,7 @@ function restoreSwipeHub(doc) {
 
 async function readPage() {
   const storageNames = {
+    'after-the-last-page.html': 'after-the-last-page-tbd.html',
     'archive.html': 'archive-rotated.html',
     'surprise.html': 'surprise-rekeyed.html',
     [ebook]: 'The_Archive_Illustrated_Ebook_Locked.pdf',

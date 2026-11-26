@@ -103,7 +103,7 @@ function buildPage(markup) {
     doc.getElementById('settingsPanel')?.setAttribute('hidden', '');
   }
   if (page === 'hub.html') {
-    styleReadingRoom(doc);
+    restoreSwipeHub(doc);
   } else {
     const controls = doc.createElement('nav');
     controls.setAttribute('aria-label', 'Private Archive');
@@ -119,40 +119,53 @@ function buildPage(markup) {
   return '<!doctype html>\n' + doc.documentElement.outerHTML;
 }
 
-function styleReadingRoom(doc) {
-  doc.body.classList.add('reading-room');
-  const style = doc.createElement('link');
-  style.rel = 'stylesheet';
-  style.href = '/private/reading-room.css?v=1';
-  doc.head.append(style);
+function restoreSwipeHub(doc) {
+  const carousel = doc.getElementById('carousel');
+  const tabs = doc.getElementById('tabBar');
+  const dots = doc.getElementById('dots');
 
-  const wrap = doc.querySelector('.wrap');
-  const heading = doc.createElement('header');
-  heading.className = 'room-heading';
-  const title = doc.createElement('h1');
-  title.textContent = 'The Hub';
-  heading.append(doc.querySelector('.footer-note'), title);
-  wrap.prepend(heading);
+  for (const [label, icon, href] of [
+    ['Manuscript', '📖', privateLink('Manuscript.html')],
+    ['Surprise', '✦', '/surprise.html'],
+  ]) {
+    const index = carousel.querySelectorAll('.menu-item').length;
+    const tile = doc.createElement('a');
+    tile.className = 'menu-item';
+    tile.dataset.index = index;
+    tile.href = href;
+    tile.target = '_top';
+    const row = doc.createElement('div');
+    row.className = 'top-row';
+    const symbol = doc.createElement('div');
+    symbol.className = 'menu-icon';
+    symbol.setAttribute('aria-hidden', 'true');
+    symbol.textContent = icon;
+    const title = doc.createElement('div');
+    title.className = 'menu-title';
+    title.textContent = label;
+    row.append(symbol, title);
+    tile.append(row);
+    carousel.append(tile);
 
-  doc.querySelectorAll('.tab-bar, .dots, .menu-sub, .lock-badge').forEach(element => element.remove());
-  for (const script of doc.querySelectorAll('script')) {
-    if (script.textContent.includes("const carousel = document.getElementById('carousel')")) script.remove();
+    const tab = doc.createElement('button');
+    tab.type = 'button';
+    tab.className = 'tab-btn';
+    tab.dataset.index = index;
+    tab.textContent = label;
+    tabs.append(tab);
+
+    const dot = doc.createElement('span');
+    dot.className = 'dot';
+    dot.dataset.index = index;
+    dots.append(dot);
   }
-  const grid = doc.getElementById('carousel');
-  grid.setAttribute('role', 'navigation');
-  grid.setAttribute('aria-label', 'Archive sections');
-  grid.querySelectorAll('.menu-icon').forEach(icon => icon.setAttribute('aria-hidden', 'true'));
-  const footer = doc.createElement('footer');
-  footer.className = 'room-footer';
-  for (const [label, url] of [['Manuscript', privateLink('Manuscript.html')], ['Sign out', '/private/?signout=1']]) {
-    const link = doc.createElement('a');
-    link.textContent = label;
-    link.href = url;
-    link.target = '_top';
-    footer.append(link);
-  }
-  footer.insertBefore(doc.getElementById('tp-widget'), footer.lastElementChild);
-  wrap.append(footer);
+
+  const signOut = doc.createElement('a');
+  signOut.href = '/private/?signout=1';
+  signOut.target = '_top';
+  signOut.textContent = 'Sign out';
+  signOut.style.cssText = 'display:block;text-align:center;margin:14px auto;color:inherit;font:600 12px system-ui,sans-serif';
+  dots.after(signOut);
 }
 
 async function readPage() {

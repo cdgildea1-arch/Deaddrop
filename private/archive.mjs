@@ -128,10 +128,36 @@ function restoreSwipeHub(doc) {
   const tabs = doc.getElementById('tabBar');
   const dots = doc.getElementById('dots');
 
-  for (const [label, icon, href] of [
-    ['Manuscript', '📖', privateLink('Manuscript.html')],
-    ['Illustrated Ebook', '📘', privateLink(ebook)],
-    ['Surprise', '✦', privateLink('surprise.html')],
+  const styles = doc.createElement('style');
+  styles.textContent = `
+    .swipe-card-art {
+      display: grid; place-items: center; flex: 1; min-height: 52px;
+      max-height: 132px; margin-top: 12px; overflow: hidden; border-radius: 12px;
+      background: radial-gradient(ellipse, #f7ead5, #e9d6b4);
+    }
+    .swipe-card-art span { display: block; box-shadow: 0 5px 12px #503b3738; }
+    .swipe-card-art--book span {
+      width: 43px; height: 57px; border: 3px double #ac864b; border-left-width: 6px;
+      border-radius: 3px 5px 5px 3px; background: #f8efdc; color: #8b6631;
+      display: grid; place-items: center; transform: rotate(-8deg);
+    }
+    .swipe-card-art--book span::after { content: '✦'; }
+    .swipe-card-art--letter { background: radial-gradient(ellipse, #f7e7e0, #e6c7be); }
+    .swipe-card-art--letter span {
+      width: 65px; height: 42px; border: 1px solid #b58576; border-radius: 4px;
+      background: linear-gradient(32deg, transparent 48%, #c8998a 50%, transparent 52%) left / 50% 100% no-repeat,
+        linear-gradient(-32deg, transparent 48%, #c8998a 50%, transparent 52%) right / 50% 100% no-repeat,
+        #fff5e9;
+      display: grid; place-items: center; color: #a45353; transform: rotate(8deg);
+    }
+    .swipe-card-art--letter span::after { content: '♥'; }
+    @media (max-height: 560px) { .swipe-card-art { display: none; } }
+  `;
+  doc.head.append(styles);
+
+  for (const [label, icon, href, description, badge, artwork] of [
+    ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '✓ Available with your archive sign-in', 'book'],
+    ['Surprise', '💌', privateLink('surprise.html'), 'For You. A little something to open when you have a quiet moment.', '🔒 Passphrase required', 'letter'],
   ]) {
     const index = carousel.querySelectorAll('.menu-item').length;
     const tile = doc.createElement('a');
@@ -149,7 +175,17 @@ function restoreSwipeHub(doc) {
     title.className = 'menu-title';
     title.textContent = label;
     row.append(symbol, title);
-    tile.append(row);
+    const subtitle = doc.createElement('div');
+    subtitle.className = 'menu-sub';
+    subtitle.textContent = description;
+    const art = doc.createElement('div');
+    art.className = 'swipe-card-art swipe-card-art--' + artwork;
+    art.setAttribute('aria-hidden', 'true');
+    art.append(doc.createElement('span'));
+    const status = doc.createElement('div');
+    status.className = 'lock-badge';
+    status.textContent = badge;
+    tile.append(row, subtitle, art, status);
     carousel.append(tile);
 
     const tab = doc.createElement('button');

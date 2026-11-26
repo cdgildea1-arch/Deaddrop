@@ -22,8 +22,8 @@ const documents = {
   'confirmed-pins.html': '69e8423339ca402ff71adc5f8780b0d3a0e5f9140565638c8f74ebb30a511494',
   'previously-pinned.html': 'dbd36d427a9e4fa05a70229dac4528d2ac55f44cc0b762bfb88c9dc9f216eef8',
   'emergency.html': '6f55475c1b98b9e1f4d261031630b7dedd12d455defe632d54c18b309262c4df',
-  'surprise.html': '01a9f606cccfa93878cdf48035134ab447c3e70abe51e8c3bec0204756676914',
-  'The_Archive_Illustrated_Ebook_Revised.pdf': '52a74e833788e2653551a6aa5d907b194e6d241064c20b723380b15e1d7ada2f',
+  'surprise.html': '64fd8f98e80c8256855a316da63f5494f76576172217394683fa30c1585401df',
+  'The_Archive_Illustrated_Ebook_Revised.pdf': '3043e9618e0715a1c1f75b77c03b8af95cca71199b3c5a54dc078272c35d2120',
   'Manuscript.html': '21da887c307818bdac9fdad959b2792730ce1ad1017e16f41e5b137bd935d041',
 };
 const ebook = 'The_Archive_Illustrated_Ebook_Revised.pdf';
@@ -156,7 +156,7 @@ function restoreSwipeHub(doc) {
   doc.head.append(styles);
 
   for (const [label, icon, href, description, badge, artwork] of [
-    ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '✓ Available with your archive sign-in', 'book'],
+    ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '🔒 PDF passphrase required', 'book'],
     ['Surprise', '💌', privateLink('surprise.html'), 'For You. A little something to open when you have a quiet moment.', '🔒 Passphrase required', 'letter'],
   ]) {
     const index = carousel.querySelectorAll('.menu-item').length;
@@ -210,7 +210,12 @@ function restoreSwipeHub(doc) {
 }
 
 async function readPage() {
-  const file = page === 'archive.html' ? 'archive-rotated.html' : page;
+  const storageNames = {
+    'archive.html': 'archive-rotated.html',
+    'surprise.html': 'surprise-rekeyed.html',
+    [ebook]: 'The_Archive_Illustrated_Ebook_Locked.pdf',
+  };
+  const file = storageNames[page] ?? page;
   const { data, error } = await bucket.download(file);
   if (error) throw error;
   const bytes = await data.arrayBuffer();
@@ -281,7 +286,7 @@ async function render() {
         a { display: inline-block; padding: 12px; margin-right: 8px; color: inherit; }
         .open { background: #cddde9; border: 1px solid #7895ad; border-radius: 8px; }
       </style></head><body><main>
-      <h1>The Archive</h1><p>Illustrated Edition</p>
+      <h1>The Archive</h1><p>Illustrated Edition · Passphrase required to open the PDF.</p>
       <a class="open" href="${ebookUrl}" target="_top">Open PDF</a>
       <a href="${ebookUrl}" download="${ebook}">Download PDF</a>
       </main></body></html>` : markup);

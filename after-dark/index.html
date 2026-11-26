@@ -1,6 +1,6 @@
 <!doctype html><html data-game-screen="panel" lang="en" data-move-chat="after-dark"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>After Dark · Your Move</title>
-<link rel="stylesheet" href="../speed/style.css"><link rel="stylesheet" href="../game-viewport.css?v=1"><link rel="stylesheet" href="../butterflies/style.css?v=2"><link rel="stylesheet" href="style.css?v=1">
-<script defer src="../Pounce/supabase.min.js"></script><script type="module" src="../butterflies/app.mjs?v=2"></script>
+<link rel="stylesheet" href="../speed/style.css"><link rel="stylesheet" href="../game-viewport.css?v=1"><link rel="stylesheet" href="../butterflies/style.css?v=2"><link rel="stylesheet" href="style.css?v=2">
+<script defer src="../Pounce/supabase.min.js"></script><script type="module" src="../butterflies/app.mjs?v=3"></script>
 <link rel="stylesheet" href="/your-move-chat/chat.css?v=read1"><script type="module" src="/your-move-chat/chat.mjs?v=read1"></script>
 <link rel="stylesheet" href="/game-screen.css?v=1"><script type="module" src="/game-screen.mjs?v=1"></script>
 <body class="butterflies afterdark"><main>
@@ -14,7 +14,7 @@
   <div id="iam" role="group" aria-labelledby="iamLabel"><button type="button" data-v="him" aria-pressed="false">I’m him</button><button type="button" data-v="her" aria-pressed="false">I’m her</button></div>
   <label for="code">Game code</label><input id="code" placeholder="Enter game code" autocomplete="off" maxlength="8">
   <button id="join" class="primary">Join a friend</button></div>
- <details><summary>How to play</summary><p>Three levels, ten questions, one fire to keep going.<br>
+ <details><summary>How to play</summary><p>Three levels, ten questions, one long, moonlit night.<br>
   <b>Read my mind:</b> one of you answers about yourself and the other guesses what you picked. A match adds 3 🌙.<br>
   <b>Open up:</b> you both answer the same question, then reveal together. Nobody sees an answer until you’ve both sent yours.<br>
   After each reveal, tap 🌙 if the other person’s answer turned you on.<br>
@@ -26,7 +26,7 @@
 
 <section id="game" hidden>
  <div class="gamebar"><button id="back">‹ Leave table</button><span id="mode"></span></div>
- <div id="bar"><span id="level"></span><span id="jar" aria-label="Butterflies in the jar"></span></div>
+ <div id="bar"><span id="level"></span><span id="jar" aria-label="Moons in the jar"></span></div>
  <div id="progress" aria-hidden="true"></div>
  <div id="card"><small id="kind"></small><h2 id="question"></h2></div>
  <p id="status" role="status"></p>

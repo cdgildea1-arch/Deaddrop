@@ -1,12 +1,13 @@
-.butterflies.afterdark{--gold:#ffb199;--rose:#e8455c;--text:#fff0ec;--muted:#cfa9a6;background:radial-gradient(ellipse at 50% 0%,#5a1220,#2a070f 55%,#120306)}
-.afterdark .brand{color:#ff9a8a}
-.afterdark .primary,.afterdark #choices button.mine,.afterdark #iam button[aria-pressed=true]{background:var(--rose);color:#fff4f1}
-.afterdark input:not(.move-chat input),.afterdark textarea{background:#1e050b}
-.afterdark #card{background:#1a0509;color:#ffe9e4;border:1px solid #e8455c66;box-shadow:0 8px 30px #e8455c33}
-.afterdark #card small{color:#ff8a7a}
-.afterdark #progress i.done{background:var(--rose)}.afterdark #progress i.now{background:#ffb199}
+.butterflies.afterdark{--gold:#f3e6c4;--rose:#8fa3e8;--text:#eef1ff;--muted:#a9b3d1;background:radial-gradient(ellipse at 50% 0%,#22325a,#0f1a36 55%,#070b18)}
+.afterdark .brand{color:#c9d3f5}
+.afterdark .primary,.afterdark #choices button.mine,.afterdark #iam button[aria-pressed=true]{background:var(--rose);color:#0b1226}
+.afterdark input:not(.move-chat input),.afterdark textarea{background:#0b1226}
+.afterdark #card{background:#111b38;color:#e9edff;border:1px solid #8fa3e855;box-shadow:0 8px 30px #8fa3e822}
+.afterdark #card small{color:#a9b8f0}
+.afterdark #progress i.done{background:var(--rose)}.afterdark #progress i.now{background:#f3e6c4}
+.afterdark .verdict.yes{color:#f3e6c4}
+.afterdark #heart[aria-pressed=true]{background:#f3e6c422;outline:1px solid var(--gold)}
 .moon{display:block;width:84px;margin:0 auto 12px;animation:moonglow 4s ease-in-out infinite}
 .moon .m1{fill:#f3e6c4}
 @keyframes moonglow{0%,100%{filter:drop-shadow(0 0 6px #f3e6c455)}50%{filter:drop-shadow(0 0 16px #f3e6c499)}}
-@keyframes flicker{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.05,.96) rotate(1.5deg)}}
 @media(prefers-reduced-motion:reduce){.moon{animation:none}}

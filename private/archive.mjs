@@ -22,6 +22,7 @@ const documents = {
   'confirmed-pins.html': '69e8423339ca402ff71adc5f8780b0d3a0e5f9140565638c8f74ebb30a511494',
   'previously-pinned.html': 'dbd36d427a9e4fa05a70229dac4528d2ac55f44cc0b762bfb88c9dc9f216eef8',
   'emergency.html': '6f55475c1b98b9e1f4d261031630b7dedd12d455defe632d54c18b309262c4df',
+  'places-that-became-ours.html': 'ab50b9ef569efb8140905543f65701e3997790a120a83f5a024c85b6eeb545d9',
   'surprise.html': '64fd8f98e80c8256855a316da63f5494f76576172217394683fa30c1585401df',
   'The_Archive_Illustrated_Ebook_Revised.pdf': '3043e9618e0715a1c1f75b77c03b8af95cca71199b3c5a54dc078272c35d2120',
   'Manuscript.html': '21da887c307818bdac9fdad959b2792730ce1ad1017e16f41e5b137bd935d041',
@@ -170,6 +171,14 @@ function restoreSwipeHub(doc) {
     .swipe-card-art--ledger span { border-left: 5px solid #7f9171; background: #f4f5eb; }
     .swipe-card-art--jar span { background: #f5eff9; border-color: #a893b7; }
     .swipe-card-art--kit span { border-top: 5px solid #ad695c; }
+    .swipe-card-art--places { background: radial-gradient(ellipse, #f8ecd6, #dfc59f); }
+    .swipe-card-art--places span {
+      display: grid; place-items: center; width: 70px; height: 50px;
+      background: repeating-linear-gradient(90deg, #f8eedb 0 21px, #d1b890 22px 23px);
+      border: 1px solid #aa865c; border-radius: 4px; transform: rotate(-8deg);
+      color: #8a5230; font-size: 1.6rem; line-height: 1;
+    }
+    .swipe-card-art--places span::after { content: '⌖'; }
     @media (max-height: 560px) { .swipe-card-art { display: none; } }
   `;
   doc.head.append(styles);
@@ -199,6 +208,7 @@ function restoreSwipeHub(doc) {
   for (const [label, icon, href, description, badge, artwork] of [
     ['Illustrated Ebook', '📘', privateLink(ebook), 'The illustrated edition of The Archive, with the revised opening image. Read or download the PDF.', '🔒 PDF passphrase required', 'book'],
     ['Surprise', '💌', privateLink('surprise.html'), 'For You. A little something to open when you have a quiet moment.', '🔒 Passphrase required', 'letter'],
+    ['Places That Became Ours', '🗺️', privateLink('places-that-became-ours.html'), 'A scrollable rewind of the places that became part of our story.', '🔒 Passphrase required', 'places'],
   ]) {
     const index = carousel.querySelectorAll('.menu-item').length;
     const tile = doc.createElement('a');

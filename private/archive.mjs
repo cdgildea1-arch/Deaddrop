@@ -22,8 +22,12 @@ const documents = {
   'confirmed-pins.html': '69e8423339ca402ff71adc5f8780b0d3a0e5f9140565638c8f74ebb30a511494',
   'previously-pinned.html': 'dbd36d427a9e4fa05a70229dac4528d2ac55f44cc0b762bfb88c9dc9f216eef8',
   'emergency.html': '6f55475c1b98b9e1f4d261031630b7dedd12d455defe632d54c18b309262c4df',
+  'surprise.html': '01a9f606cccfa93878cdf48035134ab447c3e70abe51e8c3bec0204756676914',
+  'The_Archive_Illustrated_Ebook_Revised.pdf': '52a74e833788e2653551a6aa5d907b194e6d241064c20b723380b15e1d7ada2f',
   'Manuscript.html': '21da887c307818bdac9fdad959b2792730ce1ad1017e16f41e5b137bd935d041',
 };
+const ebook = 'The_Archive_Illustrated_Ebook_Revised.pdf';
+let ebookUrl;
 const requested = params.get('page');
 const page = Object.hasOwn(documents, requested) ? requested : 'hub.html';
 const say = text => { $('status').textContent = text; };
@@ -76,7 +80,7 @@ function buildPage(markup) {
   const doc = new DOMParser().parseFromString(markup, 'text/html');
   for (const anchor of doc.querySelectorAll('a[href]')) {
     const href = anchor.getAttribute('href');
-    if (!href || href.startsWith('#')) continue;
+    if (!href || href.startsWith('#') || href.startsWith('blob:')) continue;
     const destination = new URL(href, location.origin + '/');
     if (destination.origin !== location.origin) continue;
     const name = decodeURIComponent(destination.pathname.split('/').pop());
@@ -126,7 +130,8 @@ function restoreSwipeHub(doc) {
 
   for (const [label, icon, href] of [
     ['Manuscript', '📖', privateLink('Manuscript.html')],
-    ['Surprise', '✦', '/surprise.html'],
+    ['Illustrated Ebook', '📘', privateLink(ebook)],
+    ['Surprise', '✦', privateLink('surprise.html')],
   ]) {
     const index = carousel.querySelectorAll('.menu-item').length;
     const tile = doc.createElement('a');
@@ -176,11 +181,13 @@ async function readPage() {
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
     byte => byte.toString(16).padStart(2, '0')).join('');
   if (hash !== documents[page]) throw new Error('This archive page could not be verified.');
-  return new TextDecoder().decode(bytes);
+  return page === ebook ? new Blob([bytes], { type: 'application/pdf' }) : new TextDecoder().decode(bytes);
 }
 
 function closeArchive() {
   displayedUser = null;
+  if (ebookUrl) URL.revokeObjectURL(ebookUrl);
+  ebookUrl = undefined;
   frame.hidden = true;
   frame.removeAttribute('srcdoc');
   $('gate').hidden = false;
@@ -226,7 +233,22 @@ async function render() {
     if (version !== generation) return;
     document.title = page === 'hub.html' ? 'Private Archive · Hub' : 'Private Archive';
     displayedUser = user.id;
-    frame.srcdoc = buildPage(markup);
+    if (page === ebook) ebookUrl = URL.createObjectURL(markup);
+    frame.srcdoc = buildPage(page === ebook ? `<!doctype html>
+      <html lang="en"><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>The Archive · Illustrated Ebook</title>
+      <style>
+        body { margin: 0; background: #f8f5ed; color: #193653; font: 16px system-ui, sans-serif; }
+        main { max-width: 30rem; margin: 12vh auto; padding: 24px; }
+        h1 { font: 700 36px Georgia, serif; }
+        a { display: inline-block; padding: 12px; margin-right: 8px; color: inherit; }
+        .open { background: #cddde9; border: 1px solid #7895ad; border-radius: 8px; }
+      </style></head><body><main>
+      <h1>The Archive</h1><p>Illustrated Edition</p>
+      <a class="open" href="${ebookUrl}" target="_top">Open PDF</a>
+      <a href="${ebookUrl}" download="${ebook}">Download PDF</a>
+      </main></body></html>` : markup);
     frame.hidden = false;
     $('gate').hidden = true;
   } catch {
